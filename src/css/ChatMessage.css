@@ -1,0 +1,116 @@
+.message-wrapper {
+  display: flex;
+  margin-bottom: 1rem;
+  padding: 0 1rem;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-wrapper.user-message {
+  justify-content: flex-end;
+}
+
+.message-wrapper.ai-message {
+  justify-content: flex-start;
+  width: 100%;
+}
+
+/* Estilo de burbuja para mensajes de usuario */
+.message-content {
+  max-width: 70%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  word-wrap: break-word;
+  background-color: var(--user-message-bg);
+  color: var(--user-message-text);
+}
+
+.message-text {
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* Estilo sin burbuja para mensajes de IA */
+.ai-content {
+  width: 100%;
+  max-width: 100%;
+  color: var(--text-color);
+}
+
+.ai-text {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.ai-text p {
+  margin: 0.5rem 0;
+}
+
+/* Bloques de código */
+.code-block {
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: var(--code-bg);
+  border: 1px solid var(--border-color);
+}
+
+.code-header {
+  background-color: var(--code-header-bg);
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.code-language {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-color);
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.code-content {
+  margin: 0;
+  padding: 1rem;
+  overflow-x: auto;
+  background-color: var(--code-bg);
+}
+
+.code-content code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--code-text);
+  white-space: pre;
+}
+
+/* Scrollbar para código */
+.code-content::-webkit-scrollbar {
+  height: 8px;
+}
+
+.code-content::-webkit-scrollbar-track {
+  background: var(--code-bg);
+}
+
+.code-content::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.code-content::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
