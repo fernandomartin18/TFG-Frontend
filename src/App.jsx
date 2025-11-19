@@ -7,7 +7,10 @@ import ThemeToggle from './components/ThemeToggle'
 function App() {
   const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
-  const [isDarkTheme, setIsDarkTheme] = useState(false)
+  const [isDarkTheme, setIsDarkTheme] = useState(() => {
+    // Detectar preferencia del sistema
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
   const messagesEndRef = useRef(null)
 
   // Aplicar tema
@@ -87,7 +90,10 @@ function App() {
         <div ref={messagesEndRef} />
       </div>
 
-      <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+      <ChatInput 
+        onSendMessage={handleSendMessage} 
+        isLoading={isLoading}
+      />
     </div>
   )
 }

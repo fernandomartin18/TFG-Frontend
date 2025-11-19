@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
+import { IoSend } from 'react-icons/io5'
 import '../css/ChatInput.css'
 
 function ChatInput({ onSendMessage, isLoading }) {
@@ -29,7 +30,7 @@ function ChatInput({ onSendMessage, isLoading }) {
           className="send-button"
           disabled={!input.trim() || isLoading}
         >
-          {isLoading ? '...' : 'Enviar'}
+          <IoSend size={20} />
         </button>
       </div>
     </div>

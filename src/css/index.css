@@ -1,7 +1,7 @@
 /* Tema claro */
 :root[data-theme="light"] {
   --background: #ffffff;
-  --text-color: #213547;
+  --text-color: #000000;
   --border-color: #e0e0e0;
   --input-bg: #f5f5f5;
   --primary-color: #646cff;
@@ -11,9 +11,9 @@
   --user-message-text: #ffffff;
   --ai-message-bg: #f0f0f0;
   --ai-message-text: #213547;
-  --code-bg: #f6f8fa;
-  --code-header-bg: #e7e9eb;
-  --code-text: #24292f;
+  --code-bg: #fcfcfd;
+  --code-header-bg: #eff1f3;
+  --code-text: #000000;
 }
 
 /* Tema oscuro */
@@ -29,9 +29,9 @@
   --user-message-text: #ffffff;
   --ai-message-bg: #2a2a2a;
   --ai-message-text: rgba(255, 255, 255, 0.87);
-  --code-bg: #161b22;
-  --code-header-bg: #0d1117;
-  --code-text: #c9d1d9;
+  --code-bg: #0e1116;
+  --code-header-bg: #050709;
+  --code-text: #ffffff;
 }
 
 :root {

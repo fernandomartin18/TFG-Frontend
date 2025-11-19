@@ -38,18 +38,19 @@
 .message-text {
   line-height: 1.5;
   white-space: pre-wrap;
+  font-size: 1.1rem;
 }
 
 /* Estilo sin burbuja para mensajes de IA */
 .ai-content {
   width: 100%;
-  max-width: 100%;
   color: var(--text-color);
 }
 
 .ai-text {
   margin-bottom: 1rem;
   line-height: 1.6;
+  font-size: 1.1rem;
 }
 
 .ai-text p {
@@ -58,11 +59,14 @@
 
 /* Bloques de código */
 .code-block {
-  margin: 1rem 0;
-  border-radius: 0.5rem;
+  border-radius: 0.8rem;
   overflow: hidden;
   background-color: var(--code-bg);
   border: 1px solid var(--border-color);
+  max-width: 85%;
+  margin: 0 auto;
+  margin-bottom: -1.5rem;
+  margin-top: -2.5rem;
 }
 
 .code-header {
@@ -86,12 +90,14 @@
   margin: 0;
   padding: 1rem;
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 400px;
   background-color: var(--code-bg);
 }
 
 .code-content code {
   font-family: 'Courier New', Courier, monospace;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   line-height: 1.5;
   color: var(--code-text);
   white-space: pre;
@@ -100,6 +106,7 @@
 /* Scrollbar para código */
 .code-content::-webkit-scrollbar {
   height: 8px;
+  width: 8px;
 }
 
 .code-content::-webkit-scrollbar-track {
