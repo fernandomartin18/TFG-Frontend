@@ -57,6 +57,65 @@
   margin: 0.5rem 0;
 }
 
+/* Estilos para Markdown */
+.markdown-content {
+  line-height: 1.6;
+  font-size: 1.1rem;
+}
+
+.markdown-content p {
+  margin: 0.5rem 0;
+}
+
+.markdown-content strong {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.markdown-content em {
+  font-style: italic;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.markdown-content li {
+  margin: 0.25rem 0;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  font-weight: 600;
+  margin: 1rem 0 0.5rem 0;
+  color: var(--text-color);
+}
+
+.markdown-content h1 { font-size: 1.5rem; }
+.markdown-content h2 { font-size: 1.3rem; }
+.markdown-content h3 { font-size: 1.15rem; }
+
+.markdown-content code {
+  background-color: var(--code-bg);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.1rem;
+}
+
+.markdown-content blockquote {
+  border-left: 3px solid var(--primary-color);
+  padding-left: 1rem;
+  margin: 0.5rem 0;
+  opacity: 0.8;
+}
+
 /* Bloques de código */
 .code-block {
   border-radius: 0.8rem;
@@ -65,8 +124,7 @@
   border: 1px solid var(--border-color);
   max-width: 85%;
   margin: 0 auto;
-  margin-bottom: -1.5rem;
-  margin-top: -2.5rem;
+  margin-bottom: 1.5rem
 }
 
 .code-header {
@@ -84,6 +142,29 @@
   color: var(--text-color);
   text-transform: uppercase;
   opacity: 0.8;
+}
+
+.copy-button {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.copy-button:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.copy-button:active {
+  transform: scale(0.95);
 }
 
 .code-content {
@@ -120,4 +201,8 @@
 
 .code-content::-webkit-scrollbar-thumb:hover {
   background: var(--primary-color);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }

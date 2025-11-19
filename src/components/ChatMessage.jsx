@@ -1,7 +1,22 @@
+import { useState } from 'react'
 import PropTypes from 'prop-types'
+import { FaCopy } from 'react-icons/fa6'
+import ReactMarkdown from 'react-markdown'
 import '../css/ChatMessage.css'
 
 function ChatMessage({ message, isUser }) {
+  const [copiedIndex, setCopiedIndex] = useState(null)
+
+  const handleCopy = async (code, index) => {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopiedIndex(index)
+      setTimeout(() => setCopiedIndex(null), 2000)
+    } catch (err) {
+      console.error('Error al copiar:', err)
+    }
+  }
+
   // Si es usuario, mostrar como burbuja normal
   if (isUser) {
     return (
@@ -61,6 +76,13 @@ function ChatMessage({ message, isUser }) {
               <div key={index} className="code-block">
                 <div className="code-header">
                   <span className="code-language">{part.language}</span>
+                  <button 
+                    className="copy-button"
+                    onClick={() => handleCopy(part.content, index)}
+                    title={copiedIndex === index ? "¡Copiado!" : "Copiar código"}
+                  >
+                    <FaCopy size={16} />
+                  </button>
                 </div>
                 <pre className="code-content">
                   <code>{part.content}</code>
@@ -69,10 +91,8 @@ function ChatMessage({ message, isUser }) {
             )
           } else {
             return (
-              <div key={index} className="ai-text">
-                {part.content.split('\n').map((line, i) => (
-                  <p key={i}>{line || '\u00A0'}</p>
-                ))}
+              <div key={index} className="ai-text markdown-content">
+                <ReactMarkdown>{part.content}</ReactMarkdown>
               </div>
             )
           }
