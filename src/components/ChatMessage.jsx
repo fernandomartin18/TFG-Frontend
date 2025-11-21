@@ -4,7 +4,7 @@ import { FaCopy } from 'react-icons/fa6'
 import ReactMarkdown from 'react-markdown'
 import '../css/ChatMessage.css'
 
-function ChatMessage({ message, isUser }) {
+function ChatMessage({ message, isUser, isError = false }) {
   const [copiedIndex, setCopiedIndex] = useState(null)
 
   const handleCopy = async (code, index) => {
@@ -69,7 +69,7 @@ function ChatMessage({ message, isUser }) {
 
   return (
     <div className="message-wrapper ai-message">
-      <div className="ai-content">
+      <div className={`ai-content ${isError ? 'error-message' : ''}`}>
         {messageParts.map((part, index) => {
           if (part.type === 'code') {
             return (
@@ -104,7 +104,8 @@ function ChatMessage({ message, isUser }) {
 
 ChatMessage.propTypes = {
   message: PropTypes.string.isRequired,
-  isUser: PropTypes.bool.isRequired
+  isUser: PropTypes.bool.isRequired,
+  isError: PropTypes.bool
 }
 
 export default ChatMessage

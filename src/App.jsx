@@ -57,7 +57,8 @@ function App() {
       console.error('Error al enviar mensaje:', error)
       const errorMessage = { 
         text: 'Error al comunicarse con la IA. Verifica que el backend esté corriendo.', 
-        isUser: false 
+        isUser: false,
+        isError: true
       }
       setMessages(prev => [...prev, errorMessage])
     } finally {
@@ -76,14 +77,15 @@ function App() {
       <div className="messages-container">
         {messages.length === 0 ? (
           <div className="empty-state">
-            <p>Escribe un mensaje para comenzar la conversación</p>
+            <p>¿En qué puedo ayudarte hoy?</p>
           </div>
         ) : (
           messages.map((msg, index) => (
             <ChatMessage 
               key={index} 
               message={msg.text} 
-              isUser={msg.isUser} 
+              isUser={msg.isUser}
+              isError={msg.isError}
             />
           ))
         )}

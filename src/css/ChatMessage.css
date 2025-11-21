@@ -47,6 +47,16 @@
   color: var(--text-color);
 }
 
+.error-message {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.error-message .ai-text,
+.error-message .markdown-content {
+  color: #ef4444;
+}
+
 .ai-text {
   margin-bottom: 1rem;
   line-height: 1.6;
