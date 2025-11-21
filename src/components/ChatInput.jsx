@@ -51,21 +51,22 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange }) {
           onKeyDown={handleKeyDown}
           placeholder="Escribe tu mensaje..."
           className="chat-input"
-          disabled={isLoading}
           rows={1}
         />
-        <ModelSelector 
-          selectedModel={selectedModel}
-          onModelChange={onModelChange}
-        />
-        <button 
-          type="button" 
-          onClick={handleSend}
-          className="send-button"
-          disabled={!input.trim() || isLoading}
-        >
-          <IoSend size={20} />
-        </button>
+        <div className="controls-group">
+          <ModelSelector 
+            selectedModel={selectedModel}
+            onModelChange={onModelChange}
+          />
+          <button 
+            type="button" 
+            onClick={handleSend}
+            className="send-button"
+            disabled={!input.trim() || isLoading}
+          >
+            <IoSend size={20} />
+          </button>
+        </div>
       </div>
     </div>
   )

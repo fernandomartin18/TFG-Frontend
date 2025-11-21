@@ -10,15 +10,26 @@
 }
 
 .chat-input-form {
-  max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.chat-input-form > :first-child {
+  grid-column: 2;
+}
+
+.controls-group {
+  grid-column: 3;
   display: flex;
   gap: 0.75rem;
   align-items: flex-end;
 }
 
 .chat-input {
-  flex: 1;
+  width: 100%;
   padding: 0.75rem 1rem;
   border: 2px solid var(--border-color);
   border-radius: 1.5rem;
