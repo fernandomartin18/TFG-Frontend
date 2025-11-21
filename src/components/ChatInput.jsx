@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { IoSend } from 'react-icons/io5'
+import ModelSelector from './ModelSelector'
 import '../css/ChatInput.css'
 
-function ChatInput({ onSendMessage, isLoading }) {
+function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange }) {
   const [input, setInput] = useState('')
   const textareaRef = useRef(null)
 
@@ -53,6 +54,10 @@ function ChatInput({ onSendMessage, isLoading }) {
           disabled={isLoading}
           rows={1}
         />
+        <ModelSelector 
+          selectedModel={selectedModel}
+          onModelChange={onModelChange}
+        />
         <button 
           type="button" 
           onClick={handleSend}
@@ -68,7 +73,9 @@ function ChatInput({ onSendMessage, isLoading }) {
 
 ChatInput.propTypes = {
   onSendMessage: PropTypes.func.isRequired,
-  isLoading: PropTypes.bool
+  isLoading: PropTypes.bool,
+  selectedModel: PropTypes.string.isRequired,
+  onModelChange: PropTypes.func.isRequired
 }
 
 export default ChatInput

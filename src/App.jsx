@@ -7,6 +7,7 @@ import ThemeToggle from './components/ThemeToggle'
 function App() {
   const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedModel, setSelectedModel] = useState('Auto')
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
     // Detectar preferencia del sistema
     return window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -30,9 +31,12 @@ function App() {
     setIsLoading(true)
 
     try {
+      // Determinar el modelo a usar
+      const modelToUse = selectedModel === 'Auto' ? 'qwen2.5-coder:14b' : selectedModel
+      
       // Crear FormData para enviar al backend
       const formData = new FormData()
-      formData.append('model', 'qwen2.5-coder:14b')
+      formData.append('model', modelToUse)
       formData.append('prompt', userMessage)
 
       // Llamar al backend
@@ -95,6 +99,8 @@ function App() {
       <ChatInput 
         onSendMessage={handleSendMessage} 
         isLoading={isLoading}
+        selectedModel={selectedModel}
+        onModelChange={setSelectedModel}
       />
     </div>
   )
