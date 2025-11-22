@@ -91,9 +91,25 @@
   max-width: 70%;
   padding: 0.75rem 1rem;
   border-radius: 1rem;
+  border-top-right-radius: 0;
   word-wrap: break-word;
   background-color: var(--user-message-bg);
   color: var(--user-message-text);
+  position: relative;
+}
+
+.user-message .message-content::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -8px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid var(--user-message-bg);
+  border-top: 8px solid var(--user-message-bg);
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-top-right-radius: 4px;
 }
 
 .message-text {
