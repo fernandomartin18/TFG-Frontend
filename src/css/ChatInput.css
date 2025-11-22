@@ -17,7 +17,14 @@
   align-items: flex-end;
 }
 
-.chat-input-form > :first-child {
+.image-uploader-group {
+  grid-column: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+.chat-input-form > textarea {
   grid-column: 2;
 }
 

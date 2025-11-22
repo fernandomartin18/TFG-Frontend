@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { IoSend } from 'react-icons/io5'
 import ModelSelector from './ModelSelector'
+import ImageUploader from './ImageUploader'
 import '../css/ChatInput.css'
 
-function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange }) {
+function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, images, onImagesChange }) {
   const [input, setInput] = useState('')
   const textareaRef = useRef(null)
 
@@ -44,6 +45,12 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange }) {
   return (
     <div className="chat-input-container">
       <div className="chat-input-form">
+        <div className="image-uploader-group">
+          <ImageUploader 
+            images={images}
+            onImagesChange={onImagesChange}
+          />
+        </div>
         <textarea
           ref={textareaRef}
           value={input}
@@ -76,7 +83,9 @@ ChatInput.propTypes = {
   onSendMessage: PropTypes.func.isRequired,
   isLoading: PropTypes.bool,
   selectedModel: PropTypes.string.isRequired,
-  onModelChange: PropTypes.func.isRequired
+  onModelChange: PropTypes.func.isRequired,
+  images: PropTypes.array.isRequired,
+  onImagesChange: PropTypes.func.isRequired
 }
 
 export default ChatInput

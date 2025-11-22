@@ -8,6 +8,7 @@ function App() {
   const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [selectedModel, setSelectedModel] = useState('Auto')
+  const [images, setImages] = useState([])
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
     // Detectar preferencia del sistema
     return window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -38,6 +39,11 @@ function App() {
       const formData = new FormData()
       formData.append('model', modelToUse)
       formData.append('prompt', userMessage)
+      
+      // Añadir imágenes si existen
+      if (images.length > 0) {
+        formData.append('image', images[0].file)
+      }
 
       // Llamar al backend
       const response = await fetch('http://localhost:3000/api/generate', {
@@ -57,6 +63,9 @@ function App() {
         isUser: false 
       }
       setMessages(prev => [...prev, aiMessage])
+      
+      // Limpiar imágenes después de enviar
+      setImages([])
     } catch (error) {
       console.error('Error al enviar mensaje:', error)
       const errorMessage = { 
@@ -101,6 +110,8 @@ function App() {
         isLoading={isLoading}
         selectedModel={selectedModel}
         onModelChange={setSelectedModel}
+        images={images}
+        onImagesChange={setImages}
       />
     </div>
   )
