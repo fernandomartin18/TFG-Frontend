@@ -2,10 +2,15 @@ import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { FaCopy } from 'react-icons/fa6'
 import ReactMarkdown from 'react-markdown'
+import ImageModal from './ImageModal'
+import ImageDropdown from './ImageDropdown'
 import '../css/ChatMessage.css'
 
-function ChatMessage({ message, isUser, isError = false }) {
+function ChatMessage({ message, isUser, isError = false, images = [] }) {
   const [copiedIndex, setCopiedIndex] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null)
+  const [showDropdown, setShowDropdown] = useState(false)
 
   const handleCopy = async (code, index) => {
     try {
@@ -17,13 +22,75 @@ function ChatMessage({ message, isUser, isError = false }) {
     }
   }
 
+  const handlePreviewClick = () => {
+    if (images.length === 1) {
+      setSelectedImageIndex(0)
+      setShowModal(true)
+    } else if (images.length > 1) {
+      setShowDropdown(!showDropdown)
+    }
+  }
+
+  const handleImageClick = (index) => {
+    setSelectedImageIndex(index)
+    setShowModal(true)
+    setShowDropdown(false)
+  }
+
+  const handleDeleteImage = () => {
+    // En el chat no permitimos eliminar imágenes
+    // Solo cerrar el modal
+    setShowModal(false)
+    setSelectedImageIndex(null)
+  }
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    setSelectedImageIndex(null)
+  }
+
   // Si es usuario, mostrar como burbuja normal
   if (isUser) {
     return (
       <div className="message-wrapper user-message">
+        {images.length > 0 && (
+          <div className="message-images">
+            <div className="image-preview-container">
+              <button
+                type="button"
+                className="image-preview-button"
+                onClick={handlePreviewClick}
+              >
+                <img src={images[0].url} alt="Preview" className="image-preview" />
+                {images.length > 1 && (
+                  <div className="image-count-badge">+{images.length - 1}</div>
+                )}
+              </button>
+
+              {showDropdown && images.length > 1 && (
+                <ImageDropdown
+                  images={images}
+                  onImageClick={handleImageClick}
+                  onDeleteImage={() => {}} // No permitir eliminar desde el chat
+                  onClose={() => setShowDropdown(false)}
+                  showDeleteButton={false}
+                />
+              )}
+            </div>
+          </div>
+        )}
         <div className="message-content">
           <div className="message-text">{message}</div>
         </div>
+        
+        {showModal && selectedImageIndex !== null && (
+          <ImageModal
+            image={images[selectedImageIndex]}
+            onClose={handleCloseModal}
+            onDelete={handleDeleteImage}
+            showDeleteButton={false}
+          />
+        )}
       </div>
     )
   }
@@ -105,7 +172,8 @@ function ChatMessage({ message, isUser, isError = false }) {
 ChatMessage.propTypes = {
   message: PropTypes.string.isRequired,
   isUser: PropTypes.bool.isRequired,
-  isError: PropTypes.bool
+  isError: PropTypes.bool,
+  images: PropTypes.array
 }
 
 export default ChatMessage

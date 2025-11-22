@@ -2,7 +2,7 @@ import PropTypes from 'prop-types'
 import { MdClose, MdDelete } from 'react-icons/md'
 import '../css/ImageModal.css'
 
-function ImageModal({ image, onClose, onDelete }) {
+function ImageModal({ image, onClose, onDelete, showDeleteButton = true }) {
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose()
@@ -28,16 +28,18 @@ function ImageModal({ image, onClose, onDelete }) {
           <img src={image.url} alt={image.name} className="image-modal-img" />
         </div>
 
-        <div className="image-modal-footer">
-          <button
-            type="button"
-            className="image-modal-delete"
-            onClick={onDelete}
-          >
-            <MdDelete size={20} />
-            Eliminar
-          </button>
-        </div>
+        {showDeleteButton && (
+          <div className="image-modal-footer">
+            <button
+              type="button"
+              className="image-modal-delete"
+              onClick={onDelete}
+            >
+              <MdDelete size={20} />
+              Eliminar
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -49,7 +51,8 @@ ImageModal.propTypes = {
     name: PropTypes.string.isRequired
   }).isRequired,
   onClose: PropTypes.func.isRequired,
-  onDelete: PropTypes.func.isRequired
+  onDelete: PropTypes.func.isRequired,
+  showDeleteButton: PropTypes.bool
 }
 
 export default ImageModal

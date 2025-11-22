@@ -18,11 +18,72 @@
 
 .message-wrapper.user-message {
   justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .message-wrapper.ai-message {
   justify-content: flex-start;
   width: 100%;
+}
+
+.message-images {
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.message-images .image-preview-container {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-end;
+  overflow: visible;
+}
+
+.message-images .image-preview-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 1rem;
+  border: 2px solid var(--border-color);
+  background-color: var(--input-bg);
+  cursor: pointer;
+  padding: 0;
+  overflow: visible;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.message-images .image-preview-button:hover {
+  border-color: var(--primary-color);
+  transform: scale(1.05);
+}
+
+.message-images .image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.85rem;
+}
+
+.message-images .image-count-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border: 2px solid var(--background);
+}
+
+.message-images .image-dropdown {
+  left: auto;
+  right: 0;
 }
 
 /* Estilo de burbuja para mensajes de usuario */

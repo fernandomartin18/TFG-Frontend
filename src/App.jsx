@@ -26,8 +26,12 @@ function App() {
   }, [messages])
 
   const handleSendMessage = async (userMessage) => {
-    // Agregar mensaje del usuario
-    const newUserMessage = { text: userMessage, isUser: true }
+    // Agregar mensaje del usuario con imágenes si las hay
+    const newUserMessage = { 
+      text: userMessage, 
+      isUser: true,
+      images: [...images] // Copiar las imágenes actuales
+    }
     setMessages(prev => [...prev, newUserMessage])
     setIsLoading(true)
 
@@ -99,6 +103,7 @@ function App() {
               message={msg.text} 
               isUser={msg.isUser}
               isError={msg.isError}
+              images={msg.images || []}
             />
           ))
         )}

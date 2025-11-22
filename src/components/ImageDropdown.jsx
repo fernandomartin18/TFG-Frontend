@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { MdDelete } from 'react-icons/md'
 import '../css/ImageDropdown.css'
 
-function ImageDropdown({ images, onImageClick, onDeleteImage, onClose }) {
+function ImageDropdown({ images, onImageClick, onDeleteImage, onClose, showDeleteButton = true }) {
   const dropdownRef = useRef(null)
 
   useEffect(() => {
@@ -46,14 +46,16 @@ function ImageDropdown({ images, onImageClick, onDeleteImage, onClose }) {
               : image.name}
           </div>
           
-          <button
-            type="button"
-            className="image-dropdown-delete"
-            onClick={(e) => handleDelete(e, index)}
-            aria-label="Eliminar"
-          >
-            <MdDelete size={18} />
-          </button>
+          {showDeleteButton && (
+            <button
+              type="button"
+              className="image-dropdown-delete"
+              onClick={(e) => handleDelete(e, index)}
+              aria-label="Eliminar"
+            >
+              <MdDelete size={18} />
+            </button>
+          )}
         </div>
       ))}
     </div>
@@ -64,7 +66,8 @@ ImageDropdown.propTypes = {
   images: PropTypes.array.isRequired,
   onImageClick: PropTypes.func.isRequired,
   onDeleteImage: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired
+  onClose: PropTypes.func.isRequired,
+  showDeleteButton: PropTypes.bool
 }
 
 export default ImageDropdown
