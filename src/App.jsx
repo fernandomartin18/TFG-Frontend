@@ -33,6 +33,10 @@ function App() {
       images: [...images] // Copiar las imágenes actuales
     }
     setMessages(prev => [...prev, newUserMessage])
+    
+    // Agregar mensaje vacío de la IA que se irá llenando
+    const aiMessageIndex = messages.length + 1
+    setMessages(prev => [...prev, { text: '', isUser: false }])
     setIsLoading(true)
 
     try {
@@ -49,8 +53,8 @@ function App() {
         formData.append('image', images[0].file)
       }
 
-      // Llamar al backend
-      const response = await fetch('http://localhost:3000/api/generate', {
+      // Llamar al backend con streaming
+      const response = await fetch('http://localhost:3000/api/generate/stream', {
         method: 'POST',
         body: formData,
       })
@@ -59,25 +63,52 @@ function App() {
         throw new Error('Error en la respuesta del servidor')
       }
 
-      const data = await response.json()
-      
-      // Agregar respuesta de la IA
-      const aiMessage = { 
-        text: data.result || data.response || data.message || 'Sin respuesta', 
-        isUser: false 
+      // Leer el stream
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let accumulatedText = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        const lines = chunk.split('\n')
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+            if (data === '[DONE]') {
+              break
+            }
+            if (data.startsWith('[ERROR]')) {
+              throw new Error(data.slice(8))
+            }
+            accumulatedText += data
+            // Actualizar el mensaje de la IA en tiempo real
+            setMessages(prev => {
+              const newMessages = [...prev]
+              newMessages[aiMessageIndex] = { text: accumulatedText, isUser: false }
+              return newMessages
+            })
+          }
+        }
       }
-      setMessages(prev => [...prev, aiMessage])
       
       // Limpiar imágenes después de enviar
       setImages([])
     } catch (error) {
       console.error('Error al enviar mensaje:', error)
-      const errorMessage = { 
-        text: 'Error al comunicarse con la IA. Verifica que el backend esté corriendo.', 
-        isUser: false,
-        isError: true
-      }
-      setMessages(prev => [...prev, errorMessage])
+      // Actualizar el mensaje de la IA con el error
+      setMessages(prev => {
+        const newMessages = [...prev]
+        newMessages[aiMessageIndex] = {
+          text: 'Error al comunicarse con la IA. Verifica que el backend esté corriendo.',
+          isUser: false,
+          isError: true
+        }
+        return newMessages
+      })
     } finally {
       setIsLoading(false)
     }
