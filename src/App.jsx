@@ -84,7 +84,14 @@ function App() {
             if (data.startsWith('[ERROR]')) {
               throw new Error(data.slice(8))
             }
-            accumulatedText += data
+            // Decodificar JSON para preservar saltos de línea y caracteres especiales
+            try {
+              const decodedChunk = JSON.parse(data)
+              accumulatedText += decodedChunk
+            } catch (e) {
+              // Si no es JSON válido, usar el texto tal cual
+              accumulatedText += data
+            }
             // Actualizar el mensaje de la IA en tiempo real
             setMessages(prev => {
               const newMessages = [...prev]
