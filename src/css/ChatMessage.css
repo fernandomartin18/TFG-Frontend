@@ -207,11 +207,36 @@
 .code-block {
   border-radius: 0.8rem;
   overflow: hidden;
-  background-color: var(--code-bg);
   border: 1px solid var(--border-color);
   max-width: 85%;
   margin: 0 auto;
-  margin-bottom: 1.5rem
+  margin-bottom: 1.5rem;
+}
+
+/* Estilos para react-syntax-highlighter */
+.code-block pre {
+  margin: 0 !important;
+  max-height: 400px;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+}
+
+.code-block pre::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.code-block pre::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.code-block pre::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.code-block pre::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
 }
 
 .code-header {
@@ -286,6 +311,7 @@
   transform: scale(0.95);
 }
 
+/* Estilos antiguos de code-content */
 .code-content {
   margin: 0;
   padding: 1rem;
@@ -303,7 +329,7 @@
   white-space: pre;
 }
 
-/* Scrollbar para código */
+/* Scrollbar para código - ahora aplicado en .code-block pre */
 .code-content::-webkit-scrollbar {
   height: 8px;
   width: 8px;

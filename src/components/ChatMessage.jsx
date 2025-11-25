@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { FaCopy } from 'react-icons/fa6'
 import ReactMarkdown from 'react-markdown'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import ImageModal from './ImageModal'
 import ImageDropdown from './ImageDropdown'
 import '../css/ChatMessage.css'
@@ -11,6 +13,25 @@ function ChatMessage({ message, isUser, isError = false, images = [] }) {
   const [showModal, setShowModal] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(null)
   const [showDropdown, setShowDropdown] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(
+    document.documentElement.getAttribute('data-theme') === 'dark'
+  )
+
+  // Detectar cambios en el tema
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.getAttribute('data-theme') === 'dark')
+    })
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
+  const codeStyle = isDarkMode ? vscDarkPlus : vs
 
   const handleCopy = async (code, index) => {
     try {
@@ -180,9 +201,28 @@ function ChatMessage({ message, isUser, isError = false, images = [] }) {
                     </div>
                   )}
                 </div>
-                <pre className="code-content">
-                  <code>{part.content}{!part.complete && <span className="cursor-blink">▊</span>}</code>
-                </pre>
+                <SyntaxHighlighter
+                  language={part.language || 'text'}
+                  style={codeStyle}
+                  customStyle={{
+                    margin: 0,
+                    borderRadius: '0 0 0.5rem 0.5rem',
+                    fontSize: '1rem',
+                    padding: '1rem',
+                    backgroundColor: isDarkMode ? '#1e1e1e' : '#f5f5f5',
+                  }}
+                  codeTagProps={{
+                    style: {
+                      fontFamily: "'Fira Code', 'Courier New', monospace",
+                      lineHeight: '1.5',
+                      fontSize: '1.1rem'
+                    }
+                  }}
+                  showLineNumbers={false}
+                  wrapLines={true}
+                >
+                  {part.content}{!part.complete && '▊'}
+                </SyntaxHighlighter>
               </div>
             )
           } else {
