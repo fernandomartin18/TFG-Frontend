@@ -98,34 +98,56 @@ function ChatMessage({ message, isUser, isError = false, images = [] }) {
   // Si es IA, parsear y mostrar con formato especial
   const parseMessage = (text) => {
     const parts = []
-    const regex = /```(\w+)?\n([\s\S]*?)```/g
-    let lastIndex = 0
+    let currentIndex = 0
+    
+    // Buscar bloques de código (completos o incompletos)
+    const codeBlockPattern = /```(\w+)?\n/g
     let match
-
-    while ((match = regex.exec(text)) !== null) {
+    
+    while ((match = codeBlockPattern.exec(text)) !== null) {
+      const openIndex = match.index
+      const language = match[1] || 'text'
+      const contentStart = match.index + match[0].length
+      
       // Agregar texto antes del bloque de código
-      if (match.index > lastIndex) {
+      if (openIndex > currentIndex) {
         parts.push({
           type: 'text',
-          content: text.substring(lastIndex, match.index)
+          content: text.substring(currentIndex, openIndex)
         })
       }
-
-      // Agregar bloque de código
-      parts.push({
-        type: 'code',
-        language: match[1] || 'text',
-        content: match[2].trim()
-      })
-
-      lastIndex = regex.lastIndex
+      
+      // Buscar cierre del bloque (```)
+      const closeMatch = text.indexOf('```', contentStart)
+      
+      if (closeMatch !== -1) {
+        // Bloque completo
+        parts.push({
+          type: 'code',
+          language: language,
+          content: text.substring(contentStart, closeMatch).trim(),
+          complete: true
+        })
+        currentIndex = closeMatch + 3
+        codeBlockPattern.lastIndex = currentIndex
+      } else {
+        // Bloque incompleto (streaming)
+        parts.push({
+          type: 'code',
+          language: language,
+          content: text.substring(contentStart),
+          complete: false
+        })
+        currentIndex = text.length
+        break
+      }
     }
-
+    
     // Agregar texto restante
-    if (lastIndex < text.length) {
+    if (currentIndex < text.length) {
       parts.push({
         type: 'text',
-        content: text.substring(lastIndex)
+        content: text.substring(currentIndex)
       })
     }
 
@@ -143,16 +165,23 @@ function ChatMessage({ message, isUser, isError = false, images = [] }) {
               <div key={index} className="code-block">
                 <div className="code-header">
                   <span className="code-language">{part.language}</span>
-                  <button 
-                    className="copy-button"
-                    onClick={() => handleCopy(part.content, index)}
-                    title={copiedIndex === index ? "¡Copiado!" : "Copiar código"}
-                  >
-                    <FaCopy size={16} />
-                  </button>
+                  {part.complete && (
+                    <div className="copy-button-container">
+                      <button 
+                        className="copy-button"
+                        onClick={() => handleCopy(part.content, index)}
+                        title={copiedIndex === index ? "¡Copiado!" : "Copiar código"}
+                      >
+                        <FaCopy size={16} />
+                      </button>
+                      {copiedIndex === index && (
+                        <span className="copy-tooltip">¡Copiado!</span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <pre className="code-content">
-                  <code>{part.content}</code>
+                  <code>{part.content}{!part.complete && <span className="cursor-blink">▊</span>}</code>
                 </pre>
               </div>
             )
