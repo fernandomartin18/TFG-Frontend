@@ -14,18 +14,25 @@ function App() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
   const messagesEndRef = useRef(null)
+  const shouldScrollRef = useRef(false)
 
   // Aplicar tema
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light')
   }, [isDarkTheme])
 
-  // Auto-scroll al último mensaje
+  // Auto-scroll solo cuando se indica explícitamente
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (shouldScrollRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      shouldScrollRef.current = false
+    }
   }, [messages])
 
   const handleSendMessage = async (userMessage) => {
+    // Activar auto-scroll para este nuevo mensaje
+    shouldScrollRef.current = true
+    
     // Agregar mensaje del usuario con imágenes si las hay
     const newUserMessage = { 
       text: userMessage, 
