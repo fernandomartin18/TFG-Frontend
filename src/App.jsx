@@ -50,10 +50,17 @@ function App() {
       // Determinar el modelo a usar
       const modelToUse = selectedModel === 'Auto' ? 'qwen2.5-coder:14b' : selectedModel
       
+      // Construir historial de mensajes para contexto (incluyendo el mensaje actual)
+      const messageHistory = [...messages, newUserMessage].map(msg => ({
+        role: msg.isUser ? 'user' : 'assistant',
+        content: msg.text
+      }))
+      
       // Crear FormData para enviar al backend
       const formData = new FormData()
       formData.append('model', modelToUse)
       formData.append('prompt', userMessage)
+      formData.append('messages', JSON.stringify(messageHistory))
       
       // Añadir imágenes si existen
       if (images.length > 0) {
