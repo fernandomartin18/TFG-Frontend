@@ -121,7 +121,9 @@ function App() {
       
       // Añadir imágenes si existen
       if (images.length > 0) {
-        formData.append('image', images[0].file)
+        images.forEach((img) => {
+          formData.append('images', img.file)
+        })
       }
 
       // Llamar al backend con streaming
