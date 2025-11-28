@@ -98,6 +98,9 @@ function App() {
     }
     setMessages(prev => [...prev, newUserMessage])
     
+    // Limpiar imágenes al enviar
+    setImages([])
+    
     // Agregar mensaje vacío de la IA que se irá llenando
     const aiMessageIndex = messages.length + 1
     setMessages(prev => [...prev, { text: '', isUser: false, isLoading: true }])
@@ -175,8 +178,6 @@ function App() {
         }
       }
       
-      // Limpiar imágenes después de enviar
-      setImages([])
     } catch (error) {
       console.error('Error al enviar mensaje:', error)
       // Actualizar el mensaje de la IA con el error
