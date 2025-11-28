@@ -14,24 +14,81 @@ function App() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
   const messagesEndRef = useRef(null)
-  const shouldScrollRef = useRef(false)
+  const autoScrollEnabled = useRef(true)
+  const messagesContainerRef = useRef(null)
+  const isAutoScrolling = useRef(false)
 
   // Aplicar tema
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light')
   }, [isDarkTheme])
 
-  // Auto-scroll solo cuando se indica explícitamente
+  // Detectar scroll manual del usuario
   useEffect(() => {
-    if (shouldScrollRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-      shouldScrollRef.current = false
+    const container = messagesContainerRef.current
+    if (!container) return
+
+    let scrollTimeout = null
+    let lastScrollTop = container.scrollTop
+
+    const handleScroll = () => {
+      // Ignorar eventos de scroll si estamos haciendo autoscroll
+      if (isAutoScrolling.current) {
+        lastScrollTop = container.scrollTop
+        return
+      }
+
+      const currentScrollTop = container.scrollTop
+      
+      // Solo procesar si hay un cambio real de posición (scroll manual)
+      if (currentScrollTop === lastScrollTop) {
+        return
+      }
+      
+      lastScrollTop = currentScrollTop
+
+      // Limpiar timeout anterior
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout)
+      }
+
+      // Esperar un poco para asegurarnos de que el usuario terminó de scrollear
+      scrollTimeout = setTimeout(() => {
+        const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 10
+        
+        // Si NO estamos al final, desactivar autoscroll
+        if (!isAtBottom) {
+          autoScrollEnabled.current = false
+        } else {
+          // Si volvemos al final manualmente, reactivar autoscroll
+          autoScrollEnabled.current = true
+        }
+      }, 50)
+    }
+
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      container.removeEventListener('scroll', handleScroll)
+      if (scrollTimeout) clearTimeout(scrollTimeout)
+    }
+  }, [])
+
+  // Auto-scroll cuando está habilitado y hay cambios en los mensajes
+  useEffect(() => {
+    if (autoScrollEnabled.current && messagesEndRef.current) {
+      isAutoScrolling.current = true
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+      
+      // Resetear la bandera después de que termine el scroll
+      setTimeout(() => {
+        isAutoScrolling.current = false
+      }, 1000)
     }
   }, [messages])
 
   const handleSendMessage = async (userMessage) => {
-    // Activar auto-scroll para este nuevo mensaje
-    shouldScrollRef.current = true
+    // Activar auto-scroll cuando el usuario envía un mensaje
+    autoScrollEnabled.current = true
     
     // Agregar mensaje del usuario con imágenes si las hay
     const newUserMessage = { 
@@ -143,7 +200,7 @@ function App() {
     <div className="app-container">
       <ThemeToggle isDark={isDarkTheme} onToggle={toggleTheme} />
 
-      <div className="messages-container">
+      <div className="messages-container" ref={messagesContainerRef}>
         {messages.length === 0 ? (
           <div className="empty-state">
             <p>¿En qué puedo ayudarte hoy?</p>
