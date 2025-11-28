@@ -100,7 +100,7 @@ function App() {
     
     // Agregar mensaje vacío de la IA que se irá llenando
     const aiMessageIndex = messages.length + 1
-    setMessages(prev => [...prev, { text: '', isUser: false }])
+    setMessages(prev => [...prev, { text: '', isUser: false, isLoading: true }])
     setIsLoading(true)
 
     try {
@@ -168,7 +168,7 @@ function App() {
             // Actualizar el mensaje de la IA en tiempo real
             setMessages(prev => {
               const newMessages = [...prev]
-              newMessages[aiMessageIndex] = { text: accumulatedText, isUser: false }
+              newMessages[aiMessageIndex] = { text: accumulatedText, isUser: false, isLoading: false }
               return newMessages
             })
           }
@@ -216,6 +216,7 @@ function App() {
               isError={msg.isError}
               images={msg.images || []}
               isFirstMessage={index === 0}
+              isLoading={msg.isLoading || false}
             />
           ))
         )}

@@ -6,9 +6,10 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import ImageModal from './ImageModal'
 import ImageDropdown from './ImageDropdown'
+import LoadingDots from './LoadingDots'
 import '../css/ChatMessage.css'
 
-function ChatMessage({ message, isUser, isError = false, images = [], isFirstMessage = false }) {
+function ChatMessage({ message, isUser, isError = false, images = [], isFirstMessage = false, isLoading = false }) {
   const [copiedIndex, setCopiedIndex] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(null)
@@ -181,7 +182,10 @@ function ChatMessage({ message, isUser, isError = false, images = [], isFirstMes
   return (
     <div className="message-wrapper ai-message">
       <div className={`ai-content ${isError ? 'error-message' : ''}`}>
-        {messageParts.map((part, index) => {
+        {isLoading ? (
+          <LoadingDots />
+        ) : (
+          messageParts.map((part, index) => {
           if (part.type === 'code') {
             return (
               <div key={index} className="code-block">
@@ -233,7 +237,8 @@ function ChatMessage({ message, isUser, isError = false, images = [], isFirstMes
               </div>
             )
           }
-        })}
+        })
+        )}
       </div>
     </div>
   )
@@ -244,7 +249,8 @@ ChatMessage.propTypes = {
   isUser: PropTypes.bool.isRequired,
   isError: PropTypes.bool,
   images: PropTypes.array,
-  isFirstMessage: PropTypes.bool
+  isFirstMessage: PropTypes.bool,
+  isLoading: PropTypes.bool
 }
 
 export default ChatMessage
