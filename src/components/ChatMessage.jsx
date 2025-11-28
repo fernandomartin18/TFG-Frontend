@@ -8,7 +8,7 @@ import ImageModal from './ImageModal'
 import ImageDropdown from './ImageDropdown'
 import '../css/ChatMessage.css'
 
-function ChatMessage({ message, isUser, isError = false, images = [] }) {
+function ChatMessage({ message, isUser, isError = false, images = [], isFirstMessage = false }) {
   const [copiedIndex, setCopiedIndex] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(null)
@@ -95,6 +95,7 @@ function ChatMessage({ message, isUser, isError = false, images = [] }) {
                   onDeleteImage={() => {}} // No permitir eliminar desde el chat
                   onClose={() => setShowDropdown(false)}
                   showDeleteButton={false}
+                  showBelow={isFirstMessage}
                 />
               )}
             </div>
@@ -242,7 +243,8 @@ ChatMessage.propTypes = {
   message: PropTypes.string.isRequired,
   isUser: PropTypes.bool.isRequired,
   isError: PropTypes.bool,
-  images: PropTypes.array
+  images: PropTypes.array,
+  isFirstMessage: PropTypes.bool
 }
 
 export default ChatMessage

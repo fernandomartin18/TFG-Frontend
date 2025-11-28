@@ -215,6 +215,7 @@ function App() {
               isUser={msg.isUser}
               isError={msg.isError}
               images={msg.images || []}
+              isFirstMessage={index === 0}
             />
           ))
         )}

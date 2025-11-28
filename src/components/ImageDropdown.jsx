@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { MdDelete } from 'react-icons/md'
 import '../css/ImageDropdown.css'
 
-function ImageDropdown({ images, onImageClick, onDeleteImage, onClose, showDeleteButton = true }) {
+function ImageDropdown({ images, onImageClick, onDeleteImage, onClose, showDeleteButton = true, showBelow = false }) {
   const dropdownRef = useRef(null)
 
   useEffect(() => {
@@ -25,7 +25,7 @@ function ImageDropdown({ images, onImageClick, onDeleteImage, onClose, showDelet
   }
 
   return (
-    <div className="image-dropdown" ref={dropdownRef}>
+    <div className={`image-dropdown ${showBelow ? 'dropdown-below' : ''}`} ref={dropdownRef}>
       {images.map((image, index) => (
         <div key={index} className="image-dropdown-item">
           <button
@@ -67,7 +67,8 @@ ImageDropdown.propTypes = {
   onImageClick: PropTypes.func.isRequired,
   onDeleteImage: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
-  showDeleteButton: PropTypes.bool
+  showDeleteButton: PropTypes.bool,
+  showBelow: PropTypes.bool
 }
 
 export default ImageDropdown
