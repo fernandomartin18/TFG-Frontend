@@ -109,6 +109,7 @@ function App() {
     try {
       // Determinar el modelo a usar
       const modelToUse = selectedModel === 'Auto' ? 'qwen2.5-coder:14b' : selectedModel
+      const isAutoMode = selectedModel === 'Auto'
       
       // Construir historial de mensajes para contexto (incluyendo el mensaje actual)
       const messageHistory = [...messages, newUserMessage].map(msg => ({
@@ -121,6 +122,7 @@ function App() {
       formData.append('model', modelToUse)
       formData.append('prompt', userMessage)
       formData.append('messages', JSON.stringify(messageHistory))
+      formData.append('autoMode', isAutoMode ? 'true' : 'false')
       
       // Añadir imágenes si existen
       if (images.length > 0) {
