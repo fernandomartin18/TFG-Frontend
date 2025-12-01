@@ -145,6 +145,9 @@ function App() {
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
       let accumulatedText = ''
+      let step1Text = ''
+      let step2Text = ''
+      let currentStep = 0 // 0: ninguno, 1: paso 1 (PlantUML), 2: paso 2 (respuesta final)
 
       while (true) {
         const { done, value } = await reader.read()
@@ -162,20 +165,78 @@ function App() {
             if (data.startsWith('[ERROR]')) {
               throw new Error(data.slice(8))
             }
-            // Decodificar JSON para preservar saltos de línea y caracteres especiales
+            
+            // Detectar eventos de control de pasos
             try {
               const decodedChunk = JSON.parse(data)
-              accumulatedText += decodedChunk
+              
+              if (decodedChunk === '[STEP1_START]') {
+                currentStep = 1
+                continue
+              }
+              
+              if (decodedChunk === '[STEP1_END]') {
+                step1Text = accumulatedText
+                accumulatedText = ''
+                continue
+              }
+              
+              if (decodedChunk === '[STEP2_START]') {
+                currentStep = 2
+                continue
+              }
+              
+              // Acumular texto según el paso actual
+              if (currentStep === 1) {
+                accumulatedText += decodedChunk
+                // Actualizar el mensaje con el paso 1 en progreso
+                setMessages(prev => {
+                  const newMessages = [...prev]
+                  newMessages[aiMessageIndex] = { 
+                    text: accumulatedText, 
+                    isUser: false, 
+                    isLoading: false,
+                    isTwoStep: true,
+                    step1Text: accumulatedText,
+                    step2Text: '',
+                    currentStep: 1
+                  }
+                  return newMessages
+                })
+              } else if (currentStep === 2) {
+                accumulatedText += decodedChunk
+                // Actualizar el mensaje con ambos pasos
+                setMessages(prev => {
+                  const newMessages = [...prev]
+                  newMessages[aiMessageIndex] = { 
+                    text: accumulatedText, 
+                    isUser: false, 
+                    isLoading: false,
+                    isTwoStep: true,
+                    step1Text: step1Text,
+                    step2Text: accumulatedText,
+                    currentStep: 2
+                  }
+                  return newMessages
+                })
+              } else {
+                // Modo normal (sin pasos)
+                accumulatedText += decodedChunk
+                setMessages(prev => {
+                  const newMessages = [...prev]
+                  newMessages[aiMessageIndex] = { text: accumulatedText, isUser: false, isLoading: false }
+                  return newMessages
+                })
+              }
             } catch (e) {
-              // Si no es JSON válido, usar el texto tal cual
+              // Si no es JSON válido, tratar como texto normal
               accumulatedText += data
+              setMessages(prev => {
+                const newMessages = [...prev]
+                newMessages[aiMessageIndex] = { text: accumulatedText, isUser: false, isLoading: false }
+                return newMessages
+              })
             }
-            // Actualizar el mensaje de la IA en tiempo real
-            setMessages(prev => {
-              const newMessages = [...prev]
-              newMessages[aiMessageIndex] = { text: accumulatedText, isUser: false, isLoading: false }
-              return newMessages
-            })
           }
         }
       }
@@ -220,6 +281,10 @@ function App() {
               images={msg.images || []}
               isFirstMessage={index === 0}
               isLoading={msg.isLoading || false}
+              isTwoStep={msg.isTwoStep || false}
+              step1Text={msg.step1Text || ''}
+              step2Text={msg.step2Text || ''}
+              currentStep={msg.currentStep || 0}
             />
           ))
         )}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import { FaCopy } from 'react-icons/fa6'
+import { FaCopy, FaChevronUp, FaChevronDown } from 'react-icons/fa6'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism'
@@ -9,11 +9,23 @@ import ImageDropdown from './ImageDropdown'
 import LoadingDots from './LoadingDots'
 import '../css/ChatMessage.css'
 
-function ChatMessage({ message, isUser, isError = false, images = [], isFirstMessage = false, isLoading = false }) {
+function ChatMessage({ 
+  message, 
+  isUser, 
+  isError = false, 
+  images = [], 
+  isFirstMessage = false, 
+  isLoading = false,
+  isTwoStep = false,
+  step1Text = '',
+  step2Text = '',
+  currentStep = 0
+}) {
   const [copiedIndex, setCopiedIndex] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(null)
   const [showDropdown, setShowDropdown] = useState(false)
+  const [showPlantUML, setShowPlantUML] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(
     document.documentElement.getAttribute('data-theme') === 'dark'
   )
@@ -179,6 +191,159 @@ function ChatMessage({ message, isUser, isError = false, images = [], isFirstMes
 
   const messageParts = parseMessage(message)
 
+  // Si es un mensaje de dos pasos, mostrar interfaz especial
+  if (!isUser && isTwoStep) {
+    const step1Parts = step1Text ? parseMessage(step1Text) : []
+    const step2Parts = step2Text ? parseMessage(step2Text) : []
+    
+    return (
+      <div className="message-wrapper ai-message">
+        <div className={`ai-content ${isError ? 'error-message' : ''}`}>
+          {/* Paso 1: PlantUML */}
+          {currentStep >= 1 && (
+            <div className="plantuml-section">
+              <div 
+                className="plantuml-header"
+                onClick={() => setShowPlantUML(!showPlantUML)}
+              >
+                <span className="plantuml-title">Generando PlantUML</span>
+                <button className="plantuml-toggle" aria-label={showPlantUML ? "Contraer" : "Expandir"}>
+                  {showPlantUML ? <FaChevronUp size={16} /> : <FaChevronDown size={16} />}
+                </button>
+              </div>
+              
+              {showPlantUML && (
+                <div className="plantuml-content">
+                  {currentStep === 1 && step1Parts.length === 0 ? (
+                    <LoadingDots />
+                  ) : (
+                    step1Parts.map((part, index) => {
+                      if (part.type === 'code') {
+                        return (
+                          <div key={index} className="code-block">
+                            <div className="code-header">
+                              <span className="code-language">{part.language}</span>
+                              {part.complete && (
+                                <div className="copy-button-container">
+                                  <button 
+                                    className="copy-button"
+                                    onClick={() => handleCopy(part.content, `step1-${index}`)}
+                                    title={copiedIndex === `step1-${index}` ? "¡Copiado!" : "Copiar código"}
+                                  >
+                                    <FaCopy size={16} />
+                                  </button>
+                                  {copiedIndex === `step1-${index}` && (
+                                    <span className="copy-tooltip">¡Copiado!</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <SyntaxHighlighter
+                              language={part.language || 'text'}
+                              style={codeStyle}
+                              customStyle={{
+                                margin: 0,
+                                borderRadius: '0 0 0.5rem 0.5rem',
+                                fontSize: '1rem',
+                                padding: '1rem',
+                                backgroundColor: isDarkMode ? '#1e1e1e' : '#f5f5f5',
+                              }}
+                              codeTagProps={{
+                                style: {
+                                  fontFamily: "'Fira Code', 'Courier New', monospace",
+                                  lineHeight: '1.5',
+                                  fontSize: '1.1rem'
+                                }
+                              }}
+                              showLineNumbers={false}
+                              wrapLines={true}
+                            >
+                              {part.content}{!part.complete && '▊'}
+                            </SyntaxHighlighter>
+                          </div>
+                        )
+                      } else {
+                        return (
+                          <div key={index} className="ai-text markdown-content">
+                            <ReactMarkdown>{part.content}</ReactMarkdown>
+                          </div>
+                        )
+                      }
+                    })
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Paso 2: Respuesta final */}
+          {currentStep >= 2 && (
+            <div className="final-response">
+              {step2Parts.length === 0 ? (
+                <LoadingDots />
+              ) : (
+                step2Parts.map((part, index) => {
+                  if (part.type === 'code') {
+                    return (
+                      <div key={index} className="code-block">
+                        <div className="code-header">
+                          <span className="code-language">{part.language}</span>
+                          {part.complete && (
+                            <div className="copy-button-container">
+                              <button 
+                                className="copy-button"
+                                onClick={() => handleCopy(part.content, `step2-${index}`)}
+                                title={copiedIndex === `step2-${index}` ? "¡Copiado!" : "Copiar código"}
+                              >
+                                <FaCopy size={16} />
+                              </button>
+                              {copiedIndex === `step2-${index}` && (
+                                <span className="copy-tooltip">¡Copiado!</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <SyntaxHighlighter
+                          language={part.language || 'text'}
+                          style={codeStyle}
+                          customStyle={{
+                            margin: 0,
+                            borderRadius: '0 0 0.5rem 0.5rem',
+                            fontSize: '1rem',
+                            padding: '1rem',
+                            backgroundColor: isDarkMode ? '#1e1e1e' : '#f5f5f5',
+                          }}
+                          codeTagProps={{
+                            style: {
+                              fontFamily: "'Fira Code', 'Courier New', monospace",
+                              lineHeight: '1.5',
+                              fontSize: '1.1rem'
+                            }
+                          }}
+                          showLineNumbers={false}
+                          wrapLines={true}
+                        >
+                          {part.content}{!part.complete && '▊'}
+                        </SyntaxHighlighter>
+                      </div>
+                    )
+                  } else {
+                    return (
+                      <div key={index} className="ai-text markdown-content">
+                        <ReactMarkdown>{part.content}</ReactMarkdown>
+                      </div>
+                    )
+                  }
+                })
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Renderizado normal para mensajes de un solo paso
   return (
     <div className="message-wrapper ai-message">
       <div className={`ai-content ${isError ? 'error-message' : ''}`}>
@@ -250,7 +415,11 @@ ChatMessage.propTypes = {
   isError: PropTypes.bool,
   images: PropTypes.array,
   isFirstMessage: PropTypes.bool,
-  isLoading: PropTypes.bool
+  isLoading: PropTypes.bool,
+  isTwoStep: PropTypes.bool,
+  step1Text: PropTypes.string,
+  step2Text: PropTypes.string,
+  currentStep: PropTypes.number
 }
 
 export default ChatMessage

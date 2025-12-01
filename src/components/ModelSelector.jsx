@@ -142,6 +142,7 @@ function ModelSelector({ selectedModel, onModelChange }) {
               </p>
               <p>Instala el que desees vía terminal usando el comando:</p>
               <code className="info-code">ollama pull &lt;nombre_del_modelo[:parámetros]&gt;</code>
+              <p><br></br>Para que funcione el módo automático, es necesario tener un modelo con reconocimiento de imágenes y otro con capacidades de lenguaje instalados.</p>
             </div>
           </div>
         </div>
