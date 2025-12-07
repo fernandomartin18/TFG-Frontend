@@ -9,10 +9,12 @@ function ModelSelector({ selectedModel, onModelChange }) {
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [models, setModels] = useState([])
   const [loading, setLoading] = useState(false)
+  const [autoAvailable, setAutoAvailable] = useState(false)
   const dropdownRef = useRef(null)
 
   useEffect(() => {
     fetchModels()
+    checkAutoMode()
   }, [])
 
   useEffect(() => {
@@ -37,12 +39,69 @@ function ModelSelector({ selectedModel, onModelChange }) {
       const response = await fetch('http://localhost:3000/api/models')
       if (response.ok) {
         const data = await response.json()
-        setModels(data.models || [])
+        const modelList = data.models || []
+        setModels(modelList)
+        
+        // Solo actualizar si selectedModel está vacío (carga inicial)
+        if (!selectedModel) {
+          if (modelList.length === 0) {
+            onModelChange('No hay LLMs')
+          }
+          // Si hay modelos, esperar a checkAutoMode para decidir
+        }
       }
     } catch (error) {
       console.error('Error fetching models:', error)
+      if (!selectedModel) {
+        onModelChange('No hay LLMs')
+      }
     } finally {
       setLoading(false)
+    }
+  }
+
+  const checkAutoMode = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/models/auto-select')
+      if (response.ok) {
+        const data = await response.json()
+        const isAutoAvailable = data.auto_available || false
+        setAutoAvailable(isAutoAvailable)
+        
+        // Solo configurar modelo inicial si selectedModel está vacío
+        if (!selectedModel) {
+          const modelsResponse = await fetch('http://localhost:3000/api/models')
+          if (modelsResponse.ok) {
+            const modelsData = await modelsResponse.json()
+            const modelList = modelsData.models || []
+            
+            if (modelList.length === 0) {
+              onModelChange('No hay LLMs')
+            } else if (isAutoAvailable) {
+              onModelChange('Auto')
+            } else {
+              onModelChange(modelList[0].name)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking auto mode:', error)
+      setAutoAvailable(false)
+      
+      // Si hay error y no hay modelo seleccionado, intentar seleccionar el primero
+      if (!selectedModel) {
+        const modelsResponse = await fetch('http://localhost:3000/api/models')
+        if (modelsResponse.ok) {
+          const modelsData = await modelsResponse.json()
+          const modelList = modelsData.models || []
+          if (modelList.length > 0) {
+            onModelChange(modelList[0].name)
+          } else {
+            onModelChange('No hay LLMs')
+          }
+        }
+      }
     }
   }
 
@@ -78,7 +137,9 @@ function ModelSelector({ selectedModel, onModelChange }) {
         onClick={handleToggle}
       >
         <div className="model-selector-label">Modelo</div>
-        <div className="model-selector-value">{selectedModel}</div>
+        <div className="model-selector-value">
+          {selectedModel || 'No hay LLMs'}
+        </div>
       </button>
 
       {isOpen && (
@@ -94,11 +155,13 @@ function ModelSelector({ selectedModel, onModelChange }) {
           
           {loading ? (
             <div className="model-option loading">Cargando...</div>
+          ) : models.length === 0 ? (
+            <div className="model-option disabled">No hay LLMs</div>
           ) : (
             <>
               <div 
-                className={`model-option ${selectedModel === 'Auto' ? 'selected' : ''}`}
-                onClick={() => handleSelectModel('Auto')}
+                className={`model-option ${selectedModel === 'Auto' ? 'selected' : ''} ${!autoAvailable ? 'disabled' : ''}`}
+                onClick={autoAvailable ? () => handleSelectModel('Auto') : undefined}
               >
                 Auto
               </div>

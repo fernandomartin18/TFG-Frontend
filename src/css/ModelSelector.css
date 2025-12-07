@@ -105,6 +105,16 @@
   background-color: transparent;
 }
 
+.model-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--text-secondary);
+}
+
+.model-option.disabled:hover {
+  background-color: transparent;
+}
+
 /* Scrollbar para el dropdown */
 .model-dropdown::-webkit-scrollbar {
   width: 6px;

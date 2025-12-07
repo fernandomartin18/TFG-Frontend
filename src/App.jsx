@@ -7,7 +7,7 @@ import ThemeToggle from './components/ThemeToggle'
 function App() {
   const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedModel, setSelectedModel] = useState('Auto')
+  const [selectedModel, setSelectedModel] = useState('')
   const [images, setImages] = useState([])
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
     // Detectar preferencia del sistema
