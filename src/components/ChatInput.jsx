@@ -49,6 +49,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
           <ImageUploader 
             images={images}
             onImagesChange={onImagesChange}
+            selectedModel={selectedModel}
           />
         </div>
         <textarea

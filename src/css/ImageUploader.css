@@ -61,6 +61,22 @@
   height: 100%;
   object-fit: cover;
   border-radius: 0.85rem;
+  transition: filter 0.3s ease;
+}
+
+.image-preview.disabled {
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+.image-preview-button.disabled {
+  cursor: default;
+  border-color: var(--border-color);
+}
+
+.image-preview-button.disabled:hover {
+  border-color: var(--border-color);
+  transform: none;
 }
 
 .image-count-badge {

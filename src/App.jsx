@@ -90,11 +90,24 @@ function App() {
     // Activar auto-scroll cuando el usuario envía un mensaje
     autoScrollEnabled.current = true
     
-    // Agregar mensaje del usuario con imágenes si las hay
+    // Determinar si el modelo seleccionado tiene capacidades de visión
+    const isVisionModel = () => {
+      if (!selectedModel || selectedModel === 'No hay LLMs') return false
+      if (selectedModel === 'Auto') return true
+      
+      const modelLower = selectedModel.toLowerCase()
+      const visionKeywords = ['vl', 'vision', 'llava', 'bakllava', 'moondream']
+      return visionKeywords.some(keyword => modelLower.includes(keyword))
+    }
+    
+    // Filtrar imágenes: solo incluir si el modelo tiene visión
+    const imagesToSend = isVisionModel() ? [...images] : []
+    
+    // Agregar mensaje del usuario con imágenes solo si el modelo tiene visión
     const newUserMessage = { 
       text: userMessage, 
       isUser: true,
-      images: [...images] // Copiar las imágenes actuales
+      images: imagesToSend
     }
     setMessages(prev => [...prev, newUserMessage])
     
@@ -124,9 +137,9 @@ function App() {
       formData.append('messages', JSON.stringify(messageHistory))
       formData.append('autoMode', isAutoMode ? 'true' : 'false')
       
-      // Añadir imágenes si existen
-      if (images.length > 0) {
-        images.forEach((img) => {
+      // Añadir imágenes solo si el modelo tiene visión
+      if (imagesToSend.length > 0) {
+        imagesToSend.forEach((img) => {
           formData.append('images', img.file)
         })
       }

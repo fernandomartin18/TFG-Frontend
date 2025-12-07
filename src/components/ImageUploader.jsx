@@ -5,14 +5,26 @@ import ImageModal from './ImageModal'
 import ImageDropdown from './ImageDropdown'
 import '../css/ImageUploader.css'
 
-function ImageUploader({ images, onImagesChange }) {
+function ImageUploader({ images, onImagesChange, selectedModel }) {
   const [showModal, setShowModal] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(null)
   const [showDropdown, setShowDropdown] = useState(false)
   const fileInputRef = useRef(null)
 
+  // Determinar si el modelo seleccionado tiene capacidades de visión
+  const isVisionModel = () => {
+    if (!selectedModel || selectedModel === 'No hay LLMs') return false
+    if (selectedModel === 'Auto') return true
+    
+    const modelLower = selectedModel.toLowerCase()
+    const visionKeywords = ['vl', 'vision', 'llava', 'bakllava', 'moondream']
+    return visionKeywords.some(keyword => modelLower.includes(keyword))
+  }
+
+  const canAddImages = isVisionModel()
+
   const handleAddClick = () => {
-    if (images.length < 5) {
+    if (images.length < 5 && canAddImages) {
       fileInputRef.current?.click()
     }
   }
@@ -83,10 +95,16 @@ function ImageUploader({ images, onImagesChange }) {
       
       <button
         type="button"
-        className={`add-image-button ${images.length >= 5 ? 'disabled' : ''}`}
+        className={`add-image-button ${(images.length >= 5 || !canAddImages) ? 'disabled' : ''}`}
         onClick={handleAddClick}
-        disabled={images.length >= 5}
-        title={images.length >= 5 ? 'Máximo 5 imágenes' : 'Añadir imagen'}
+        disabled={images.length >= 5 || !canAddImages}
+        title={
+          !canAddImages 
+            ? 'Selecciona un modelo con visión o Auto para añadir imágenes'
+            : images.length >= 5 
+              ? 'Máximo 5 imágenes' 
+              : 'Añadir imagen'
+        }
       >
         <RiImageAddFill size={24} />
       </button>
@@ -95,10 +113,15 @@ function ImageUploader({ images, onImagesChange }) {
         <div className="image-preview-container">
           <button
             type="button"
-            className="image-preview-button"
+            className={`image-preview-button ${!canAddImages ? 'disabled' : ''}`}
             onClick={handlePreviewClick}
+            title={!canAddImages ? 'El modelo seleccionado no puede leer imágenes' : 'Ver imágenes'}
           >
-            <img src={images[0].url} alt="Preview" className="image-preview" />
+            <img 
+              src={images[0].url} 
+              alt="Preview" 
+              className={`image-preview ${!canAddImages ? 'disabled' : ''}`}
+            />
             {images.length > 1 && (
               <div className="image-count-badge">+{images.length - 1}</div>
             )}
@@ -128,7 +151,8 @@ function ImageUploader({ images, onImagesChange }) {
 
 ImageUploader.propTypes = {
   images: PropTypes.array.isRequired,
-  onImagesChange: PropTypes.func.isRequired
+  onImagesChange: PropTypes.func.isRequired,
+  selectedModel: PropTypes.string.isRequired
 }
 
 export default ImageUploader
