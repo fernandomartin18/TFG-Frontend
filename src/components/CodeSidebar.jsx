@@ -3,13 +3,36 @@ import PropTypes from 'prop-types'
 import { IoIosArrowBack } from 'react-icons/io'
 import { MdDownload } from 'react-icons/md'
 import JSZip from 'jszip'
+import CodeModal from './CodeModal'
 import '../css/CodeSidebar.css'
 
 function CodeSidebar({ codeRequests }) {
   const [isOpen, setIsOpen] = useState(false)
+  const [selectedCode, setSelectedCode] = useState(null)
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen)
+  }
+
+  const openCodeModal = (code, language, requestIndex, codeIndex) => {
+    setSelectedCode({
+      content: code,
+      language: language,
+      requestIndex: requestIndex,
+      codeIndex: codeIndex
+    })
+  }
+
+  const closeCodeModal = () => {
+    setSelectedCode(null)
+  }
+
+  const handleCodeClick = (e, code, language, requestIndex, codeIndex) => {
+    // Si el click fue en el botón de descarga, no abrir el modal
+    if (e.target.closest('.download-code-button')) {
+      return
+    }
+    openCodeModal(code, language, requestIndex, codeIndex)
   }
 
   const downloadCode = (code, language, fileName) => {
@@ -120,7 +143,11 @@ function CodeSidebar({ codeRequests }) {
 
               <div className="codes-list">
                 {request.codes.map((code, codeIndex) => (
-                  <div key={codeIndex} className="code-item">
+                  <div 
+                    key={codeIndex} 
+                    className="code-item"
+                    onClick={(e) => handleCodeClick(e, code.content, code.language, requestIndex, codeIndex)}
+                  >
                     <div className="code-item-header">
                       <span className="code-language">{code.language || 'text'}</span>
                       <button
@@ -145,6 +172,22 @@ function CodeSidebar({ codeRequests }) {
           ))}
         </div>
       </div>
+
+      {/* Modal para ver el código */}
+      {selectedCode && (
+        <CodeModal
+          code={selectedCode.content}
+          language={selectedCode.language}
+          onClose={closeCodeModal}
+          onDownload={() => {
+            downloadCode(
+              selectedCode.content,
+              selectedCode.language,
+              `codigo_peticion_${selectedCode.requestIndex + 1}_${selectedCode.codeIndex + 1}`
+            )
+          }}
+        />
+      )}
     </>
   )
 }

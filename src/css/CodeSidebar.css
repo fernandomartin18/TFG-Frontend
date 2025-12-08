@@ -121,11 +121,13 @@
   border-radius: 8px;
   padding: 0.75rem;
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .code-item:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
+  border-color: var(--primary-color);
 }
 
 .code-item-header {

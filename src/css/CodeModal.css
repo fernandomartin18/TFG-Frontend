@@ -1,0 +1,255 @@
+/* Backdrop del modal */
+.code-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 2rem;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Contenedor del modal */
+.code-modal-container {
+  background-color: var(--background);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 1200px;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header del modal */
+.code-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background-color: var(--background);
+}
+
+.code-modal-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.code-modal-language {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  background-color: var(--primary-color-light);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.code-modal-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.code-modal-button {
+  background-color: transparent;
+  border: 2px solid var(--border-color);
+  color: var(--text-color);
+  padding: 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.code-modal-button:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  transform: scale(1.05);
+}
+
+.code-modal-button.close:hover {
+  background-color: #ef4444;
+  border-color: #ef4444;
+}
+
+/* Body del modal */
+.code-modal-body {
+  flex: 1;
+  overflow: hidden;
+  padding: 1rem;
+  background-color: var(--background);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Bloque de código */
+.code-modal-body .code-block {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.code-modal-body .code-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background-color: var(--code-header-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.code-modal-body .code-language-tag {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  opacity: 0.8;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.code-modal-body .copy-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.code-modal-body .copy-button:hover {
+  background-color: var(--primary-hover);
+  transform: scale(1.02);
+}
+
+.code-modal-body .copy-button.copied {
+  background-color: #10b981;
+}
+
+.code-modal-body .code-block-content {
+  flex: 1;
+  overflow: auto;
+  background-color: var(--code-bg);
+}
+
+/* Scrollbar personalizado para el bloque de código */
+.code-modal-body .code-block-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.code-modal-body .code-block-content::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+.code-modal-body .code-block-content::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.code-modal-body .code-block-content::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .code-modal-backdrop {
+    padding: 1rem;
+  }
+
+  .code-modal-container {
+    width: 95%;
+    height: 90vh;
+  }
+
+  .code-modal-header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .code-modal-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .code-modal-body {
+    padding: 1rem;
+  }
+
+  .code-modal-language {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .code-modal-button {
+    font-size: 1.1rem;
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .code-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .code-modal-container {
+    width: 100%;
+    height: 95vh;
+    border-radius: 8px;
+  }
+
+  .code-modal-body .code-block-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .code-modal-body .copy-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
