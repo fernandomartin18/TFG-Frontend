@@ -168,7 +168,7 @@ function CodeSidebar({ codeRequests }) {
     URL.revokeObjectURL(url)
   }
 
-  const downloadAllCodes = async (requestIndex, codes, userMessage) => {
+  const downloadAllCodes = async (requestIndex, codes, userMessage, sectionTitle) => {
     // Generar nombre base descriptivo
     const baseName = generateDescriptiveName(codes[0].content, codes[0].language, userMessage)
     
@@ -193,10 +193,10 @@ function CodeSidebar({ codeRequests }) {
     const link = document.createElement('a')
     link.href = url
     
-    // Nombre del ZIP basado en el contexto
-    const zipName = userMessage 
-      ? userMessage.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_') 
-      : baseName
+    // Nombre del ZIP título de la sección
+    // Eliminar el contador de archivos
+    const cleanTitle = sectionTitle.replace(/\s*\(\d+\s+archivos?\)$/i, '').trim()
+    const zipName = cleanTitle.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_áéíóúñ]/gi, '')
     link.download = `${zipName}.zip`
     
     document.body.appendChild(link)
@@ -255,29 +255,32 @@ function CodeSidebar({ codeRequests }) {
       {/* Panel lateral */}
       <div className={`code-sidebar ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-content">
-          {codeRequests.map((request, requestIndex) => (
-            <div key={requestIndex} className="code-request-section">
-              <div className="request-header">
-                <h3 className="request-title">
-                  {generateRequestTitle(request.codes, request.userMessage)}
-                </h3>
-                <button
-                  className="download-all-button"
-                  onClick={() => downloadAllCodes(requestIndex, request.codes, request.userMessage)}
-                  title={request.codes.length === 1 ? 'Descargar código' : 'Descargar todos los códigos'}
-                >
-                  <MdDownload />
-                </button>
-              </div>
-
-              <div className="codes-list">
-                {request.codes.map((code, codeIndex) => (
-                  <div 
-                    key={codeIndex} 
-                    className="code-item"
-                    onClick={(e) => handleCodeClick(e, code.content, code.language, requestIndex, codeIndex)}
+          {codeRequests.map((request, requestIndex) => {
+            const sectionTitle = generateRequestTitle(request.codes, request.userMessage)
+            
+            return (
+              <div key={requestIndex} className="code-request-section">
+                <div className="request-header">
+                  <h3 className="request-title">
+                    {sectionTitle}
+                  </h3>
+                  <button
+                    className="download-all-button"
+                    onClick={() => downloadAllCodes(requestIndex, request.codes, request.userMessage, sectionTitle)}
+                    title={request.codes.length === 1 ? 'Descargar código' : 'Descargar todos los códigos'}
                   >
-                    <div className="code-item-header">
+                    <MdDownload />
+                  </button>
+                </div>
+
+                <div className="codes-list">
+                  {request.codes.map((code, codeIndex) => (
+                    <div 
+                      key={codeIndex} 
+                      className="code-item"
+                      onClick={(e) => handleCodeClick(e, code.content, code.language, requestIndex, codeIndex)}
+                    >
+                      <div className="code-item-header">
                       <span className="code-language">{code.language || 'text'}</span>
                       <button
                         className="download-code-button"
@@ -297,7 +300,8 @@ function CodeSidebar({ codeRequests }) {
                 ))}
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
