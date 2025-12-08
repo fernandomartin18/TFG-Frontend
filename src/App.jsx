@@ -3,6 +3,7 @@ import './css/App.css'
 import ChatMessage from './components/ChatMessage'
 import ChatInput from './components/ChatInput'
 import ThemeToggle from './components/ThemeToggle'
+import CodeSidebar from './components/CodeSidebar'
 
 function App() {
   const [messages, setMessages] = useState([])
@@ -13,6 +14,7 @@ function App() {
     // Detectar preferencia del sistema
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
+  const [codeRequests, setCodeRequests] = useState([])
   const messagesEndRef = useRef(null)
   const autoScrollEnabled = useRef(true)
   const messagesContainerRef = useRef(null)
@@ -22,6 +24,53 @@ function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light')
   }, [isDarkTheme])
+
+  // Extraer bloques de código de los mensajes de la IA
+  useEffect(() => {
+    const extractCodeBlocks = () => {
+      const requests = []
+      let currentRequestCodes = []
+      let isCollectingCodes = false
+
+      messages.forEach((msg, index) => {
+        // Detectar inicio de una nueva petición (mensaje del usuario)
+        if (msg.isUser) {
+          // Si había códigos de la petición anterior, guardarlos
+          if (currentRequestCodes.length > 0) {
+            requests.push({ codes: currentRequestCodes })
+            currentRequestCodes = []
+          }
+          isCollectingCodes = true
+        } 
+        // Extraer códigos de respuestas de la IA
+        else if (isCollectingCodes && !msg.isUser && !msg.isError) {
+          const codeBlockPattern = /```(\w+)?\n([\s\S]*?)```/g
+          let match
+          
+          while ((match = codeBlockPattern.exec(msg.text)) !== null) {
+            const language = match[1] || 'text'
+            const content = match[2].trim()
+            
+            if (content) {
+              currentRequestCodes.push({
+                content,
+                language
+              })
+            }
+          }
+        }
+      })
+
+      // Guardar los códigos de la última petición si existen
+      if (currentRequestCodes.length > 0) {
+        requests.push({ codes: currentRequestCodes })
+      }
+
+      setCodeRequests(requests)
+    }
+
+    extractCodeBlocks()
+  }, [messages])
 
   // Detectar scroll manual del usuario
   useEffect(() => {
@@ -278,6 +327,8 @@ function App() {
   return (
     <div className="app-container">
       <ThemeToggle isDark={isDarkTheme} onToggle={toggleTheme} />
+      
+      <CodeSidebar codeRequests={codeRequests} />
 
       <div className="messages-container" ref={messagesContainerRef}>
         {messages.length === 0 ? (
