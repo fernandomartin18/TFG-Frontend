@@ -30,6 +30,7 @@ function App() {
     const extractCodeBlocks = () => {
       const requests = []
       let currentRequestCodes = []
+      let currentUserMessage = ''
       let isCollectingCodes = false
 
       messages.forEach((msg, index) => {
@@ -37,10 +38,14 @@ function App() {
         if (msg.isUser) {
           // Si había códigos de la petición anterior, guardarlos
           if (currentRequestCodes.length > 0) {
-            requests.push({ codes: currentRequestCodes })
+            requests.push({ 
+              codes: currentRequestCodes,
+              userMessage: currentUserMessage
+            })
             currentRequestCodes = []
           }
           isCollectingCodes = true
+          currentUserMessage = msg.text
         } 
         // Extraer códigos de respuestas de la IA
         else if (isCollectingCodes && !msg.isUser && !msg.isError) {
@@ -63,7 +68,10 @@ function App() {
 
       // Guardar los códigos de la última petición si existen
       if (currentRequestCodes.length > 0) {
-        requests.push({ codes: currentRequestCodes })
+        requests.push({ 
+          codes: currentRequestCodes,
+          userMessage: currentUserMessage
+        })
       }
 
       setCodeRequests(requests)

@@ -35,6 +35,126 @@ function CodeSidebar({ codeRequests }) {
     openCodeModal(code, language, requestIndex, codeIndex)
   }
 
+  const generateDescriptiveName = (code, language, userMessage = '') => {
+    // Intentar detectar nombres de archivos, clases o funciones en el código
+    let detectedName = ''
+    
+    // Buscar nombre de clase
+    const classMatch = code.match(/class\s+([A-Z][a-zA-Z0-9_]*)/i)
+    if (classMatch) {
+      detectedName = classMatch[1]
+    }
+    
+    // Buscar nombre de función principal
+    if (!detectedName) {
+      const functionMatch = code.match(/(?:function|def|const|let|var)\s+([a-zA-Z][a-zA-Z0-9_]*)/i)
+      if (functionMatch) {
+        detectedName = functionMatch[1]
+      }
+    }
+    
+    // Buscar componente React
+    if (!detectedName && (language === 'jsx' || language === 'tsx')) {
+      const componentMatch = code.match(/(?:export\s+(?:default\s+)?)?(?:function|const)\s+([A-Z][a-zA-Z0-9_]*)/i)
+      if (componentMatch) {
+        detectedName = componentMatch[1]
+      }
+    }
+    
+    // Buscar título en HTML
+    if (!detectedName && language === 'html') {
+      const titleMatch = code.match(/<title>(.*?)<\/title>/i)
+      if (titleMatch) {
+        detectedName = titleMatch[1].trim().replace(/\s+/g, '_')
+      }
+    }
+    
+    if (detectedName) {
+      return detectedName
+    }
+    
+    // Si no se encuentra nada, usar un nombre genérico basado en el contexto
+    if (userMessage) {
+      // Filtrar palabras comunes y extraer palabras significativas
+      const stopWords = ['dame', 'ahora', 'genera', 'crea', 'haz', 'hacer', 'crear', 'generar', 
+                        'código', 'codigo', 'para', 'que', 'una', 'uno', 'con', 'por', 'los', 'las',
+                        'del', 'the', 'and', 'code', 'make', 'create', 'generate', 'escribe', 'write',
+                        'file', 'give', 'me', 'now', 'some', 'code', 'codes', 'of', 'in']
+      
+      const words = userMessage.toLowerCase()
+        .match(/\b[a-záéíóúñ]{3,}\b/gi) || []
+      
+      const meaningfulWords = words
+        .filter(word => !stopWords.includes(word.toLowerCase()))
+        .slice(0, 3)
+      
+      if (meaningfulWords.length > 0) {
+        return meaningfulWords.join('_')
+      }
+    }
+    
+    // Si no hay nada, nombre genérico
+    return 'code'
+  }
+
+  const generateRequestTitle = (codes, userMessage) => {
+    // Si solo hay un código, usar su nombre
+    if (codes.length === 1) {
+      const name = generateDescriptiveName(codes[0].content, codes[0].language, userMessage)
+      return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+    }
+    
+    // Para múltiples códigos, obtener nombres de todos
+    const codeNames = codes.map(code => 
+      generateDescriptiveName(code.content, code.language, userMessage)
+    )
+
+    const uniqueNames = [...new Set(codeNames)]
+    const hasGenericNames = codeNames.some(name => name === 'code' || name.includes('_'))
+    
+    if (uniqueNames.length === codes.length && !hasGenericNames && codes.length <= 3) {
+      const displayNames = codeNames
+        .map(name => name.charAt(0).toUpperCase() + name.slice(1))
+        .join(' y ')
+      return `${displayNames} (${codes.length} archivos)`
+    }
+    
+    // Si hay múltiples códigos del mismo lenguaje
+    const languages = codes.map(c => c.language)
+    const uniqueLanguages = [...new Set(languages)]
+    
+    if (uniqueLanguages.length === 1) {
+      const lang = uniqueLanguages[0] || 'Code'
+      return `${lang.charAt(0).toUpperCase() + lang.slice(1)} Files (${codes.length})`
+    }
+    
+    // Intentar extraer el tema principal del mensaje del usuario
+    if (userMessage) {
+      // Filtrar palabras comunes y extraer el tema
+      const stopWords = ['dame', 'ahora', 'genera', 'crea', 'haz', 'hacer', 'crear', 'generar', 
+                        'código', 'codigo', 'para', 'que', 'una', 'uno', 'con', 'por', 'los', 'las',
+                        'del', 'the', 'and', 'code', 'make', 'create', 'generate', 'escribe', 'write',
+                        'file', 'give', 'me', 'now', 'some', 'code', 'codes', 'of', 'in']
+      
+      const words = userMessage.toLowerCase()
+        .match(/\b[a-záéíóúñ]{3,}\b/gi) || []
+      
+      const meaningfulWords = words
+        .filter(word => !stopWords.includes(word.toLowerCase()))
+        .slice(0, 3)
+      
+      if (meaningfulWords.length > 0) {
+        const title = meaningfulWords
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ')
+        return `${title} (${codes.length} archivos)`
+      }
+    }
+    
+    // Por defecto, usar los lenguajes
+    return `Mixed Code (${codes.length} archivos)`
+  }
+
   const downloadCode = (code, language, fileName) => {
     const extension = getFileExtension(language)
     const blob = new Blob([code], { type: 'text/plain' })
@@ -48,11 +168,13 @@ function CodeSidebar({ codeRequests }) {
     URL.revokeObjectURL(url)
   }
 
-  const downloadAllCodes = async (requestIndex, codes) => {
+  const downloadAllCodes = async (requestIndex, codes, userMessage) => {
+    // Generar nombre base descriptivo
+    const baseName = generateDescriptiveName(codes[0].content, codes[0].language, userMessage)
+    
     // Si solo hay un código, descargar directamente sin ZIP
     if (codes.length === 1) {
-      const code = codes[0]
-      downloadCode(code.content, code.language, `codigo_peticion_${requestIndex + 1}`)
+      downloadCode(codes[0].content, codes[0].language, baseName)
       return
     }
 
@@ -60,8 +182,9 @@ function CodeSidebar({ codeRequests }) {
     const zip = new JSZip()
     
     codes.forEach((code, index) => {
+      const individualName = generateDescriptiveName(code.content, code.language, userMessage)
       const extension = getFileExtension(code.language)
-      const fileName = `codigo_${index + 1}.${extension}`
+      const fileName = `${individualName}.${extension}`
       zip.file(fileName, code.content)
     })
 
@@ -69,7 +192,13 @@ function CodeSidebar({ codeRequests }) {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `codigos_peticion_${requestIndex + 1}.zip`
+    
+    // Nombre del ZIP basado en el contexto
+    const zipName = userMessage 
+      ? userMessage.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_') 
+      : baseName
+    link.download = `${zipName}.zip`
+    
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -130,11 +259,11 @@ function CodeSidebar({ codeRequests }) {
             <div key={requestIndex} className="code-request-section">
               <div className="request-header">
                 <h3 className="request-title">
-                  Códigos Petición {requestIndex + 1}
+                  {generateRequestTitle(request.codes, request.userMessage)}
                 </h3>
                 <button
                   className="download-all-button"
-                  onClick={() => downloadAllCodes(requestIndex, request.codes)}
+                  onClick={() => downloadAllCodes(requestIndex, request.codes, request.userMessage)}
                   title={request.codes.length === 1 ? 'Descargar código' : 'Descargar todos los códigos'}
                 >
                   <MdDownload />
@@ -152,11 +281,10 @@ function CodeSidebar({ codeRequests }) {
                       <span className="code-language">{code.language || 'text'}</span>
                       <button
                         className="download-code-button"
-                        onClick={() => downloadCode(
-                          code.content,
-                          code.language,
-                          `codigo_peticion_${requestIndex + 1}_${codeIndex + 1}`
-                        )}
+                        onClick={() => {
+                          const fileName = generateDescriptiveName(code.content, code.language, request.userMessage)
+                          downloadCode(code.content, code.language, fileName)
+                        }}
                         title="Descargar código"
                       >
                         <MdDownload />
@@ -180,11 +308,13 @@ function CodeSidebar({ codeRequests }) {
           language={selectedCode.language}
           onClose={closeCodeModal}
           onDownload={() => {
-            downloadCode(
-              selectedCode.content,
-              selectedCode.language,
-              `codigo_peticion_${selectedCode.requestIndex + 1}_${selectedCode.codeIndex + 1}`
+            const request = codeRequests[selectedCode.requestIndex]
+            const fileName = generateDescriptiveName(
+              selectedCode.content, 
+              selectedCode.language, 
+              request?.userMessage
             )
+            downloadCode(selectedCode.content, selectedCode.language, fileName)
           }}
         />
       )}
@@ -200,7 +330,8 @@ CodeSidebar.propTypes = {
           content: PropTypes.string.isRequired,
           language: PropTypes.string
         })
-      ).isRequired
+      ).isRequired,
+      userMessage: PropTypes.string
     })
   ).isRequired
 }
