@@ -2,7 +2,7 @@
 .left-sidebar-toggle-button {
   position: fixed;
   top: 1rem;
-  left: 0.8rem;
+  left: 0.6rem;
   background-color: transparent;
   color: var(--text-color);
   border: none;
@@ -11,24 +11,47 @@
   height: 40px;
   cursor: pointer;
   z-index: 1002;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease;
   box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+/* Cuando la barra está abierta, el botón se centra y se expande */
+.left-sidebar-toggle-button.open {
+  position: absolute;
+  top: 1.5rem;
+  left: 46%;
+  transform: translateX(-50%);
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.left-sidebar-toggle-button.open:hover {
+  transform: translateX(-50%) scale(1.05);
+}
+
 .left-sidebar-toggle-button:hover {
-  background-color: rgba(125, 57, 235, 0.59);
-  transform: scale(1.05);
+  transform: scale(1.2);
 }
 
 .left-sidebar-toggle-button .toggle-icon {
-  font-size: 1.3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 8px;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
+  opacity: 1;
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+/* Imagen horizontal cuando está abierta */
+.left-sidebar-toggle-button.open .toggle-icon.horizontal {
+  width: 130px;
+  height: auto;
 }
 
 /* Panel lateral */
@@ -56,6 +79,7 @@
   flex-direction: column;
   height: 100%;
   padding: 1.5rem;
+  padding-bottom: 0;
 }
 
 /* Cabecera */
@@ -73,9 +97,20 @@
 /* Footer con botón de login */
 .sidebar-footer {
   margin-top: auto;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border-color);
+  padding-top: 1.25rem;
+  padding-bottom: 1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  border-top: 1px solid var(--border-color);  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
+
+.left-sidebar.open .sidebar-footer {
+  opacity: 1;
+  visibility: visible;}
 
 .login-button {
   width: 100%;
@@ -91,6 +126,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: -0.4rem;
 }
 
 .login-button:hover {

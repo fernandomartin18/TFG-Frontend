@@ -1,5 +1,6 @@
-import { RxHamburgerMenu } from 'react-icons/rx'
 import PropTypes from 'prop-types'
+import genesisLogo from '../assets/Genesis_Sign_Violet.png'
+import genesisHorizontal from '../assets/Genesis_Horizontal_Violet.png'
 import '../css/LeftSidebar.css'
 
 function LeftSidebar({ isOpen, setIsOpen }) {
@@ -22,7 +23,11 @@ function LeftSidebar({ isOpen, setIsOpen }) {
           onClick={toggleSidebar}
           aria-label={isOpen ? 'Cerrar panel' : 'Abrir panel'}
         >
-          <RxHamburgerMenu className="toggle-icon" />
+          <img 
+            src={isOpen ? genesisHorizontal : genesisLogo} 
+            alt="Genesis" 
+            className={`toggle-icon ${isOpen ? 'horizontal' : ''}`} 
+          />
         </button>
 
         <div className="left-sidebar-content">
