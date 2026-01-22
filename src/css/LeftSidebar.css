@@ -1,0 +1,128 @@
+/* Botón de toggle */
+.left-sidebar-toggle-button {
+  position: fixed;
+  top: 1rem;
+  left: 0.8rem;
+  background-color: transparent;
+  color: var(--text-color);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  z-index: 1002;
+  transition: all 0.3s ease;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.left-sidebar-toggle-button:hover {
+  background-color: rgba(125, 57, 235, 0.59);
+  transform: scale(1.05);
+}
+
+.left-sidebar-toggle-button .toggle-icon {
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+}
+
+/* Panel lateral */
+.left-sidebar {
+  position: fixed;
+  top: 0;
+  left: -180px;
+  width: 250px;
+  height: 100vh;
+  background-color: var(--background);
+  border-right: 1px solid var(--border-color);
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
+  transition: left 0.3s ease;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.left-sidebar.open {
+  left: 0;
+}
+
+/* Contenido del panel */
+.left-sidebar-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.5rem;
+}
+
+/* Cabecera */
+.sidebar-header {
+  margin-bottom: 1.5rem;
+}
+
+.sidebar-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0;
+}
+
+/* Footer con botón de login */
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.login-button {
+  width: 100%;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.login-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .left-sidebar {
+    width: 280px;
+    left: -280px;
+  }
+
+  .left-sidebar-toggle-button.open {
+    left: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .left-sidebar {
+    width: 100%;
+    left: -100%;
+  }
+
+  .left-sidebar-toggle-button.open {
+    left: calc(100% - 50px);
+  }
+}

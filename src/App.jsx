@@ -4,6 +4,7 @@ import ChatMessage from './components/ChatMessage'
 import ChatInput from './components/ChatInput'
 import ThemeToggle from './components/ThemeToggle'
 import CodeSidebar from './components/CodeSidebar'
+import LeftSidebar from './components/LeftSidebar'
 
 function App() {
   const [messages, setMessages] = useState([])
@@ -15,6 +16,7 @@ function App() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
   const [codeRequests, setCodeRequests] = useState([])
+  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true)
   const messagesEndRef = useRef(null)
   const autoScrollEnabled = useRef(true)
   const messagesContainerRef = useRef(null)
@@ -333,8 +335,10 @@ function App() {
   }
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${isLeftSidebarOpen ? 'left-sidebar-open' : ''}`}>
       <ThemeToggle isDark={isDarkTheme} onToggle={toggleTheme} />
+      
+      <LeftSidebar isOpen={isLeftSidebarOpen} setIsOpen={setIsLeftSidebarOpen} />
       
       <CodeSidebar codeRequests={codeRequests} />
 
