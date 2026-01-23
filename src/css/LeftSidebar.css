@@ -103,14 +103,16 @@
   padding-right: 1.5rem;
   margin-left: -1.5rem;
   margin-right: -1.5rem;
-  border-top: 1px solid var(--border-color);  opacity: 0;
+  border-top: 1px solid var(--border-color);
+  opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .left-sidebar.open .sidebar-footer {
   opacity: 1;
-  visibility: visible;}
+  visibility: visible;
+}
 
 .login-button {
   width: 100%;

@@ -1,16 +1,23 @@
 import PropTypes from 'prop-types'
+import { useNavigate } from 'react-router-dom'
 import genesisLogo from '../assets/Genesis_Sign_Violet.png'
 import genesisHorizontal from '../assets/Genesis_Horizontal_Violet.png'
 import '../css/LeftSidebar.css'
 
-function LeftSidebar({ isOpen, setIsOpen }) {
+function LeftSidebar({ isOpen, setIsOpen, isAuthenticated }) {
+  const navigate = useNavigate()
+
   const toggleSidebar = () => {
     setIsOpen(!isOpen)
   }
 
   const handleLogin = () => {
-    // Función para manejar el inicio de sesión
-    console.log('Iniciar sesión')
+    navigate('/login')
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated')
+    window.dispatchEvent(new Event('authChange'))
   }
 
   return (
@@ -32,11 +39,17 @@ function LeftSidebar({ isOpen, setIsOpen }) {
 
         <div className="left-sidebar-content">
           
-          {/* Contenedor para el botón de inicio de sesión en la parte inferior */}
+          {/* Contenedor para el botón de inicio/cierre de sesión en la parte inferior */}
           <div className="sidebar-footer">
-            <button className="login-button" onClick={handleLogin}>
-              Iniciar sesión
-            </button>
+            {isAuthenticated ? (
+              <button className="login-button logout-button" onClick={handleLogout}>
+                Cerrar sesión
+              </button>
+            ) : (
+              <button className="login-button" onClick={handleLogin}>
+                Iniciar sesión
+              </button>
+            )}
           </div>
         </div>
       </aside>
@@ -46,7 +59,8 @@ function LeftSidebar({ isOpen, setIsOpen }) {
 
 LeftSidebar.propTypes = {
   isOpen: PropTypes.bool.isRequired,
-  setIsOpen: PropTypes.func.isRequired
+  setIsOpen: PropTypes.func.isRequired,
+  isAuthenticated: PropTypes.bool.isRequired
 }
 
 export default LeftSidebar
