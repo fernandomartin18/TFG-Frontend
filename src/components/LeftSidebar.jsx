@@ -2,6 +2,7 @@ import PropTypes from 'prop-types'
 import { useNavigate } from 'react-router-dom'
 import genesisLogo from '../assets/Genesis_Sign_Violet.png'
 import genesisHorizontal from '../assets/Genesis_Horizontal_Violet.png'
+import authService from '../services/auth.service'
 import '../css/LeftSidebar.css'
 
 function LeftSidebar({ isOpen, setIsOpen, isAuthenticated }) {
@@ -15,8 +16,8 @@ function LeftSidebar({ isOpen, setIsOpen, isAuthenticated }) {
     navigate('/login')
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated')
+  const handleLogout = async () => {
+    await authService.logout()
     window.dispatchEvent(new Event('authChange'))
   }
 

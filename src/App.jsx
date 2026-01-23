@@ -4,19 +4,18 @@ import './css/App.css'
 import Chat from './components/Chat'
 import Login from './components/Login'
 import Register from './components/Register'
+import authService from './services/auth.service'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   // Verificar si el usuario está autenticado al cargar la app
   useEffect(() => {
-    const authStatus = localStorage.getItem('isAuthenticated')
-    setIsAuthenticated(authStatus === 'true')
+    setIsAuthenticated(authService.isAuthenticated())
 
     // Escuchar eventos personalizados de cambio de autenticación
     const handleAuthChange = () => {
-      const authStatus = localStorage.getItem('isAuthenticated')
-      setIsAuthenticated(authStatus === 'true')
+      setIsAuthenticated(authService.isAuthenticated())
     }
 
     window.addEventListener('authChange', handleAuthChange)

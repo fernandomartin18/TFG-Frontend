@@ -6,6 +6,7 @@ import ChatInput from './ChatInput'
 import ThemeToggle from './ThemeToggle'
 import CodeSidebar from './CodeSidebar'
 import LeftSidebar from './LeftSidebar'
+import { fetchWithAuth } from '../services/api.service'
 
 function Chat({ isAuthenticated }) {
   const [messages, setMessages] = useState([])
@@ -187,7 +188,7 @@ function Chat({ isAuthenticated }) {
         })
       }
 
-      const response = await fetch('http://localhost:3000/api/generate/stream', {
+      const response = await fetchWithAuth('http://localhost:3000/api/generate/stream', {
         method: 'POST',
         body: formData,
       })

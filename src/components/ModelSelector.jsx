@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { BsInfoCircle } from 'react-icons/bs'
 import { MdClose } from 'react-icons/md'
+import { fetchWithAuth } from '../services/api.service'
 import '../css/ModelSelector.css'
 
 function ModelSelector({ selectedModel, onModelChange }) {
@@ -36,7 +37,7 @@ function ModelSelector({ selectedModel, onModelChange }) {
   const fetchModels = async () => {
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:3000/api/models')
+      const response = await fetchWithAuth('http://localhost:3000/api/models')
       if (response.ok) {
         const data = await response.json()
         const modelList = data.models || []
@@ -62,7 +63,7 @@ function ModelSelector({ selectedModel, onModelChange }) {
 
   const checkAutoMode = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/models/auto-select')
+      const response = await fetchWithAuth('http://localhost:3000/api/models/auto-select')
       if (response.ok) {
         const data = await response.json()
         const isAutoAvailable = data.auto_available || false
@@ -70,7 +71,7 @@ function ModelSelector({ selectedModel, onModelChange }) {
         
         // Solo configurar modelo inicial si selectedModel está vacío
         if (!selectedModel) {
-          const modelsResponse = await fetch('http://localhost:3000/api/models')
+          const modelsResponse = await fetchWithAuth('http://localhost:3000/api/models')
           if (modelsResponse.ok) {
             const modelsData = await modelsResponse.json()
             const modelList = modelsData.models || []
@@ -91,7 +92,7 @@ function ModelSelector({ selectedModel, onModelChange }) {
       
       // Si hay error y no hay modelo seleccionado, intentar seleccionar el primero
       if (!selectedModel) {
-        const modelsResponse = await fetch('http://localhost:3000/api/models')
+        const modelsResponse = await fetchWithAuth('http://localhost:3000/api/models')
         if (modelsResponse.ok) {
           const modelsData = await modelsResponse.json()
           const modelList = modelsData.models || []
