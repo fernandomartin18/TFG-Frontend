@@ -27,13 +27,13 @@ class AuthService {
   }
 
   // Iniciar sesión
-  async login(username, password) {
+  async login(email, password) {
     const response = await fetch(`${API_URL}/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password }),
     })
 
     const data = await response.json()

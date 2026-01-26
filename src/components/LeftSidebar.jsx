@@ -2,7 +2,7 @@ import PropTypes from 'prop-types'
 import { useNavigate } from 'react-router-dom'
 import genesisLogo from '../assets/Genesis_Sign_Violet.png'
 import genesisHorizontal from '../assets/Genesis_Horizontal_Violet.png'
-import authService from '../services/auth.service'
+import UserProfile from './UserProfile'
 import '../css/LeftSidebar.css'
 
 function LeftSidebar({ isOpen, setIsOpen, isAuthenticated }) {
@@ -14,11 +14,6 @@ function LeftSidebar({ isOpen, setIsOpen, isAuthenticated }) {
 
   const handleLogin = () => {
     navigate('/login')
-  }
-
-  const handleLogout = async () => {
-    await authService.logout()
-    window.dispatchEvent(new Event('authChange'))
   }
 
   return (
@@ -40,12 +35,10 @@ function LeftSidebar({ isOpen, setIsOpen, isAuthenticated }) {
 
         <div className="left-sidebar-content">
           
-          {/* Contenedor para el botón de inicio/cierre de sesión en la parte inferior */}
+          {/* Contenedor para el perfil o botón de inicio de sesión en la parte inferior */}
           <div className="sidebar-footer">
             {isAuthenticated ? (
-              <button className="login-button logout-button" onClick={handleLogout}>
-                Cerrar sesión
-              </button>
+              <UserProfile />
             ) : (
               <button className="login-button" onClick={handleLogin}>
                 Iniciar sesión
