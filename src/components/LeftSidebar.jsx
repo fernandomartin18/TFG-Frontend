@@ -5,7 +5,7 @@ import genesisHorizontal from '../assets/Genesis_Horizontal_Violet.png'
 import UserProfile from './UserProfile'
 import '../css/LeftSidebar.css'
 
-function LeftSidebar({ isOpen, setIsOpen, isAuthenticated }) {
+function LeftSidebar({ isOpen, setIsOpen, isAuthenticated, isDarkTheme, onToggleTheme }) {
   const navigate = useNavigate()
 
   const toggleSidebar = () => {
@@ -38,11 +38,24 @@ function LeftSidebar({ isOpen, setIsOpen, isAuthenticated }) {
           {/* Contenedor para el perfil o botón de inicio de sesión en la parte inferior */}
           <div className="sidebar-footer">
             {isAuthenticated ? (
-              <UserProfile />
+              isOpen ? (
+                <UserProfile 
+                  isDarkTheme={isDarkTheme}
+                  onToggleTheme={onToggleTheme}
+                />
+              ) : (
+                <UserProfile 
+                  isDarkTheme={isDarkTheme}
+                  onToggleTheme={onToggleTheme}
+                  compact={true}
+                />
+              )
             ) : (
-              <button className="login-button" onClick={handleLogin}>
-                Iniciar sesión
-              </button>
+              isOpen && (
+                <button className="login-button" onClick={handleLogin}>
+                  Iniciar sesión
+                </button>
+              )
             )}
           </div>
         </div>
@@ -54,7 +67,9 @@ function LeftSidebar({ isOpen, setIsOpen, isAuthenticated }) {
 LeftSidebar.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   setIsOpen: PropTypes.func.isRequired,
-  isAuthenticated: PropTypes.bool.isRequired
+  isAuthenticated: PropTypes.bool.isRequired,
+  isDarkTheme: PropTypes.bool.isRequired,
+  onToggleTheme: PropTypes.func.isRequired
 }
 
 export default LeftSidebar

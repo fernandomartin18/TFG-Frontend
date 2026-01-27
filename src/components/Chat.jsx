@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import '../css/App.css'
 import ChatMessage from './ChatMessage'
 import ChatInput from './ChatInput'
-import ThemeToggle from './ThemeToggle'
 import CodeSidebar from './CodeSidebar'
 import LeftSidebar from './LeftSidebar'
 import { fetchWithAuth } from '../services/api.service'
@@ -312,12 +311,12 @@ function Chat({ isAuthenticated }) {
 
   return (
     <div className={`app-container ${isLeftSidebarOpen ? 'left-sidebar-open' : ''}`}>
-      <ThemeToggle isDark={isDarkTheme} onToggle={toggleTheme} />
-      
       <LeftSidebar 
         isOpen={isLeftSidebarOpen} 
         setIsOpen={setIsLeftSidebarOpen}
         isAuthenticated={isAuthenticated}
+        isDarkTheme={isDarkTheme}
+        onToggleTheme={toggleTheme}
       />
       
       <CodeSidebar codeRequests={codeRequests} />

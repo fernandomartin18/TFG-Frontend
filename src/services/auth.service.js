@@ -141,6 +141,37 @@ class AuthService {
     localStorage.removeItem('user')
     localStorage.removeItem('isAuthenticated')
   }
+
+  // Actualizar datos del usuario
+  async updateUserProfile(username, avatarUrl) {
+    const token = this.getAccessToken()
+
+    if (!token) {
+      throw new Error('No hay token de autenticación')
+    }
+
+    const response = await fetch('http://localhost:3000/api/users/me', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ username, avatarUrl })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Error al actualizar usuario')
+    }
+
+    // Actualizar usuario en localStorage
+    if (data.user) {
+      this.setUser(data.user)
+    }
+
+    return data
+  }
 }
 
 export default new AuthService()

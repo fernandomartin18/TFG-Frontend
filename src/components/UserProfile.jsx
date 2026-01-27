@@ -1,37 +1,31 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { IoSettingsSharp } from 'react-icons/io5'
 import authService from '../services/auth.service'
 import UserProfileModal from './UserProfileModal'
 import '../css/UserProfile.css'
 
-function UserProfile() {
+function UserProfile({ isDarkTheme, onToggleTheme, compact = false }) {
   const [user, setUser] = useState(null)
   const [showModal, setShowModal] = useState(false)
-  const profileRef = useRef(null)
 
   useEffect(() => {
     // Obtener datos del usuario
     const userData = authService.getUser()
     setUser(userData)
-  }, [])
 
-  useEffect(() => {
-    // Cerrar modal al hacer clic fuera
-    const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setShowModal(false)
-      }
+    // Escuchar actualizaciones del perfil
+    const handleProfileUpdate = () => {
+      const updatedUser = authService.getUser()
+      setUser(updatedUser)
     }
 
-    if (showModal) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
+    window.addEventListener('userProfileUpdated', handleProfileUpdate)
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      window.removeEventListener('userProfileUpdated', handleProfileUpdate)
     }
-  }, [showModal])
+  }, [])
 
   const handleToggleModal = () => {
     setShowModal(!showModal)
@@ -50,8 +44,8 @@ function UserProfile() {
   if (!user) return null
 
   return (
-    <div className="user-profile-container" ref={profileRef}>
-      <div className="user-profile" onClick={handleToggleModal}>
+    <>
+      <div className={`user-profile ${compact ? 'compact' : ''}`} onClick={handleToggleModal}>
         {/* Avatar o inicial */}
         <div className="user-avatar">
           {user.avatarUrl ? (
@@ -61,19 +55,31 @@ function UserProfile() {
           )}
         </div>
 
-        {/* Nombre */}
-        <span className="user-name">{getFirstName(user.username)}</span>
-
-        {/* Icono de ajustes */}
-        <IoSettingsSharp className="settings-icon" />
+        {/* Nombre e icono solo en modo expandido */}
+        {!compact && (
+          <>
+            <span className="user-name">{getFirstName(user.username)}</span>
+            <IoSettingsSharp className="settings-icon" />
+          </>
+        )}
       </div>
 
       {/* Modal */}
-      {showModal && <UserProfileModal onClose={() => setShowModal(false)} />}
-    </div>
+      {showModal && (
+        <UserProfileModal 
+          onClose={() => setShowModal(false)}
+          isDarkTheme={isDarkTheme}
+          onToggleTheme={onToggleTheme}
+        />
+      )}
+    </>
   )
 }
 
-UserProfile.propTypes = {}
+UserProfile.propTypes = {
+  isDarkTheme: PropTypes.bool.isRequired,
+  onToggleTheme: PropTypes.func.isRequired,
+  compact: PropTypes.bool
+}
 
 export default UserProfile

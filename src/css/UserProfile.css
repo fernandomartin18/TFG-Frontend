@@ -1,8 +1,3 @@
-.user-profile-container {
-  position: relative;
-  width: 100%;
-}
-
 .user-profile {
   display: flex;
   align-items: center;
@@ -11,6 +6,12 @@
   border-radius: 2rem;
   cursor: pointer;
   width: 100%;
+}
+
+/* Modo compacto - solo avatar */
+.user-profile.compact {
+  justify-content: center;
+  width: auto;
 }
 
 /* Avatar */
