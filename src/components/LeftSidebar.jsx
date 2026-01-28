@@ -1,7 +1,8 @@
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
+import { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { useNavigate } from 'react-router-dom'
 import { RiChatNewLine } from 'react-icons/ri'
+import { FaSearch } from 'react-icons/fa'
 import genesisLogo from '../assets/Genesis_Sign_Violet.png'
 import genesisHorizontal from '../assets/Genesis_Horizontal_Violet.png'
 import UserProfile from './UserProfile'
@@ -12,6 +13,10 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
   const navigate = useNavigate()
   const [chats, setChats] = useState([])
   const [isLoadingChats, setIsLoadingChats] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filteredChats, setFilteredChats] = useState([])
+  const searchInputRef = useRef(null)
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen)
@@ -33,10 +38,107 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
       setIsLoadingChats(true)
       const userChats = await chatService.getUserChats()
       setChats(userChats)
+      setFilteredChats(userChats)
     } catch (error) {
       console.error('Error al cargar chats:', error)
     } finally {
       setIsLoadingChats(false)
+    }
+  }
+
+  // Filtrar chats cuando cambia la búsqueda
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredChats(chats)
+      return
+    }
+
+    const query = searchQuery.toLowerCase().trim()
+    
+    // Intentar parsear como fecha
+    const possibleDate = parseDateQuery(query)
+    
+    const filtered = chats.filter(chat => {
+      // Filtrar por título
+      if (chat.title.toLowerCase().includes(query)) {
+        return true
+      }
+      
+      // Filtrar por fecha si se detectó una fecha válida
+      if (possibleDate) {
+        const chatDate = new Date(chat.updated_at)
+        return isSameDay(chatDate, possibleDate)
+      }
+      
+      return false
+    })
+    
+    setFilteredChats(filtered)
+  }, [searchQuery, chats])
+
+  // Función para parsear diferentes formatos de fecha
+  const parseDateQuery = (query) => {
+    // Intentar varios formatos de fecha
+    const formats = [
+      // DD/MM/YYYY o DD-MM-YYYY
+      /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/,
+      // DD/MM o DD-MM (año actual)
+      /^(\d{1,2})[/-](\d{1,2})$/,
+      // YYYY-MM-DD
+      /^(\d{4})-(\d{1,2})-(\d{1,2})$/,
+    ]
+    
+    for (const format of formats) {
+      const match = query.match(format)
+      if (match) {
+        let day, month, year
+        
+        if (match[0].startsWith(match[1]) && match[1].length === 4) {
+          // Formato YYYY-MM-DD
+          year = parseInt(match[1])
+          month = parseInt(match[2]) - 1
+          day = parseInt(match[3])
+        } else if (match.length === 3) {
+          // Formato DD/MM (año actual)
+          day = parseInt(match[1])
+          month = parseInt(match[2]) - 1
+          year = new Date().getFullYear()
+        } else {
+          // Formato DD/MM/YYYY
+          day = parseInt(match[1])
+          month = parseInt(match[2]) - 1
+          year = parseInt(match[3])
+        }
+        
+        const date = new Date(year, month, day)
+        if (!isNaN(date.getTime())) {
+          return date
+        }
+      }
+    }
+    
+    return null
+  }
+
+  // Función para comparar si dos fechas son el mismo día
+  const isSameDay = (date1, date2) => {
+    return date1.getFullYear() === date2.getFullYear() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getDate() === date2.getDate()
+  }
+
+  const handleSearchToggle = () => {
+    setIsSearchOpen(!isSearchOpen)
+    if (!isSearchOpen) {
+      // Enfocar el input cuando se abre
+      setTimeout(() => {
+        if (searchInputRef.current) {
+          searchInputRef.current.focus()
+        }
+      }, 100)
+    } else {
+      // Limpiar búsqueda al cerrar
+      setSearchQuery('')
     }
   }
 
@@ -84,24 +186,59 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
           {/* Lista de chats */}
           {isAuthenticated && isOpen && (
             <div className="chats-list-container">
-              {/* Botón de nuevo chat */}
-              <button 
-                className="new-chat-button"
-                onClick={onNewChat}
-                disabled={!hasMessages}
-                aria-label="Crear nuevo chat"
-              >
-                <RiChatNewLine className="new-chat-icon" />
-                <span>Nuevo chat</span>
-              </button>
+              {/* Contenedor de botones */}
+              <div className="chat-actions-container">
+                {/* Botón de nuevo chat */}
+                <button 
+                  className="new-chat-button"
+                  onClick={onNewChat}
+                  disabled={!hasMessages}
+                  aria-label="Crear nuevo chat"
+                >
+                  <RiChatNewLine className="new-chat-icon" />
+                  <span>Nuevo chat</span>
+                </button>
+
+                {/* Botón de búsqueda */}
+                <button 
+                  className="search-button"
+                  onClick={handleSearchToggle}
+                  aria-label="Buscar chats"
+                >
+                  <FaSearch className="search-icon" />
+                </button>
+              </div>
+
+              {/* Barra de búsqueda */}
+              {isSearchOpen && (
+                <div className="search-bar-container">
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    className="search-input"
+                    placeholder="Buscar por título o fecha"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <button 
+                    className="search-close-button"
+                    onClick={handleSearchToggle}
+                    aria-label="Cerrar búsqueda"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
 
               <div className="chats-list">
                 {isLoadingChats ? (
                   <div className="chats-loading">Cargando chats...</div>
-                ) : chats.length === 0 ? (
-                  <div className="chats-empty">No hay chats guardados</div>
+                ) : filteredChats.length === 0 ? (
+                  <div className="chats-empty">
+                    {searchQuery ? 'No se encontraron chats' : 'No hay chats guardados'}
+                  </div>
                 ) : (
-                  chats.map((chat) => (
+                  filteredChats.map((chat) => (
                     <div
                       key={chat.id}
                       className={`chat-item ${currentChatId === chat.id ? 'active' : ''}`}
