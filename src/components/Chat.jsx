@@ -229,6 +229,30 @@ function Chat({ isAuthenticated }) {
     
     setImages([])
     
+    // Guardar mensaje del usuario inmediatamente en la BD si hay chat activo
+    let userMessageId = null
+    if (chatId && isAuthenticated) {
+      try {
+        const savedUserMessage = await chatService.createMessage(chatId, 'user', userMessage, [])
+        userMessageId = savedUserMessage.id
+        
+        // Actualizar el título del chat si es el primer mensaje
+        if (messages.length === 0) {
+          const title = userMessage.length > 50 
+            ? userMessage.substring(0, 50) + '...' 
+            : userMessage
+          await chatService.updateChatTitle(chatId, title)
+          
+          // Actualizar la lista de chats
+          if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
+            leftSidebarRef.current.refreshChats()
+          }
+        }
+      } catch (error) {
+        console.error('Error al guardar mensaje del usuario:', error)
+      }
+    }
+    
     const aiMessageIndex = messages.length + 1
     setMessages(prev => [...prev, { text: '', isUser: false, isLoading: true }])
     setIsLoading(true)
@@ -356,31 +380,14 @@ function Chat({ isAuthenticated }) {
         }
       }
       
-      // Guardar mensajes en la base de datos si hay chat activo
+      // Guardar mensaje de la IA en la base de datos si hay chat activo
       if (chatId && isAuthenticated) {
         try {
-          // Guardar mensaje del usuario
-          await chatService.createMessage(chatId, 'user', userMessage, [])
-          
-          // Guardar mensaje de la IA
           await chatService.createMessage(chatId, 'assistant', accumulatedText, 
             selectedModel && selectedModel !== 'Auto' ? [selectedModel] : []
           )
-          
-          // Actualizar el título del chat si es el primer mensaje
-          if (messages.length === 0) {
-            const title = userMessage.length > 50 
-              ? userMessage.substring(0, 50) + '...' 
-              : userMessage
-            await chatService.updateChatTitle(chatId, title)
-            
-            // Actualizar la lista de chats
-            if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
-              leftSidebarRef.current.refreshChats()
-            }
-          }
         } catch (error) {
-          console.error('Error al guardar mensajes:', error)
+          console.error('Error al guardar mensaje de la IA:', error)
         }
       }
       
