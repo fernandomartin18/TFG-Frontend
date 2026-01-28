@@ -6,6 +6,7 @@ import ChatInput from './ChatInput'
 import CodeSidebar from './CodeSidebar'
 import LeftSidebar from './LeftSidebar'
 import { fetchWithAuth } from '../services/api.service'
+import chatService from '../services/chat.service'
 
 function Chat({ isAuthenticated }) {
   const [messages, setMessages] = useState([])
@@ -18,10 +19,12 @@ function Chat({ isAuthenticated }) {
   })
   const [codeRequests, setCodeRequests] = useState([])
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true)
+  const [currentChatId, setCurrentChatId] = useState(null)
   const messagesEndRef = useRef(null)
   const autoScrollEnabled = useRef(true)
   const messagesContainerRef = useRef(null)
   const isAutoScrolling = useRef(false)
+  const leftSidebarRef = useRef(null)
 
   // Aplicar tema
   useEffect(() => {
@@ -139,8 +142,72 @@ function Chat({ isAuthenticated }) {
     }
   }, [messages])
 
+  // Función para cargar un chat existente
+  const handleChatSelect = async (chatId) => {
+    try {
+      setIsLoading(true)
+      const chat = await chatService.getChatById(chatId)
+      
+      // Convertir los mensajes de la base de datos al formato del componente
+      const loadedMessages = chat.messages.map(msg => {
+        const formattedMessage = {
+          text: msg.content,
+          isUser: msg.role === 'user',
+          isLoading: false,
+          images: msg.images || [],
+          generatedCodes: msg.generatedCodes || []
+        }
+        return formattedMessage
+      })
+      
+      setMessages(loadedMessages)
+      setCurrentChatId(chatId)
+      setIsLoading(false)
+    } catch (error) {
+      console.error('Error al cargar chat:', error)
+      setIsLoading(false)
+      setMessages([{
+        text: 'Error al cargar el chat. Por favor, intenta de nuevo.',
+        isUser: false,
+        isError: true
+      }])
+    }
+  }
+
+  // Función para crear un nuevo chat vacío
+  const handleNewChat = async () => {
+    // Si hay mensajes en el chat actual y el usuario está autenticado
+    if (messages.length > 0 && isAuthenticated) {
+      // Actualizar la lista de chats para mostrar el chat que acabamos de usar
+      if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
+        leftSidebarRef.current.refreshChats()
+      }
+    }
+    
+    // Crear un nuevo chat vacío
+    setMessages([])
+    setCurrentChatId(null)
+    setImages([])
+  }
+
   const handleSendMessage = async (userMessage) => {
     autoScrollEnabled.current = true
+    
+    // Si no hay chat activo y el usuario está autenticado, crear uno nuevo
+    let chatId = currentChatId
+    if (!chatId && isAuthenticated) {
+      try {
+        const newChat = await chatService.createChat('Nuevo Chat')
+        chatId = newChat.id
+        setCurrentChatId(chatId)
+        // Actualizar la lista de chats en el sidebar
+        if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
+          leftSidebarRef.current.refreshChats()
+        }
+      } catch (error) {
+        console.error('Error al crear chat:', error)
+      }
+    }
     
     const isVisionModel = () => {
       if (!selectedModel || selectedModel === 'No hay LLMs') return false
@@ -289,6 +356,34 @@ function Chat({ isAuthenticated }) {
         }
       }
       
+      // Guardar mensajes en la base de datos si hay chat activo
+      if (chatId && isAuthenticated) {
+        try {
+          // Guardar mensaje del usuario
+          await chatService.createMessage(chatId, 'user', userMessage, [])
+          
+          // Guardar mensaje de la IA
+          await chatService.createMessage(chatId, 'assistant', accumulatedText, 
+            selectedModel && selectedModel !== 'Auto' ? [selectedModel] : []
+          )
+          
+          // Actualizar el título del chat si es el primer mensaje
+          if (messages.length === 0) {
+            const title = userMessage.length > 50 
+              ? userMessage.substring(0, 50) + '...' 
+              : userMessage
+            await chatService.updateChatTitle(chatId, title)
+            
+            // Actualizar la lista de chats
+            if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
+              leftSidebarRef.current.refreshChats()
+            }
+          }
+        } catch (error) {
+          console.error('Error al guardar mensajes:', error)
+        }
+      }
+      
     } catch (error) {
       console.error('Error al enviar mensaje:', error)
       setMessages(prev => {
@@ -312,11 +407,16 @@ function Chat({ isAuthenticated }) {
   return (
     <div className={`app-container ${isLeftSidebarOpen ? 'left-sidebar-open' : ''}`}>
       <LeftSidebar 
+        ref={leftSidebarRef}
         isOpen={isLeftSidebarOpen} 
         setIsOpen={setIsLeftSidebarOpen}
         isAuthenticated={isAuthenticated}
         isDarkTheme={isDarkTheme}
         onToggleTheme={toggleTheme}
+        onChatSelect={handleChatSelect}
+        currentChatId={currentChatId}
+        onNewChat={handleNewChat}
+        hasMessages={messages.length > 0}
       />
       
       <CodeSidebar codeRequests={codeRequests} />
