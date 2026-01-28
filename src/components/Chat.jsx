@@ -25,11 +25,101 @@ function Chat({ isAuthenticated }) {
   const messagesContainerRef = useRef(null)
   const isAutoScrolling = useRef(false)
   const leftSidebarRef = useRef(null)
+  const hasProcessedPendingMessages = useRef(false)
 
   // Aplicar tema
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light')
   }, [isDarkTheme])
+
+  // Guardar mensajes en localStorage cuando hay mensajes y el usuario no está autenticado
+  useEffect(() => {
+    if (!isAuthenticated && messages.length > 0) {
+      localStorage.setItem('pendingMessages', JSON.stringify(messages))
+    }
+  }, [messages, isAuthenticated])
+
+  // Recuperar y guardar mensajes cuando el usuario inicia sesión
+  useEffect(() => {
+    const saveMessagesAfterAuth = async () => {
+      // Verificar que no hayan sido procesados los mensajes pendientes
+      if (isAuthenticated && !hasProcessedPendingMessages.current) {
+        const pendingMessagesStr = localStorage.getItem('pendingMessages')
+        
+        if (pendingMessagesStr) {
+          // Marcar como procesado inmediatamente para evitar ejecuciones duplicadas
+          hasProcessedPendingMessages.current = true
+          
+          try {
+            const pendingMessages = JSON.parse(pendingMessagesStr)
+            
+            // Solo procesar si hay mensajes válidos
+            if (pendingMessages.length > 0) {
+              // Crear un nuevo chat para guardar los mensajes existentes
+              const firstUserMessage = pendingMessages.find(msg => msg.isUser)?.text || 'Chat sin título'
+              const wordCount = firstUserMessage.trim().split(/\s+/).length
+              const chatTitle = wordCount <= 4 ? firstUserMessage.trim() : 'Nuevo Chat'
+              
+              const newChat = await chatService.createChat(chatTitle)
+              const chatId = newChat.id
+              
+              // Guardar todos los mensajes en orden
+              for (const msg of pendingMessages) {
+                if (!msg.isError && !msg.isLoading) {
+                  const role = msg.isUser ? 'user' : 'assistant'
+                  await chatService.createMessage(chatId, role, msg.text, [])
+                }
+              }
+              
+              // Si el título es genérico y hay más de un mensaje, generar uno automático
+              if (chatTitle === 'Nuevo Chat' && pendingMessages.length > 1) {
+                try {
+                  const titleResponse = await fetchWithAuth('http://localhost:3000/api/generate/title', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                      conversation: pendingMessages.slice(0, 6).map(msg => ({
+                        role: msg.isUser ? 'user' : 'assistant',
+                        content: msg.text
+                      }))
+                    })
+                  })
+                  
+                  if (titleResponse.ok) {
+                    const data = await titleResponse.json()
+                    await chatService.updateChatTitle(chatId, data.title)
+                  }
+                } catch (error) {
+                  console.error('Error al generar título:', error)
+                }
+              }
+              
+              // Cargar los mensajes del chat recién creado
+              setMessages(pendingMessages)
+              setCurrentChatId(chatId)
+              
+              // Actualizar la lista de chats en el sidebar
+              setTimeout(() => {
+                if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
+                  leftSidebarRef.current.refreshChats()
+                }
+              }, 100)
+              
+              console.log('Mensajes guardados exitosamente al iniciar sesión')
+            }
+            
+            // Limpiar los mensajes pendientes INMEDIATAMENTE
+            localStorage.removeItem('pendingMessages')
+          } catch (error) {
+            console.error('Error al guardar mensajes existentes:', error)
+            localStorage.removeItem('pendingMessages')
+            hasProcessedPendingMessages.current = false // Resetear en caso de error
+          }
+        }
+      }
+    }
+
+    saveMessagesAfterAuth()
+  }, [isAuthenticated])
 
   // Extraer bloques de código de los mensajes de la IA
   useEffect(() => {
@@ -237,8 +327,10 @@ function Chat({ isAuthenticated }) {
         const savedUserMessage = await chatService.createMessage(chatId, 'user', userMessage, [])
         userMessageId = savedUserMessage.id
         
-        // Generar título del chat si es el primer mensaje
-        if (messages.length === 0) {
+        // Generar título del chat solo si es el primer mensaje del usuario en un chat nuevo
+        // (no si el chat fue cargado desde localStorage o de la BD)
+        const isFirstMessageInNewChat = messages.length === 0 && !localStorage.getItem('pendingMessages')
+        if (isFirstMessageInNewChat) {
           shouldGenerateTitle = true
           const wordCount = userMessage.trim().split(/\s+/).length
           
