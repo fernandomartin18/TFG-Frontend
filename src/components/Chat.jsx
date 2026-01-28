@@ -32,6 +32,20 @@ function Chat({ isAuthenticated }) {
     document.documentElement.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light')
   }, [isDarkTheme])
 
+  // Limpiar chat cuando el usuario cierra sesión
+  useEffect(() => {
+    if (!isAuthenticated) {
+      // Si el usuario cierra sesión, limpiar el chat
+      if (currentChatId !== null || messages.length > 0) {
+        setMessages([])
+        setCurrentChatId(null)
+        setImages([])
+      }
+      // Resetear la bandera de mensajes procesados
+      hasProcessedPendingMessages.current = false
+    }
+  }, [isAuthenticated])
+
   // Guardar mensajes en localStorage cuando hay mensajes y el usuario no está autenticado
   useEffect(() => {
     if (!isAuthenticated && messages.length > 0) {
@@ -47,14 +61,14 @@ function Chat({ isAuthenticated }) {
         const pendingMessagesStr = localStorage.getItem('pendingMessages')
         
         if (pendingMessagesStr) {
-          // Marcar como procesado inmediatamente para evitar ejecuciones duplicadas
-          hasProcessedPendingMessages.current = true
-          
           try {
             const pendingMessages = JSON.parse(pendingMessagesStr)
             
             // Solo procesar si hay mensajes válidos
             if (pendingMessages.length > 0) {
+              // Marcar como procesado inmediatamente para evitar ejecuciones duplicadas
+              hasProcessedPendingMessages.current = true
+              
               // Crear un nuevo chat para guardar los mensajes existentes
               const firstUserMessage = pendingMessages.find(msg => msg.isUser)?.text || 'Chat sin título'
               const wordCount = firstUserMessage.trim().split(/\s+/).length
@@ -105,6 +119,12 @@ function Chat({ isAuthenticated }) {
               }, 100)
               
               console.log('Mensajes guardados exitosamente al iniciar sesión')
+            } else {
+              // Si no hay mensajes, solo marcar como procesado y mantener el chat vacío
+              hasProcessedPendingMessages.current = true
+              setMessages([])
+              setCurrentChatId(null)
+              setImages([])
             }
             
             // Limpiar los mensajes pendientes INMEDIATAMENTE
@@ -114,6 +134,12 @@ function Chat({ isAuthenticated }) {
             localStorage.removeItem('pendingMessages')
             hasProcessedPendingMessages.current = false // Resetear en caso de error
           }
+        } else {
+          // Si no hay mensajes pendientes, marcar como procesado y mantener el chat vacío
+          hasProcessedPendingMessages.current = true
+          setMessages([])
+          setCurrentChatId(null)
+          setImages([])
         }
       }
     }
