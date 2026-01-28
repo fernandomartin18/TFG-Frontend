@@ -105,15 +105,16 @@ class ChatService {
   /**
    * Crear un mensaje en un chat
    */
-  async createMessage(chatId, role, content, modelsUsed = []) {
+  async createMessage(chatId, role, content, modelsUsed = [], images = []) {
     const response = await fetchWithAuth(`${API_URL}/chats/${chatId}/messages`, {
       method: 'POST',
-      body: JSON.stringify({ role, content, modelsUsed }),
+      body: JSON.stringify({ role, content, modelsUsed, images }),
     })
 
     const data = await response.json()
 
     if (!response.ok) {
+      console.error('Error en respuesta:', data)
       throw new Error(data.error || data.message || 'Error al crear mensaje')
     }
 

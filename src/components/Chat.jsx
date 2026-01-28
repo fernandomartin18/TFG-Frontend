@@ -266,11 +266,22 @@ function Chat({ isAuthenticated }) {
       
       // Convertir los mensajes de la base de datos al formato del componente
       const loadedMessages = chat.messages.map(msg => {
+        // Transformar las imágenes de la BD al formato esperado por el componente
+        const formattedImages = (msg.images || []).map(img => ({
+          url: img.image_data, // El base64 data URL
+          name: img.original_filename, // Para el modal
+          file: {
+            name: img.original_filename,
+            type: img.mime_type,
+            size: img.file_size
+          }
+        }))
+
         const formattedMessage = {
           text: msg.content,
           isUser: msg.role === 'user',
           isLoading: false,
-          images: msg.images || [],
+          images: formattedImages,
           generatedCodes: msg.generatedCodes || []
         }
         return formattedMessage
@@ -350,8 +361,36 @@ function Chat({ isAuthenticated }) {
     let shouldGenerateTitle = false
     if (chatId && isAuthenticated) {
       try {
-        const savedUserMessage = await chatService.createMessage(chatId, 'user', userMessage, [])
+        // Convertir imágenes a formato para guardar en BD
+        const imagesToSave = await Promise.all(
+          imagesToSend.map(async (img, index) => {
+            return new Promise((resolve) => {
+              const reader = new FileReader()
+              reader.onloadend = () => {
+                resolve({
+                  name: img.file.name,
+                  type: img.file.type,
+                  size: img.file.size,
+                  data: reader.result, // Base64 data URL
+                })
+              }
+              reader.readAsDataURL(img.file)
+            })
+          })
+        )
+
+        console.log('Imágenes a guardar:', imagesToSave.length, imagesToSave.map(i => ({ name: i.name, size: i.size })))
+
+        const savedUserMessage = await chatService.createMessage(
+          chatId, 
+          'user', 
+          userMessage, 
+          [], 
+          imagesToSave
+        )
         userMessageId = savedUserMessage.id
+        
+        console.log('Mensaje guardado con ID:', userMessageId)
         
         // Generar título del chat solo si es el primer mensaje del usuario en un chat nuevo
         // (no si el chat fue cargado desde localStorage o de la BD)
