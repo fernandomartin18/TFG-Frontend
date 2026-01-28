@@ -164,7 +164,7 @@ function Chat({ isAuthenticated }) {
               codes: currentRequestCodes,
               userMessage: currentUserMessage
             })
-            currentRequestCodes = []
+            currentRequestCodes = [] // Resetear para la nueva petición
           }
           isCollectingCodes = true
           currentUserMessage = msg.text
@@ -281,8 +281,7 @@ function Chat({ isAuthenticated }) {
           text: msg.content,
           isUser: msg.role === 'user',
           isLoading: false,
-          images: formattedImages,
-          generatedCodes: msg.generatedCodes || []
+          images: formattedImages
         }
         return formattedMessage
       })
