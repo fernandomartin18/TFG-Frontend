@@ -293,11 +293,33 @@
   background: var(--text-secondary);
 }
 
+/* Secciones de chats */
+.chats-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+}
+
+.chats-section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.5rem 0.5rem 0.25rem 0.5rem;
+  margin-right: 0.5rem;
+}
+
 .chat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   border-radius: 12px;
   margin-right: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .chat-item:hover {
@@ -313,6 +335,7 @@
 }
 
 .chat-item-title {
+  flex: 1;
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
   padding-left: 0.5rem;

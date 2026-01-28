@@ -85,6 +85,24 @@ class ChatService {
   }
 
   /**
+   * Fijar o desfijar un chat
+   */
+  async togglePinChat(chatId, pinned) {
+    const response = await fetchWithAuth(`${API_URL}/chats/${chatId}/pin`, {
+      method: 'PATCH',
+      body: JSON.stringify({ pinned }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || 'Error al fijar/desfijar chat')
+    }
+
+    return data.chat
+  }
+
+  /**
    * Crear un mensaje en un chat
    */
   async createMessage(chatId, role, content, modelsUsed = []) {

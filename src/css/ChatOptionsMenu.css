@@ -1,0 +1,185 @@
+/* Contenedor del menú de opciones */
+.chat-options-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  z-index: 10;
+}
+
+/* Botón de tres puntos */
+.chat-options-button {
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  font-size: 1.2rem;
+}
+
+.chat-item:hover .chat-options-button {
+  opacity: 1;
+}
+
+.chat-options-button:hover {
+  background-color: var(--hover-bg);
+}
+
+/* Menú desplegable */
+.chat-options-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.25rem;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 0.5rem;
+  min-width: 180px;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+/* Asegurar fondo opaco en tema claro y oscuro */
+:root {
+  --menu-bg-light: #ffffff;
+  --menu-bg-dark: #1f1f1f;
+}
+
+[data-theme="light"] .chat-options-menu,
+.chat-options-menu {
+  background-color: var(--menu-bg-light, #ffffff) !important;
+}
+
+[data-theme="dark"] .chat-options-menu {
+  background-color: var(--menu-bg-dark, #1f1f1f) !important;
+}
+
+/* Elementos del menú */
+.chat-option-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-color);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-size: 0.95rem;
+  transition: background-color 0.2s ease;
+}
+
+.chat-option-item:hover {
+  background-color: var(--hover-bg);
+}
+
+.chat-option-item.delete {
+  color: #ef4444;
+}
+
+.chat-option-item.delete .option-icon {
+  color: #ef4444;
+}
+
+.chat-option-item.delete:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.option-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* Contenedor de edición */
+.chat-edit-container {
+  flex: 1;
+  padding: 0.5rem;
+}
+
+.chat-edit-input {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.chat-edit-input:focus {
+  border-color: var(--primary-color);
+}
+
+/* Confirmación de eliminación */
+.delete-confirm {
+  padding: 0.5rem;
+}
+
+.delete-confirm-text {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  text-align: center;
+}
+
+.delete-confirm-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.delete-confirm-button {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.delete-confirm-button.cancel {
+  background-color: var(--hover-bg);
+  color: var(--text-color);
+}
+
+.delete-confirm-button.cancel:hover {
+  background-color: var(--border-color);
+}
+
+.delete-confirm-button.confirm {
+  background-color: #ef4444;
+  color: white;
+}
+
+.delete-confirm-button.confirm:hover {
+  background-color: #dc2626;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .chat-options-menu {
+    min-width: 160px;
+  }
+
+  .chat-option-item {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .option-icon {
+    font-size: 1rem;
+  }
+}

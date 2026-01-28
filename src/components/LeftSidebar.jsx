@@ -2,10 +2,11 @@ import { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 're
 import PropTypes from 'prop-types'
 import { useNavigate } from 'react-router-dom'
 import { RiChatNewLine } from 'react-icons/ri'
-import { FaSearch } from 'react-icons/fa'
+import { IoSearch } from "react-icons/io5";
 import genesisLogo from '../assets/Genesis_Sign_Violet.png'
 import genesisHorizontal from '../assets/Genesis_Horizontal_Violet.png'
 import UserProfile from './UserProfile'
+import ChatOptionsMenu from './ChatOptionsMenu'
 import chatService from '../services/chat.service'
 import '../css/LeftSidebar.css'
 
@@ -148,6 +149,41 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
     }
   }
 
+  const handleEditChat = async (chatId, newTitle) => {
+    try {
+      await chatService.updateChatTitle(chatId, newTitle)
+      await loadChats()
+    } catch (error) {
+      console.error('Error al editar chat:', error)
+    }
+  }
+
+  const handleTogglePin = async (chatId, pinned) => {
+    try {
+      await chatService.togglePinChat(chatId, pinned)
+      await loadChats()
+    } catch (error) {
+      console.error('Error al fijar/desfijar chat:', error)
+    }
+  }
+
+  const handleDeleteChat = async (chatId) => {
+    try {
+      await chatService.deleteChat(chatId)
+      await loadChats()
+      // Si era el chat actual, iniciar un nuevo chat
+      if (currentChatId === chatId) {
+        if (onNewChat) {
+          onNewChat()
+        } else if (onChatSelect) {
+          onChatSelect(null)
+        }
+      }
+    } catch (error) {
+      console.error('Error al eliminar chat:', error)
+    }
+  }
+
   // Exponer la función refreshChats al componente padre
   useImperativeHandle(ref, () => ({
     refreshChats: loadChats
@@ -205,7 +241,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                   onClick={handleSearchToggle}
                   aria-label="Buscar chats"
                 >
-                  <FaSearch className="search-icon" />
+                  <IoSearch className="search-icon" />
                 </button>
               </div>
 
@@ -238,15 +274,57 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                     {searchQuery ? 'No se encontraron chats' : 'No hay chats guardados'}
                   </div>
                 ) : (
-                  filteredChats.map((chat) => (
-                    <div
-                      key={chat.id}
-                      className={`chat-item ${currentChatId === chat.id ? 'active' : ''}`}
-                      onClick={() => handleChatClick(chat.id)}
-                    >
-                      <div className="chat-item-title">{chat.title}</div>
-                    </div>
-                  ))
+                  <>
+                    {/* Sección de chats fijados */}
+                    {filteredChats.some(chat => chat.pinned) && (
+                      <div className="chats-section">
+                        <div className="chats-section-title">Fijados</div>
+                        {filteredChats
+                          .filter(chat => chat.pinned)
+                          .map((chat) => (
+                            <div
+                              key={chat.id}
+                              className={`chat-item ${currentChatId === chat.id ? 'active' : ''}`}
+                              onClick={() => handleChatClick(chat.id)}
+                            >
+                              <div className="chat-item-title">{chat.title}</div>
+                              <ChatOptionsMenu
+                                chat={chat}
+                                onEdit={handleEditChat}
+                                onTogglePin={handleTogglePin}
+                                onDelete={handleDeleteChat}
+                              />
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                    
+                    {/* Sección de chats recientes */}
+                    {filteredChats.some(chat => !chat.pinned) && (
+                      <div className="chats-section">
+                        {filteredChats.some(chat => chat.pinned) && (
+                          <div className="chats-section-title">Recientes</div>
+                        )}
+                        {filteredChats
+                          .filter(chat => !chat.pinned)
+                          .map((chat) => (
+                            <div
+                              key={chat.id}
+                              className={`chat-item ${currentChatId === chat.id ? 'active' : ''}`}
+                              onClick={() => handleChatClick(chat.id)}
+                            >
+                              <div className="chat-item-title">{chat.title}</div>
+                              <ChatOptionsMenu
+                                chat={chat}
+                                onEdit={handleEditChat}
+                                onTogglePin={handleTogglePin}
+                                onDelete={handleDeleteChat}
+                              />
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
