@@ -231,22 +231,27 @@ function Chat({ isAuthenticated }) {
     
     // Guardar mensaje del usuario inmediatamente en la BD si hay chat activo
     let userMessageId = null
+    let shouldGenerateTitle = false
     if (chatId && isAuthenticated) {
       try {
         const savedUserMessage = await chatService.createMessage(chatId, 'user', userMessage, [])
         userMessageId = savedUserMessage.id
         
-        // Actualizar el título del chat si es el primer mensaje
+        // Generar título del chat si es el primer mensaje
         if (messages.length === 0) {
-          const title = userMessage.length > 50 
-            ? userMessage.substring(0, 50) + '...' 
-            : userMessage
-          await chatService.updateChatTitle(chatId, title)
+          shouldGenerateTitle = true
+          const wordCount = userMessage.trim().split(/\s+/).length
           
-          // Actualizar la lista de chats
-          if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
-            leftSidebarRef.current.refreshChats()
+          if (wordCount <= 4) {
+            // Si tiene 4 palabras o menos, usar el mensaje como título
+            await chatService.updateChatTitle(chatId, userMessage.trim())
+            
+            // Actualizar la lista de chats
+            if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
+              leftSidebarRef.current.refreshChats()
+            }
           }
+          // Si tiene más de 4 palabras, se generará el título después con la IA
         }
       } catch (error) {
         console.error('Error al guardar mensaje del usuario:', error)
@@ -386,6 +391,90 @@ function Chat({ isAuthenticated }) {
           await chatService.createMessage(chatId, 'assistant', accumulatedText, 
             selectedModel && selectedModel !== 'Auto' ? [selectedModel] : []
           )
+          
+          // Generar título usando IA si es el primer mensaje y tiene más de 4 palabras
+          if (shouldGenerateTitle) {
+            const wordCount = userMessage.trim().split(/\s+/).length
+            
+            if (wordCount > 4) {
+              try {
+                // Llamar a la IA para generar un título resumido
+                const titlePrompt = `Resume la siguiente petición en máximo 4 palabras para usar como título. Solo responde con el título, sin explicaciones adicionales:\n\n"${userMessage}"`
+                
+                const formDataTitle = new FormData()
+                formDataTitle.append('model', modelToUse)
+                formDataTitle.append('prompt', titlePrompt)
+                formDataTitle.append('messages', JSON.stringify([]))
+                formDataTitle.append('autoMode', 'false')
+                
+                const titleResponse = await fetchWithAuth('http://localhost:3000/api/generate/stream', {
+                  method: 'POST',
+                  body: formDataTitle
+                })
+                
+                if (titleResponse.ok) {
+                  const reader = titleResponse.body.getReader()
+                  const decoder = new TextDecoder()
+                  let generatedTitle = ''
+                  
+                  while (true) {
+                    const { done, value } = await reader.read()
+                    if (done) break
+                    
+                    const chunk = decoder.decode(value, { stream: true })
+                    const lines = chunk.split('\n')
+                    
+                    for (const line of lines) {
+                      if (line.startsWith('data: ')) {
+                        const data = line.slice(6)
+                        if (data === '[DONE]') break
+                        if (!data.startsWith('[ERROR]')) {
+                          try {
+                            const decodedChunk = JSON.parse(data)
+                            if (typeof decodedChunk === 'string') {
+                              generatedTitle += decodedChunk
+                            }
+                          } catch (e) {
+                            generatedTitle += data
+                          }
+                        }
+                      }
+                    }
+                  }
+                  
+                  // Limpiar y limitar el título generado
+                  const cleanTitle = generatedTitle.trim().replace(/["']/g, '')
+                  const titleWords = cleanTitle.split(/\s+/).slice(0, 4).join(' ')
+                  
+                  if (titleWords) {
+                    await chatService.updateChatTitle(chatId, titleWords)
+                  } else {
+                    // Si falla, usar las primeras 4 palabras del mensaje original
+                    const fallbackTitle = userMessage.trim().split(/\s+/).slice(0, 4).join(' ')
+                    await chatService.updateChatTitle(chatId, fallbackTitle)
+                  }
+                } else {
+                  // Si falla, usar las primeras 4 palabras del mensaje original
+                  const fallbackTitle = userMessage.trim().split(/\s+/).slice(0, 4).join(' ')
+                  await chatService.updateChatTitle(chatId, fallbackTitle)
+                }
+                
+                // Actualizar la lista de chats
+                if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
+                  leftSidebarRef.current.refreshChats()
+                }
+              } catch (error) {
+                console.error('Error al generar título con IA:', error)
+                // Fallback: usar las primeras 4 palabras del mensaje original
+                const fallbackTitle = userMessage.trim().split(/\s+/).slice(0, 4).join(' ')
+                await chatService.updateChatTitle(chatId, fallbackTitle)
+                
+                if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
+                  leftSidebarRef.current.refreshChats()
+                }
+              }
+            }
+          }
         } catch (error) {
           console.error('Error al guardar mensaje de la IA:', error)
         }
