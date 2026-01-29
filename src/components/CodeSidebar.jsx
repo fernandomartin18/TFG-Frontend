@@ -180,12 +180,23 @@ function CodeSidebar({ codeRequests }) {
 
     // Si hay múltiples códigos, crear un ZIP
     const zip = new JSZip()
+    const usedFileNames = new Set()
     
     codes.forEach((code, index) => {
       const individualName = generateDescriptiveName(code.content, code.language, userMessage)
       const extension = getFileExtension(code.language)
-      const fileName = `${individualName}.${extension}`
-      zip.file(fileName, code.content)
+      let fileName = `${individualName}.${extension}`
+      
+      // Si el nombre ya existe, añadir un sufijo numérico
+      let counter = 1
+      let uniqueFileName = fileName
+      while (usedFileNames.has(uniqueFileName)) {
+        uniqueFileName = `${individualName}_${counter}.${extension}`
+        counter++
+      }
+      usedFileNames.add(uniqueFileName)
+      
+      zip.file(uniqueFileName, code.content)
     })
 
     const blob = await zip.generateAsync({ type: 'blob' })
