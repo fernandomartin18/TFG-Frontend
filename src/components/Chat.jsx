@@ -469,7 +469,31 @@ function Chat({ isAuthenticated }) {
               break
             }
             if (data.startsWith('[ERROR]')) {
-              throw new Error(data.slice(8))
+              const errorMessage = data.slice(8)
+              // Si es un error de diagrama no detectado, mostrar fuera del desplegable
+              if (errorMessage.includes('No se ha detectado ningún diagrama UML')) {
+                // Resetear el estado antes de mostrar el error
+                currentStep = 0
+                accumulatedText = ''
+                step1Text = ''
+                step2Text = ''
+                
+                setMessages(prev => {
+                  const newMessages = [...prev]
+                  newMessages[aiMessageIndex] = {
+                    text: errorMessage,
+                    isUser: false,
+                    isError: true,
+                    isLoading: false
+                    // No incluir propiedades de dos pasos
+                  }
+                  return newMessages
+                })
+                // Terminar el loop sin lanzar error
+                reader.cancel()
+                return
+              }
+              throw new Error(errorMessage)
             }
             
             try {
