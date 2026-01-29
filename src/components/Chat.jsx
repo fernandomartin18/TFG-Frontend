@@ -81,7 +81,13 @@ function Chat({ isAuthenticated }) {
               for (const msg of pendingMessages) {
                 if (!msg.isError && !msg.isLoading) {
                   const role = msg.isUser ? 'user' : 'assistant'
-                  await chatService.createMessage(chatId, role, msg.text, [])
+                  await chatService.createMessage(
+                    chatId, 
+                    role, 
+                    msg.text, 
+                    msg.isError || false, 
+                    msg.isTwoStep || false
+                  )
                 }
               }
               
@@ -281,8 +287,29 @@ function Chat({ isAuthenticated }) {
           text: msg.content,
           isUser: msg.role === 'user',
           isLoading: false,
+          isError: msg.is_error || false,
+          isTwoStep: msg.is_collapsible || false,
           images: formattedImages
         }
+        
+        // Si es un mensaje desplegable (isTwoStep), necesitamos separar step1 y step2
+        if (formattedMessage.isTwoStep && !formattedMessage.isUser) {
+          // Buscar el separador especial
+          const parts = msg.content.split('\n\n[STEP_SEPARATOR]\n\n')
+          if (parts.length === 2) {
+            // Tenemos ambos pasos
+            formattedMessage.step1Text = parts[0]
+            formattedMessage.step2Text = parts[1]
+            formattedMessage.currentStep = 2
+            formattedMessage.text = parts[1] // El texto principal es el step2
+          } else {
+            // Solo tenemos un paso (backward compatibility)
+            formattedMessage.step1Text = msg.content
+            formattedMessage.step2Text = ''
+            formattedMessage.currentStep = 1
+          }
+        }
+        
         return formattedMessage
       })
       
@@ -384,7 +411,8 @@ function Chat({ isAuthenticated }) {
           chatId, 
           'user', 
           userMessage, 
-          [], 
+          false,  // isError
+          false,  // isCollapsible
           imagesToSave
         )
         userMessageId = savedUserMessage.id
@@ -568,8 +596,22 @@ function Chat({ isAuthenticated }) {
       // Guardar mensaje de la IA en la base de datos si hay chat activo
       if (chatId && isAuthenticated) {
         try {
-          await chatService.createMessage(chatId, 'assistant', accumulatedText, 
-            selectedModel && selectedModel !== 'Auto' ? [selectedModel] : []
+          // Determinar si el mensaje es un error o es desplegable
+          const isErrorMessage = accumulatedText.includes('No se ha detectado ningún diagrama UML') || accumulatedText.includes('Error')
+          const isCollapsibleMessage = currentStep >= 1 && !isErrorMessage
+          
+          // Si es un mensaje de dos pasos, combinar ambos pasos con un separador
+          let contentToSave = accumulatedText
+          if (isCollapsibleMessage && step1Text && accumulatedText) {
+            contentToSave = `${step1Text}\n\n[STEP_SEPARATOR]\n\n${accumulatedText}`
+          }
+          
+          await chatService.createMessage(
+            chatId, 
+            'assistant', 
+            contentToSave,
+            isErrorMessage,
+            isCollapsibleMessage
           )
           
           // Generar título usando IA si es el primer mensaje y tiene más de 4 palabras
