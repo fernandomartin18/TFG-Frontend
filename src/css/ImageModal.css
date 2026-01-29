@@ -31,6 +31,7 @@
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease-out;
+  overflow: hidden; /* Previene que el contenido se salga */
 }
 
 @keyframes slideUp {
@@ -87,13 +88,19 @@
   justify-content: center;
   padding: 1rem;
   overflow: auto;
+  min-height: 0;
+  position: relative;
 }
 
 .image-modal-img {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: calc(100%);
+  max-height: calc(100%);
+  width: auto;
+  height: auto;
   object-fit: contain;
   border-radius: 0.5rem;
+  display: block;
+  margin: auto;
 }
 
 .image-modal-footer {

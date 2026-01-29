@@ -140,9 +140,9 @@
 .chat-actions-container {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   margin-bottom: 0.8rem;
-  padding: 0 1rem;
+  padding: 0 0.4rem 0 0.2rem;
 }
 
 /* Botón de nuevo chat */
