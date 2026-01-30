@@ -334,6 +334,11 @@
   color: var(--text-color);
 }
 
+.chat-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .chat-item-title {
   flex: 1;
   padding-top: 0.75rem;

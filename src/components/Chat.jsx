@@ -266,6 +266,11 @@ function Chat({ isAuthenticated }) {
 
   // Función para cargar un chat existente
   const handleChatSelect = async (chatId) => {
+    // No permitir cambiar de chat si la IA está respondiendo
+    if (isLoading) {
+      return
+    }
+    
     try {
       setIsLoading(true)
       const chat = await chatService.getChatById(chatId)
@@ -329,6 +334,11 @@ function Chat({ isAuthenticated }) {
 
   // Función para crear un nuevo chat vacío
   const handleNewChat = async () => {
+    // No permitir crear un nuevo chat si la IA está respondiendo
+    if (isLoading) {
+      return
+    }
+    
     // Si hay mensajes en el chat actual y el usuario está autenticado
     if (messages.length > 0 && isAuthenticated) {
       // Actualizar la lista de chats para mostrar el chat que acabamos de usar
@@ -735,6 +745,7 @@ function Chat({ isAuthenticated }) {
         currentChatId={currentChatId}
         onNewChat={handleNewChat}
         hasMessages={messages.length > 0}
+        isLoading={isLoading}
       />
       
       <CodeSidebar codeRequests={codeRequests} />
