@@ -607,8 +607,10 @@ function Chat({ isAuthenticated }) {
       if (chatId && isAuthenticated) {
         try {
           // Determinar si el mensaje es un error o es desplegable
-          const isErrorMessage = accumulatedText.includes('No se ha detectado ningún diagrama UML') || accumulatedText.includes('Error')
-          const isCollapsibleMessage = currentStep >= 1 && !isErrorMessage
+          // Solo es error si incluye el mensaje específico de diagrama no detectado
+          const isErrorMessage = accumulatedText.includes('No se ha detectado ningún diagrama UML')
+          // Es desplegable si tenemos step1Text (PlantUML) y no es un error
+          const isCollapsibleMessage = step1Text && step1Text.length > 0 && !isErrorMessage
           
           // Si es un mensaje de dos pasos, combinar ambos pasos con un separador
           let contentToSave = accumulatedText
