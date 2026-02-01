@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import PropTypes from 'prop-types'
 import { MdClose, MdDelete } from 'react-icons/md'
 import '../css/ImageModal.css'
@@ -9,7 +10,7 @@ function ImageModal({ image, onClose, onDelete, showDeleteButton = true }) {
     }
   }
 
-  return (
+  const modalContent = (
     <div className="image-modal-backdrop" onClick={handleBackdropClick}>
       <div className="image-modal">
         <div className="image-modal-header">
@@ -43,6 +44,8 @@ function ImageModal({ image, onClose, onDelete, showDeleteButton = true }) {
       </div>
     </div>
   )
+
+  return createPortal(modalContent, document.body)
 }
 
 ImageModal.propTypes = {

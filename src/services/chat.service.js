@@ -105,10 +105,10 @@ class ChatService {
   /**
    * Crear un mensaje en un chat
    */
-  async createMessage(chatId, role, content, modelsUsed = [], images = []) {
+  async createMessage(chatId, role, content, isError = false, isCollapsible = false, images = []) {
     const response = await fetchWithAuth(`${API_URL}/chats/${chatId}/messages`, {
       method: 'POST',
-      body: JSON.stringify({ role, content, modelsUsed, images }),
+      body: JSON.stringify({ role, content, isError, isCollapsible, images }),
     })
 
     const data = await response.json()

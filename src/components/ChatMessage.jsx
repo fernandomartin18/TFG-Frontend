@@ -191,8 +191,11 @@ function ChatMessage({
 
   const messageParts = parseMessage(message)
 
-  // Si es un mensaje de dos pasos, mostrar interfaz especial
-  if (!isUser && isTwoStep) {
+  // Validar si el contenido es un error de diagrama no detectado
+  const isNoDiagramError = step1Text && step1Text.includes('No se ha detectado ningún diagrama UML')
+
+  // Si es un mensaje de dos pasos Y NO es el error de diagrama, mostrar interfaz especial
+  if (!isUser && isTwoStep && !isNoDiagramError) {
     const step1Parts = step1Text ? parseMessage(step1Text) : []
     const step2Parts = step2Text ? parseMessage(step2Text) : []
     
@@ -338,6 +341,19 @@ function ChatMessage({
               )}
             </div>
           )}
+        </div>
+      </div>
+    )
+  }
+
+  // Si es el error de diagrama no detectado, mostrarlo como mensaje de error simple
+  if (isNoDiagramError) {
+    return (
+      <div className="message-wrapper ai-message">
+        <div className="ai-content error-message">
+          <div className="ai-text markdown-content">
+            <ReactMarkdown>{step1Text}</ReactMarkdown>
+          </div>
         </div>
       </div>
     )

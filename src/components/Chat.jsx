@@ -81,7 +81,13 @@ function Chat({ isAuthenticated }) {
               for (const msg of pendingMessages) {
                 if (!msg.isError && !msg.isLoading) {
                   const role = msg.isUser ? 'user' : 'assistant'
-                  await chatService.createMessage(chatId, role, msg.text, [])
+                  await chatService.createMessage(
+                    chatId, 
+                    role, 
+                    msg.text, 
+                    msg.isError || false, 
+                    msg.isTwoStep || false
+                  )
                 }
               }
               
@@ -260,6 +266,11 @@ function Chat({ isAuthenticated }) {
 
   // Función para cargar un chat existente
   const handleChatSelect = async (chatId) => {
+    // No permitir cambiar de chat si la IA está respondiendo
+    if (isLoading) {
+      return
+    }
+    
     try {
       setIsLoading(true)
       const chat = await chatService.getChatById(chatId)
@@ -281,8 +292,29 @@ function Chat({ isAuthenticated }) {
           text: msg.content,
           isUser: msg.role === 'user',
           isLoading: false,
+          isError: msg.is_error || false,
+          isTwoStep: msg.is_collapsible || false,
           images: formattedImages
         }
+        
+        // Si es un mensaje desplegable (isTwoStep), necesitamos separar step1 y step2
+        if (formattedMessage.isTwoStep && !formattedMessage.isUser) {
+          // Buscar el separador especial
+          const parts = msg.content.split('\n\n[STEP_SEPARATOR]\n\n')
+          if (parts.length === 2) {
+            // Tenemos ambos pasos
+            formattedMessage.step1Text = parts[0]
+            formattedMessage.step2Text = parts[1]
+            formattedMessage.currentStep = 2
+            formattedMessage.text = parts[1] // El texto principal es el step2
+          } else {
+            // Solo tenemos un paso (backward compatibility)
+            formattedMessage.step1Text = msg.content
+            formattedMessage.step2Text = ''
+            formattedMessage.currentStep = 1
+          }
+        }
+        
         return formattedMessage
       })
       
@@ -302,6 +334,11 @@ function Chat({ isAuthenticated }) {
 
   // Función para crear un nuevo chat vacío
   const handleNewChat = async () => {
+    // No permitir crear un nuevo chat si la IA está respondiendo
+    if (isLoading) {
+      return
+    }
+    
     // Si hay mensajes en el chat actual y el usuario está autenticado
     if (messages.length > 0 && isAuthenticated) {
       // Actualizar la lista de chats para mostrar el chat que acabamos de usar
@@ -384,7 +421,8 @@ function Chat({ isAuthenticated }) {
           chatId, 
           'user', 
           userMessage, 
-          [], 
+          false,  // isError
+          false,  // isCollapsible
           imagesToSave
         )
         userMessageId = savedUserMessage.id
@@ -469,7 +507,31 @@ function Chat({ isAuthenticated }) {
               break
             }
             if (data.startsWith('[ERROR]')) {
-              throw new Error(data.slice(8))
+              const errorMessage = data.slice(8)
+              // Si es un error de diagrama no detectado, mostrar fuera del desplegable
+              if (errorMessage.includes('No se ha detectado ningún diagrama UML')) {
+                // Resetear el estado antes de mostrar el error
+                currentStep = 0
+                accumulatedText = ''
+                step1Text = ''
+                step2Text = ''
+                
+                setMessages(prev => {
+                  const newMessages = [...prev]
+                  newMessages[aiMessageIndex] = {
+                    text: errorMessage,
+                    isUser: false,
+                    isError: true,
+                    isLoading: false
+                    // No incluir propiedades de dos pasos
+                  }
+                  return newMessages
+                })
+                // Terminar el loop sin lanzar error
+                reader.cancel()
+                return
+              }
+              throw new Error(errorMessage)
             }
             
             try {
@@ -544,8 +606,24 @@ function Chat({ isAuthenticated }) {
       // Guardar mensaje de la IA en la base de datos si hay chat activo
       if (chatId && isAuthenticated) {
         try {
-          await chatService.createMessage(chatId, 'assistant', accumulatedText, 
-            selectedModel && selectedModel !== 'Auto' ? [selectedModel] : []
+          // Determinar si el mensaje es un error o es desplegable
+          // Solo es error si incluye el mensaje específico de diagrama no detectado
+          const isErrorMessage = accumulatedText.includes('No se ha detectado ningún diagrama UML')
+          // Es desplegable si tenemos step1Text (PlantUML) y no es un error
+          const isCollapsibleMessage = step1Text && step1Text.length > 0 && !isErrorMessage
+          
+          // Si es un mensaje de dos pasos, combinar ambos pasos con un separador
+          let contentToSave = accumulatedText
+          if (isCollapsibleMessage && step1Text && accumulatedText) {
+            contentToSave = `${step1Text}\n\n[STEP_SEPARATOR]\n\n${accumulatedText}`
+          }
+          
+          await chatService.createMessage(
+            chatId, 
+            'assistant', 
+            contentToSave,
+            isErrorMessage,
+            isCollapsibleMessage
           )
           
           // Generar título usando IA si es el primer mensaje y tiene más de 4 palabras
@@ -669,6 +747,7 @@ function Chat({ isAuthenticated }) {
         currentChatId={currentChatId}
         onNewChat={handleNewChat}
         hasMessages={messages.length > 0}
+        isLoading={isLoading}
       />
       
       <CodeSidebar codeRequests={codeRequests} />

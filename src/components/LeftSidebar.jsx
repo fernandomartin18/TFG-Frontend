@@ -10,7 +10,7 @@ import ChatOptionsMenu from './ChatOptionsMenu'
 import chatService from '../services/chat.service'
 import '../css/LeftSidebar.css'
 
-const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkTheme, onToggleTheme, onChatSelect, currentChatId, onNewChat, hasMessages }, ref) => {
+const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkTheme, onToggleTheme, onChatSelect, currentChatId, onNewChat, hasMessages, isLoading }, ref) => {
   const navigate = useNavigate()
   const [chats, setChats] = useState([])
   const [isLoadingChats, setIsLoadingChats] = useState(false)
@@ -144,6 +144,11 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
   }
 
   const handleChatClick = (chatId) => {
+    // No permitir cambiar de chat si la IA está respondiendo
+    if (isLoading) {
+      return
+    }
+    
     if (onChatSelect) {
       onChatSelect(chatId)
     }
@@ -211,7 +216,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
           <button
             className="new-chat-button-compact"
             onClick={onNewChat}
-            disabled={!hasMessages}
+            disabled={!hasMessages || isLoading}
             aria-label="Crear nuevo chat"
           >
             <RiChatNewLine className="new-chat-icon-compact" />
@@ -228,7 +233,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                 <button 
                   className="new-chat-button"
                   onClick={onNewChat}
-                  disabled={!hasMessages}
+                  disabled={!hasMessages || isLoading}
                   aria-label="Crear nuevo chat"
                 >
                   <RiChatNewLine className="new-chat-icon" />
@@ -284,8 +289,9 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                           .map((chat) => (
                             <div
                               key={chat.id}
-                              className={`chat-item ${currentChatId === chat.id ? 'active' : ''}`}
+                              className={`chat-item ${currentChatId === chat.id ? 'active' : ''} ${isLoading ? 'disabled' : ''}`}
                               onClick={() => handleChatClick(chat.id)}
+                              style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
                             >
                               <div className="chat-item-title">{chat.title}</div>
                               <ChatOptionsMenu
@@ -310,8 +316,9 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                           .map((chat) => (
                             <div
                               key={chat.id}
-                              className={`chat-item ${currentChatId === chat.id ? 'active' : ''}`}
+                              className={`chat-item ${currentChatId === chat.id ? 'active' : ''} ${isLoading ? 'disabled' : ''}`}
                               onClick={() => handleChatClick(chat.id)}
+                              style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
                             >
                               <div className="chat-item-title">{chat.title}</div>
                               <ChatOptionsMenu
@@ -371,6 +378,7 @@ LeftSidebar.propTypes = {
   currentChatId: PropTypes.number,
   onNewChat: PropTypes.func,
   hasMessages: PropTypes.bool,
+  isLoading: PropTypes.bool,
 }
 
 export default LeftSidebar
