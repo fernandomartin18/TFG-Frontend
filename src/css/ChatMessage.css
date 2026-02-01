@@ -1,0 +1,452 @@
+.message-wrapper {
+  display: flex;
+  margin-bottom: 1rem;
+  padding: 0 1rem;
+  animation: fadeIn 0.3s ease-in;
+  transition: padding 0.3s ease;
+}
+
+.left-sidebar-open .message-wrapper {
+  padding: 0 6rem 0 6rem;
+  padding-right: 1rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-wrapper.user-message {
+  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.message-wrapper.ai-message {
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.message-images {
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.message-images .image-preview-container {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-end;
+  overflow: visible;
+}
+
+.message-images .image-preview-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 1rem;
+  border: 2px solid var(--border-color);
+  background-color: var(--input-bg);
+  cursor: pointer;
+  padding: 0;
+  overflow: visible;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.message-images .image-preview-button:hover {
+  border-color: var(--primary-color);
+  transform: scale(1.05);
+}
+
+.message-images .image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.85rem;
+}
+
+.message-images .image-count-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border: 2px solid var(--background);
+}
+
+.message-images .image-dropdown {
+  left: auto;
+  right: 0;
+}
+
+/* Estilo de burbuja para mensajes de usuario */
+.message-content {
+  max-width: 60%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  border-top-right-radius: 0;
+  word-wrap: break-word;
+  background-color: var(--user-message-bg);
+  color: var(--user-message-text);
+  position: relative;
+  transition: max-width 0.3s ease;
+}
+
+.user-message .message-content::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -8px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid var(--user-message-bg);
+  border-top: 8px solid var(--user-message-bg);
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-top-right-radius: 4px;
+}
+
+.message-text {
+  line-height: 1.5;
+  white-space: pre-wrap;
+  font-size: 1.1rem;
+}
+
+/* Estilo sin burbuja para mensajes de IA */
+.ai-content {
+  width: 100%;
+  color: var(--text-color);
+}
+
+.error-message {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.error-message .ai-text,
+.error-message .markdown-content {
+  color: #ef4444;
+}
+
+.ai-text {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+  font-size: 1.1rem;
+}
+
+.ai-text p {
+  margin: 0.5rem 0;
+}
+
+/* Estilos para Markdown */
+.markdown-content {
+  line-height: 1.6;
+  font-size: 1.1rem;
+}
+
+.markdown-content p {
+  margin: 0.5rem 0;
+}
+
+.markdown-content strong {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.markdown-content em {
+  font-style: italic;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.markdown-content li {
+  margin: 0.25rem 0;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  font-weight: 600;
+  margin: 1rem 0 0.5rem 0;
+  color: var(--text-color);
+}
+
+.markdown-content h1 { font-size: 1.5rem; }
+.markdown-content h2 { font-size: 1.3rem; }
+.markdown-content h3 { font-size: 1.15rem; }
+
+.markdown-content code {
+  background-color: var(--code-bg);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.1rem;
+}
+
+.markdown-content blockquote {
+  border-left: 3px solid var(--primary-color);
+  padding-left: 1rem;
+  margin: 0.5rem 0;
+  opacity: 0.8;
+}
+
+/* Bloques de código */
+.code-block {
+  border-radius: 0.8rem;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  max-width: 85%;
+  margin: 0 auto;
+  margin-bottom: 1.5rem;
+}
+
+/* Estilos para react-syntax-highlighter */
+.code-block pre {
+  margin: 0 !important;
+  max-height: 400px;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+}
+
+.code-block pre::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.code-block pre::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.code-block pre::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.code-block pre::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+.code-header {
+  background-color: var(--code-header-bg);
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.code-language {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-color);
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.copy-button-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.copy-button {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.copy-tooltip {
+  position: absolute;
+  right: 100%;
+  margin-right: 0.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  animation: tooltipFadeIn 0.3s ease-in-out;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.copy-button:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.copy-button:active {
+  transform: scale(0.95);
+}
+
+/* Estilos antiguos de code-content */
+.code-content {
+  margin: 0;
+  padding: 1rem;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 400px;
+  background-color: var(--code-bg);
+}
+
+.code-content code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: var(--code-text);
+  white-space: pre;
+}
+
+/* Scrollbar para código - ahora aplicado en .code-block pre */
+.code-content::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.code-content::-webkit-scrollbar-track {
+  background: var(--code-bg);
+}
+
+.code-content::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.code-content::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Cursor parpadeante para código en streaming */
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+  color: var(--primary-color);
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Estilos para mensajes de dos pasos */
+.plantuml-section {
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background-color: var(--input-bg);
+}
+
+.plantuml-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: var(--border-color);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.plantuml-header:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.plantuml-header:hover .plantuml-toggle {
+  color: white;
+}
+
+.plantuml-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.plantuml-toggle {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.plantuml-toggle:hover {
+  transform: scale(1.1);
+}
+
+.plantuml-content {
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+.final-response {
+  margin-top: 1rem;
+}
+

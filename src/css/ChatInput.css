@@ -1,0 +1,110 @@
+.chat-input-container {
+  position: fixed;
+  bottom: 0;
+  left: 60px;
+  right: 0;
+  width: calc(100% - 60px);
+  background-color: var(--background);
+  border-top: 1px solid var(--border-color);
+  padding: 1rem;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.left-sidebar-open .chat-input-container {
+  left: 160px;
+  width: calc(100% - 160px);
+}
+
+.chat-input-form {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.image-uploader-group {
+  grid-column: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+.chat-input-form > textarea {
+  grid-column: 2;
+}
+
+.controls-group {
+  grid-column: 3;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.chat-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 1.5rem;
+  font-size: 1rem;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  outline: none;
+  transition: all 0.3s ease;
+  resize: none;
+  font-family: inherit;
+  line-height: 1.5;
+  min-height: 48px;
+  max-height: 216px;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.chat-input::-webkit-scrollbar {
+  display: none;
+}
+
+.chat-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-color-light);
+}
+
+.chat-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.send-button {
+  padding: 0.75rem;
+  padding-left: 0.85rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-button:hover:not(:disabled) {
+  background-color: var(--primary-color-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.send-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.send-button:active:not(:disabled) {
+  transform: translateY(0);
+}

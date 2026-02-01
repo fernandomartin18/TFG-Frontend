@@ -1,0 +1,71 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: calc(100% - 60px);
+  background-color: var(--background);
+  margin-left: 60px;
+  transition: all 0.3s ease;
+}
+
+.app-container.left-sidebar-open {
+  margin-left: 160px;
+  width: calc(100% - 160px);
+}
+
+.chat-header {
+  padding: 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--background);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.chat-header h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 2rem;
+  padding-bottom: 100px;
+  display: flex;
+  flex-direction: column;
+  transition: padding 0.3s ease;
+}
+
+.left-sidebar-open .messages-container {
+  padding-left: 2rem;
+}
+
+.empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  opacity: 0.9;
+  font-size: 3rem;
+}
+
+/* Scrollbar personalizado */
+.messages-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
