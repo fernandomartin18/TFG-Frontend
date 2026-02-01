@@ -1,6 +1,20 @@
-# Genesis 
+# Frontend Genesis 
 
 Aplicación web moderna de chat con modelos de lenguaje (LLM) para generación de código híbrido construida con Reat. Cuenta con un sistema completo de autenticación JWT, gestión inteligente de conversaciones, soporte para modelos de visión multimodal y una experiencia de usuario fluida con tema claro/oscuro.
+
+## 📑 Índice
+
+- [✨ Características Principales](#-características-principales)
+- [📋 Requisitos Previos](#-requisitos-previos)
+- [🛠️ Instalación y Ejecución](#️-instalación-y-ejecución)
+- [🏗️ Estructura del Proyecto](#️-estructura-del-proyecto)
+- [🔐 Sistema de Autenticación](#-sistema-de-autenticación)
+- [📦 Componentes Detallados](#-componentes-detallados)
+- [🐛 Troubleshooting](#-troubleshooting)
+- [📄 Licencia](#-licencia)
+- [📧 Contacto](#-contacto)
+
+---
 
 ## ✨ Características Principales
 
