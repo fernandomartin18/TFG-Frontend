@@ -148,37 +148,35 @@ El frontend implementa un sistema completo de autenticación JWT que protege tod
 ### Flujo de Autenticación
 
 ```
-┌─────────────┐
-│   Usuario   │
-└──────┬──────┘
-       │
-       ├─► [Registro] ──► Backend valida ──► Tokens JWT + User Data
-       │                                              │
-       │                                              ▼
-       │                                    localStorage
-       │                                              │
-       ├─► [Login] ────► Backend valida ──► Tokens JWT + User Data
-       │                                              │
-       │                                              ▼
-       │                                    localStorage + authChange event
-       │                                              │
-       ├─► [Usar App] ─► Petición API ──► ¿Token válido? ──┐
-       │                      ▲                              │
-       │                      │                              │
-       │                      └─── Sí ◄────────────────────┘
-       │                      │
-       │                      └─── No ──► Refresh Token ──┐
-       │                                                    │
-       │                                  ¿Refresh OK? ────┤
-       │                                       │            │
-       │                   Sí ◄────────────────┘            │
-       │                   │                                │
-       │                   └─► Retry con nuevo token       │
-       │                                                    │
-       └─► [Logout] ───► Backend logout ──► Limpiar localStorage
-                                                    │
-                                                    ▼
-                                          authChange event
+Usuario
+   │
+   ├─► [Registro] ──► Backend valida ──► Tokens JWT + User Data
+   │                                              │
+   │                                              ▼
+   │                                        localStorage
+   │                                              │
+   ├─► [Login] ────► Backend valida ──► Tokens JWT + User Data
+   │                                              │
+   │                                              ▼
+   │                              localStorage + authChange event
+   │                                              │
+   ├─► [Usar App] ─► Petición API ──► ¿Token válido? ──┐
+   │                      ▲                              │
+   │                      │                              │
+   │                      └─── Sí ◄────────────────────┘
+   │                      │
+   │                      └─── No ──► Refresh Token ──┐
+   │                                                    │
+   │                                  ¿Refresh OK? ────┤
+   │                                       │            │
+   │                   Sí ◄────────────────┘            │
+   │                   │                                │
+   │                   └─► Retry con nuevo token       │
+   │                                                    │
+   └─► [Logout] ───► Backend logout ──► Limpiar localStorage
+                                                  │
+                                                  ▼
+                                        authChange event
 ```
 
 ## 📦 Componentes Detallados
@@ -413,7 +411,7 @@ date
 
 Este proyecto es parte de un Trabajo de Fin de Grado de la Universidad de Castilla La Mancha.
 
----
+--
 
 ## 📧 Contacto
 
