@@ -322,7 +322,7 @@ const isVisionModel = modelName.toLowerCase().includes('vision')
 - Syntax highlighting con tema adaptable
 - Botones copiar y descargar
 - Nombre del archivo generado
-- Cierre con Escape o click fuera.
+- Cierre con Escape o click fuera
 
 ## 🐛 Troubleshooting
 
