@@ -27,6 +27,10 @@ function Chat({ isAuthenticated }) {
   const leftSidebarRef = useRef(null)
   const hasProcessedPendingMessages = useRef(false)
 
+  // Variable sin usar y un var obsoleto para que Sonar se queje
+  var variableInutil = "Esto es una prueba para SonarCloud";
+  console.log("Probando la Pull Request");
+
   // Aplicar tema
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light')
