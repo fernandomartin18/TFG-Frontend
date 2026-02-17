@@ -313,22 +313,43 @@ function CodeSidebar({ codeRequests }) {
     const zip = new JSZip()
     const usedFileNames = new Set()
     
+    // Agrupar códigos por paquete
+    const codesByPackage = {}
     codes.forEach((code, index) => {
-      const individualName = generateDescriptiveName(code.content, code.language, userMessage, index)
-      const extension = getFileExtension(code.language)
-      let fileName = `${individualName}.${extension}`
-      
-      // Si el nombre ya existe, añadir un sufijo numérico
-      let counter = 1
-      let uniqueFileName = fileName
-      while (usedFileNames.has(uniqueFileName)) {
-        const baseName = individualName.replace(/_\d+$/, '') // Remover sufijo numérico si existe
-        uniqueFileName = `${baseName}_${counter}.${extension}`
-        counter++
+      const packageName = code.package || '__NO_PACKAGE__'
+      if (!codesByPackage[packageName]) {
+        codesByPackage[packageName] = []
       }
-      usedFileNames.add(uniqueFileName)
-      
-      zip.file(uniqueFileName, code.content)
+      codesByPackage[packageName].push({ code, index })
+    })
+    
+    // Agregar códigos al ZIP, organizados por paquete
+    Object.entries(codesByPackage).forEach(([packageName, packageCodes]) => {
+      packageCodes.forEach(({ code, index }) => {
+        const individualName = generateDescriptiveName(code.content, code.language, userMessage, index)
+        const extension = getFileExtension(code.language)
+        let fileName = `${individualName}.${extension}`
+        
+        // Si el nombre ya existe, añadir un sufijo numérico
+        let counter = 1
+        let uniqueFileName = fileName
+        const hasPackage = packageName !== '__NO_PACKAGE__'
+        const fileKey = hasPackage ? `${packageName}/${fileName}` : fileName
+        
+        while (usedFileNames.has(hasPackage ? `${packageName}/${uniqueFileName}` : uniqueFileName)) {
+          const baseName = individualName.replace(/_\d+$/, '')
+          uniqueFileName = `${baseName}_${counter}.${extension}`
+          counter++
+        }
+        usedFileNames.add(hasPackage ? `${packageName}/${uniqueFileName}` : uniqueFileName)
+        
+        // Si hay paquete, crear subcarpeta
+        if (hasPackage) {
+          zip.file(`${packageName}/${uniqueFileName}`, code.content)
+        } else {
+          zip.file(uniqueFileName, code.content)
+        }
+      })
     })
 
     const blob = await zip.generateAsync({ type: 'blob' })
@@ -401,6 +422,16 @@ function CodeSidebar({ codeRequests }) {
           {codeRequests.map((request, requestIndex) => {
             const sectionTitle = generateRequestTitle(request.codes, request.userMessage)
             
+            // Agrupar códigos por paquete
+            const codesByPackage = {}
+            request.codes.forEach((code, index) => {
+              const packageName = code.package || '__NO_PACKAGE__'
+              if (!codesByPackage[packageName]) {
+                codesByPackage[packageName] = []
+              }
+              codesByPackage[packageName].push({ ...code, originalIndex: index })
+            })
+            
             return (
               <div key={requestIndex} className="code-request-section">
                 <div className="request-header">
@@ -417,32 +448,53 @@ function CodeSidebar({ codeRequests }) {
                 </div>
 
                 <div className="codes-list">
-                  {request.codes.map((code, codeIndex) => (
-                    <div 
-                      key={codeIndex} 
-                      className="code-item"
-                      onClick={(e) => handleCodeClick(e, code.content, code.language, requestIndex, codeIndex)}
-                    >
-                      <div className="code-item-header">
-                      <span className="code-language">{code.language || 'text'}</span>
-                      <button
-                        className="download-code-button"
-                        onClick={() => {
-                          const fileName = generateDescriptiveName(code.content, code.language, request.userMessage)
-                          downloadCode(code.content, code.language, fileName)
-                        }}
-                        title="Descargar código"
-                      >
-                        <MdDownload />
-                      </button>
+                  {Object.entries(codesByPackage).map(([packageName, packageCodes], pkgIndex) => {
+                    // Calcular el nivel de indentación basado en las barras en el path
+                    const packageLevel = packageName !== '__NO_PACKAGE__' ? packageName.split('/').length : 0
+                    const indentStyle = packageLevel > 1 ? { paddingLeft: `${(packageLevel - 1) * 1}rem` } : {}
+                    
+                    return (
+                      <div key={pkgIndex}>
+                        {packageName !== '__NO_PACKAGE__' && (
+                          <div className="package-header" style={indentStyle}>
+                            <span className="package-name">
+                              {packageLevel > 1 && '↳ '}
+                              {packageName.split('/').pop()}
+                            </span>
+                            <span className="package-path">
+                              {packageLevel > 1 && packageName}
+                            </span>
+                          </div>
+                        )}
+                      {packageCodes.map((code) => (
+                        <div 
+                          key={code.originalIndex} 
+                          className={`code-item ${packageName !== '__NO_PACKAGE__' ? 'has-package' : ''}`}
+                          onClick={(e) => handleCodeClick(e, code.content, code.language, requestIndex, code.originalIndex)}
+                        >
+                          <div className="code-item-header">
+                            <span className="code-language">{code.language || 'text'}</span>
+                            <button
+                              className="download-code-button"
+                              onClick={() => {
+                                const fileName = generateDescriptiveName(code.content, code.language, request.userMessage)
+                                downloadCode(code.content, code.language, fileName)
+                              }}
+                              title="Descargar código"
+                            >
+                              <MdDownload />
+                            </button>
+                          </div>
+                          <pre className="code-preview">
+                            <code>{code.content.substring(0, 150)}...</code>
+                          </pre>
+                        </div>
+                      ))}
                     </div>
-                    <pre className="code-preview">
-                      <code>{code.content.substring(0, 150)}...</code>
-                    </pre>
-                  </div>
-                ))}
+                  )
+                  })}
+                </div>
               </div>
-            </div>
             )
           })}
         </div>
@@ -475,7 +527,8 @@ CodeSidebar.propTypes = {
       codes: PropTypes.arrayOf(
         PropTypes.shape({
           content: PropTypes.string.isRequired,
-          language: PropTypes.string
+          language: PropTypes.string,
+          package: PropTypes.string
         })
       ).isRequired,
       userMessage: PropTypes.string

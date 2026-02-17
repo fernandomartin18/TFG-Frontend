@@ -177,20 +177,79 @@ function Chat({ isAuthenticated }) {
         } 
         // Extraer códigos de respuestas de la IA
         else if (isCollectingCodes && !msg.isUser && !msg.isError) {
-          const codeBlockPattern = /```(\w+)?\n([\s\S]*?)```/g
-          let match
+          // Detectar paquetes y códigos
+          const text = msg.text
           
-          while ((match = codeBlockPattern.exec(msg.text)) !== null) {
-            const language = match[1] || 'text'
-            const content = match[2].trim()
-            
-            if (content) {
-              currentRequestCodes.push({
-                content,
-                language
+          // Buscar paquetes y códigos en el texto
+          const packagePattern = /(?:^|\n)(#{1,6})\s*(?:Package|package|Paquete|paquete|PACKAGE|PAQUETE)\s*:?\s*`?([a-zA-Z][a-zA-Z0-9_.-]*)`?/g
+          const codeBlockPattern = /```(\w+)?\n([\s\S]*?)```/g
+          
+          // Crear un array con todas las coincidencias (paquetes y códigos)
+          const allMatches = []
+          
+          let packageMatch
+          while ((packageMatch = packagePattern.exec(text)) !== null) {
+            const headerLevel = packageMatch[1].length // Número de #
+            const packageName = packageMatch[2].trim()
+            if (packageName) {
+              allMatches.push({
+                type: 'package',
+                index: packageMatch.index,
+                name: packageName,
+                level: headerLevel
               })
+              console.log('📦 Paquete detectado:', packageName, 'nivel:', headerLevel, 'en posición:', packageMatch.index)
             }
           }
+          
+          let codeMatch
+          while ((codeMatch = codeBlockPattern.exec(text)) !== null) {
+            const content = codeMatch[2].trim()
+            if (content) {
+              allMatches.push({
+                type: 'code',
+                index: codeMatch.index,
+                language: codeMatch[1] || 'text',
+                content: content
+              })
+              console.log('💻 Código detectado:', codeMatch[1] || 'text', 'en posición:', codeMatch.index)
+            }
+          }
+          
+          // Ordenar por índice de aparición
+          allMatches.sort((a, b) => a.index - b.index)
+          
+          console.log('🔍 Todas las coincidencias ordenadas:', allMatches.map(m => 
+            m.type === 'package' ? `${m.type}: ${m.name} (nivel ${m.level})` : `${m.type}: ${m.language}`
+          ))
+          
+          // Procesar las coincidencias en orden manteniendo la jerarquía de paquetes
+          const packageStack = []
+          
+          allMatches.forEach((match) => {
+            if (match.type === 'package') {
+              // Limpiar paquetes de la pila que estén al mismo nivel o más profundos
+              while (packageStack.length > 0 && packageStack[packageStack.length - 1].level >= match.level) {
+                packageStack.pop()
+              }
+              
+              // Agregar el paquete actual a la pila
+              packageStack.push({ name: match.name, level: match.level })
+              
+            } else if (match.type === 'code' && match.content) {
+              // Obtener el path completo del paquete actual
+              const currentPackage = packageStack.length > 0 
+                ? packageStack.map(p => p.name).join('/')
+                : null
+              
+              console.log('➕ Agregando código al paquete:', currentPackage || 'sin paquete')
+              currentRequestCodes.push({
+                content: match.content,
+                language: match.language,
+                package: currentPackage
+              })
+            }
+          })
         }
       })
 
