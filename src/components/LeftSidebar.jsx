@@ -416,60 +416,76 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                 ) : (
                   <>
                     {/* Sección de proyectos */}
-                    {projects.length > 0 && !searchQuery && (
+                    {projects.length > 0 && (
                       <div className="chats-section">
                         <div className="chats-section-header">
                           <div className="chats-section-title">Proyectos</div>
-                          <button
-                            className="new-project-button"
-                            onClick={() => {
-                              setProjectModalMode('create')
-                              setEditingProject(null)
-                              setSelectedChatForProject(null)
-                              setShowProjectModal(true)
-                            }}
-                            title="Nuevo proyecto"
-                          >
-                            <FaFolderPlus />
-                          </button>
-                        </div>
-                        {projects.map((project) => (
-                          <div key={project.id} className="project-container">
-                            <div
-                              className="project-header"
-                              onClick={() => handleToggleProjectExpanded(project.id, !project.is_expanded)}
-                              onContextMenu={(e) => handleProjectContextMenu(e, project)}
+                          {!searchQuery && (
+                            <button
+                              className="new-project-button"
+                              onClick={() => {
+                                setProjectModalMode('create')
+                                setEditingProject(null)
+                                setSelectedChatForProject(null)
+                                setShowProjectModal(true)
+                              }}
+                              title="Nuevo proyecto"
                             >
-                              <MdKeyboardArrowDown
-                                className={`project-arrow ${project.is_expanded ? 'expanded' : ''}`}
-                              />
-                              <span className="project-name">{project.name}</span>
-                              <span className="project-count">({project.chats?.length || 0})</span>
-                            </div>
-                            {project.is_expanded && project.chats && project.chats.length > 0 && (
-                              <div className="project-chats">
-                                {project.chats.map((chat) => (
-                                  <div
-                                    key={chat.id}
-                                    className={`chat-item project-chat ${currentChatId === chat.id ? 'active' : ''} ${isLoading ? 'disabled' : ''}`}
-                                    onClick={() => handleChatClick(chat.id)}
-                                    style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
-                                  >
-                                    <div className="chat-item-title">{chat.title}</div>
-                                    <ChatOptionsMenu
-                                      chat={chat}
-                                      onEdit={handleEditChat}
-                                      onTogglePin={handleTogglePin}
-                                      onDelete={handleDeleteChat}
-                                      onAddToProject={handleAddToProject}
-                                      onRemoveFromProject={handleRemoveFromProject}
-                                    />
-                                  </div>
-                                ))}
+                              <FaFolderPlus />
+                            </button>
+                          )}
+                        </div>
+                        {projects.map((project) => {
+                          // Filtrar chats del proyecto por búsqueda
+                          const projectFilteredChats = project.chats?.filter(chat =>
+                            filteredChats.some(fc => fc.id === chat.id)
+                          ) || []
+                          
+                          // Solo mostrar proyecto si tiene chats que coinciden con la búsqueda
+                          if (searchQuery && projectFilteredChats.length === 0) {
+                            return null
+                          }
+                          
+                          return (
+                            <div key={project.id} className="project-container">
+                              <div
+                                className="project-header"
+                                onClick={() => handleToggleProjectExpanded(project.id, !project.is_expanded)}
+                                onContextMenu={(e) => handleProjectContextMenu(e, project)}
+                              >
+                                <MdKeyboardArrowDown
+                                  className={`project-arrow ${(searchQuery || project.is_expanded) ? 'expanded' : ''}`}
+                                />
+                                <span className="project-name">{project.name}</span>
+                                <span className="project-count">
+                                  ({searchQuery ? projectFilteredChats.length : project.chats?.length || 0})
+                                </span>
                               </div>
-                            )}
-                          </div>
-                        ))}
+                              {(searchQuery || project.is_expanded) && projectFilteredChats.length > 0 && (
+                                <div className="project-chats">
+                                  {projectFilteredChats.map((chat) => (
+                                    <div
+                                      key={chat.id}
+                                      className={`chat-item project-chat ${currentChatId === chat.id ? 'active' : ''} ${isLoading ? 'disabled' : ''}`}
+                                      onClick={() => handleChatClick(chat.id)}
+                                      style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
+                                    >
+                                      <div className="chat-item-title">{chat.title}</div>
+                                      <ChatOptionsMenu
+                                        chat={chat}
+                                        onEdit={handleEditChat}
+                                        onTogglePin={handleTogglePin}
+                                        onDelete={handleDeleteChat}
+                                        onAddToProject={handleAddToProject}
+                                        onRemoveFromProject={handleRemoveFromProject}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
                     )}
 
