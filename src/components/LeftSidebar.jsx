@@ -321,6 +321,39 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
     }
   }
 
+  const handleNewChatInProject = async (project) => {
+    try {
+      // Crear un nuevo chat con título genérico
+      const newChat = await chatService.createChat('Nuevo Chat')
+      
+      // Asignar el chat al proyecto
+      await chatService.addChatToProject(newChat.id, project.id)
+      
+      // Actualizar la lista de chats y proyectos
+      await loadChats()
+      await loadProjects()
+      
+      // Abrir el nuevo chat
+      if (onChatSelect) {
+        onChatSelect(newChat.id)
+      }
+      
+      // Cerrar el menú contextual
+      setProjectContextMenu(null)
+    } catch (error) {
+      console.error('Error al crear chat en proyecto:', error)
+    }
+  }
+
+  // Verificar si un proyecto tiene chats vacíos (sin mensajes)
+  const hasEmptyChats = (project) => {
+    if (!project.chats || project.chats.length === 0) {
+      return false
+    }
+
+    return project.chats.some(chat => chat.title === 'Nuevo Chat')
+  }
+
   // Exponer la función refreshChats al componente padre
   useImperativeHandle(ref, () => ({
     refreshChats: () => {
@@ -606,6 +639,15 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
             zIndex: 1200
           }}
         >
+          <button
+            className="project-context-item"
+            onClick={() => handleNewChatInProject(projectContextMenu.project)}
+            disabled={hasEmptyChats(projectContextMenu.project)}
+            title={hasEmptyChats(projectContextMenu.project) ? 'Ya existe un chat vacío en este proyecto' : 'Crear nuevo chat en este proyecto'}
+          >
+            <RiChatNewLine className="context-icon" />
+            <span>Nuevo chat en proyecto</span>
+          </button>
           <button
             className="project-context-item"
             onClick={() => handleEditProject(projectContextMenu.project)}

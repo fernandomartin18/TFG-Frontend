@@ -569,6 +569,16 @@
   background-color: var(--message-bg);
 }
 
+.project-context-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--text-secondary);
+}
+
+.project-context-item:disabled:hover {
+  background-color: transparent;
+}
+
 .project-context-item.delete {
   color: #dc2626;
 }

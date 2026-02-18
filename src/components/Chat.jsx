@@ -20,6 +20,7 @@ function Chat({ isAuthenticated }) {
   const [codeRequests, setCodeRequests] = useState([])
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true)
   const [currentChatId, setCurrentChatId] = useState(null)
+  const [currentProjectId, setCurrentProjectId] = useState(null)
   const messagesEndRef = useRef(null)
   const autoScrollEnabled = useRef(true)
   const messagesContainerRef = useRef(null)
@@ -379,6 +380,7 @@ function Chat({ isAuthenticated }) {
       
       setMessages(loadedMessages)
       setCurrentChatId(chatId)
+      setCurrentProjectId(chat.project_id || null)
       setIsLoading(false)
     } catch (error) {
       console.error('Error al cargar chat:', error)
@@ -409,7 +411,50 @@ function Chat({ isAuthenticated }) {
     // Crear un nuevo chat vacío
     setMessages([])
     setCurrentChatId(null)
+    setCurrentProjectId(null)
     setImages([])
+  }
+
+  // Función para obtener el historial completo de mensajes de un proyecto
+  const getProjectMessageHistory = async (projectId) => {
+    try {
+      // Obtener todos los proyectos del usuario
+      const projects = await chatService.getUserProjects()
+      
+      // Encontrar el proyecto actual
+      const currentProject = projects.find(p => p.id === projectId)
+      
+      if (!currentProject || !currentProject.chats || currentProject.chats.length === 0) {
+        return []
+      }
+      
+      // Obtener los mensajes de todos los chats del proyecto
+      const allChatsMessages = await Promise.all(
+        currentProject.chats.map(async (chat) => {
+          try {
+            const chatData = await chatService.getChatById(chat.id)
+            return chatData.messages.map(msg => ({
+              ...msg,
+              chatId: chat.id,
+              chatTitle: chat.title
+            }))
+          } catch (error) {
+            console.error(`Error al obtener mensajes del chat ${chat.id}:`, error)
+            return []
+          }
+        })
+      )
+      
+      // Aplanar el array y ordenar por fecha de creación
+      const allMessages = allChatsMessages
+        .flat()
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+      
+      return allMessages
+    } catch (error) {
+      console.error('Error al obtener historial del proyecto:', error)
+      return []
+    }
   }
 
   const handleSendMessage = async (userMessage) => {
@@ -519,10 +564,32 @@ function Chat({ isAuthenticated }) {
       const modelToUse = selectedModel === 'Auto' ? 'qwen2.5-coder:14b' : selectedModel
       const isAutoMode = selectedModel === 'Auto'
       
-      const messageHistory = [...messages, newUserMessage].map(msg => ({
-        role: msg.isUser ? 'user' : 'assistant',
-        content: msg.text
-      }))
+      // Construir historial de mensajes
+      let messageHistory
+      
+      if (currentProjectId && isAuthenticated) {
+        // Si el chat pertenece a un proyecto, obtener historial completo del proyecto
+        const projectMessages = await getProjectMessageHistory(currentProjectId)
+        
+        // Convertir los mensajes de la BD al formato esperado por la API
+        messageHistory = projectMessages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }))
+        
+        // Añadir el mensaje actual del usuario
+        messageHistory.push({
+          role: 'user',
+          content: userMessage
+        })
+        
+      } else {
+        // Si no pertenece a un proyecto, usar solo el historial del chat actual
+        messageHistory = [...messages, newUserMessage].map(msg => ({
+          role: msg.isUser ? 'user' : 'assistant',
+          content: msg.text
+        }))
+      }
       
       const formData = new FormData()
       formData.append('model', modelToUse)
