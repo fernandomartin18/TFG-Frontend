@@ -45,6 +45,11 @@ const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete, onAddToProject, 
     }
   }, [isEditing])
 
+  // Sincronizar editTitle cuando cambie chat.title
+  useEffect(() => {
+    setEditTitle(chat.title)
+  }, [chat.title])
+
   const handleToggleMenu = (e) => {
     e.stopPropagation()
     setIsMenuOpen(!isMenuOpen)
