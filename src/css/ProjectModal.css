@@ -1,0 +1,93 @@
+/* Overlay del modal */
+.project-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+/* Modal principal */
+.project-modal {
+  background-color: var(--background);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Título del modal */
+.project-modal-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+/* Input del nombre */
+.project-modal-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: var(--message-bg);
+  color: var(--text-color);
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.project-modal-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* Botones del modal */
+.project-modal-buttons {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.project-modal-button {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.project-modal-button.cancel {
+  background-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.project-modal-button.cancel:hover {
+  background-color: var(--message-bg);
+}
+
+.project-modal-button.save {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.project-modal-button.save:hover {
+  background-color: var(--primary-hover);
+}
+
+.project-modal-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.project-modal-button:disabled:hover {
+  background-color: var(--primary-color);
+}

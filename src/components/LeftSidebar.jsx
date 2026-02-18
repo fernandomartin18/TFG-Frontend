@@ -2,22 +2,35 @@ import { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 're
 import PropTypes from 'prop-types'
 import { useNavigate } from 'react-router-dom'
 import { RiChatNewLine } from 'react-icons/ri'
-import { IoSearch } from "react-icons/io5";
+import { IoSearch } from "react-icons/io5"
+import { MdKeyboardArrowDown, MdEdit } from 'react-icons/md'
+import { FaFolderPlus, FaTrash } from 'react-icons/fa'
 import genesisLogo from '../assets/Genesis_Sign_Violet.png'
 import genesisHorizontal from '../assets/Genesis_Horizontal_Violet.png'
 import UserProfile from './UserProfile'
 import ChatOptionsMenu from './ChatOptionsMenu'
+import ProjectSelector from './ProjectSelector'
+import ProjectModal from './ProjectModal'
 import chatService from '../services/chat.service'
 import '../css/LeftSidebar.css'
 
 const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkTheme, onToggleTheme, onChatSelect, currentChatId, onNewChat, hasMessages, isLoading }, ref) => {
   const navigate = useNavigate()
   const [chats, setChats] = useState([])
+  const [projects, setProjects] = useState([])
   const [isLoadingChats, setIsLoadingChats] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [filteredChats, setFilteredChats] = useState([])
+  const [showProjectSelector, setShowProjectSelector] = useState(false)
+  const [selectorPosition, setSelectorPosition] = useState(null)
+  const [selectedChatForProject, setSelectedChatForProject] = useState(null)
+  const [showProjectModal, setShowProjectModal] = useState(false)
+  const [projectModalMode, setProjectModalMode] = useState('create') // 'create' | 'edit'
+  const [editingProject, setEditingProject] = useState(null)
+  const [projectContextMenu, setProjectContextMenu] = useState(null)
   const searchInputRef = useRef(null)
+  const projectContextMenuRef = useRef(null)
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen)
@@ -31,6 +44,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
   useEffect(() => {
     if (isAuthenticated && isOpen) {
       loadChats()
+      loadProjects()
     }
   }, [isAuthenticated, isOpen])
 
@@ -44,6 +58,15 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
       console.error('Error al cargar chats:', error)
     } finally {
       setIsLoadingChats(false)
+    }
+  }
+
+  const loadProjects = async () => {
+    try {
+      const userProjects = await chatService.getUserProjects()
+      setProjects(userProjects)
+    } catch (error) {
+      console.error('Error al cargar proyectos:', error)
     }
   }
 
@@ -76,6 +99,21 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
     
     setFilteredChats(filtered)
   }, [searchQuery, chats])
+
+  // Cerrar menú contextual de proyecto si se hace clic fuera
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (projectContextMenu && projectContextMenuRef.current && !projectContextMenuRef.current.contains(e.target)) {
+        setProjectContextMenu(null)
+      }
+    }
+
+    if (projectContextMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [projectContextMenu])
 
   // Función para parsear diferentes formatos de fecha
   const parseDateQuery = (query) => {
@@ -158,6 +196,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
     try {
       await chatService.updateChatTitle(chatId, newTitle)
       await loadChats()
+      await loadProjects()
     } catch (error) {
       console.error('Error al editar chat:', error)
     }
@@ -167,6 +206,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
     try {
       await chatService.togglePinChat(chatId, pinned)
       await loadChats()
+      await loadProjects()
     } catch (error) {
       console.error('Error al fijar/desfijar chat:', error)
     }
@@ -176,6 +216,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
     try {
       await chatService.deleteChat(chatId)
       await loadChats()
+      await loadProjects()
       // Si era el chat actual, iniciar un nuevo chat
       if (currentChatId === chatId) {
         if (onNewChat) {
@@ -189,9 +230,136 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
     }
   }
 
+  // Funciones de proyectos
+  const handleAddToProject = (chatId, position) => {
+    setSelectedChatForProject(chatId)
+    setSelectorPosition(position)
+    setShowProjectSelector(true)
+  }
+
+  const handleRemoveFromProject = async (chatId) => {
+    try {
+      await chatService.removeChatFromProject(chatId)
+      await loadChats()
+      await loadProjects()
+    } catch (error) {
+      console.error('Error al quitar chat del proyecto:', error)
+    }
+  }
+
+  const handleSelectProject = async (projectId) => {
+    setShowProjectSelector(false)
+    
+    if (projectId === null) {
+      // Crear nuevo proyecto
+      setProjectModalMode('create')
+      setEditingProject(null)
+      setShowProjectModal(true)
+    } else {
+      // Agregar a proyecto existente
+      try {
+        await chatService.addChatToProject(selectedChatForProject, projectId)
+        await loadChats()
+        await loadProjects()
+      } catch (error) {
+        console.error('Error al agregar chat al proyecto:', error)
+      }
+    }
+  }
+
+  const handleSaveProject = async (name) => {
+    try {
+      if (projectModalMode === 'create') {
+        const newProject = await chatService.createProject(name)
+        // Si hay un chat seleccionado, agregarlo al proyecto recién creado
+        if (selectedChatForProject) {
+          await chatService.addChatToProject(selectedChatForProject, newProject.id)
+        }
+      } else if (projectModalMode === 'edit' && editingProject) {
+        await chatService.updateProjectName(editingProject.id, name)
+      }
+      await loadChats()
+      await loadProjects()
+    } catch (error) {
+      console.error('Error al guardar proyecto:', error)
+    }
+  }
+
+  const handleToggleProjectExpanded = async (projectId, isExpanded) => {
+    try {
+      await chatService.toggleProjectExpanded(projectId, isExpanded)
+      await loadProjects()
+    } catch (error) {
+      console.error('Error al cambiar estado del proyecto:', error)
+    }
+  }
+
+  const handleProjectContextMenu = (e, project) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setProjectContextMenu({
+      project,
+      position: { top: e.clientY, left: e.clientX }
+    })
+  }
+
+  const handleEditProject = (project) => {
+    setProjectModalMode('edit')
+    setEditingProject(project)
+    setShowProjectModal(true)
+    setProjectContextMenu(null)
+  }
+
+  const handleDeleteProject = async (projectId) => {
+    try {
+      await chatService.deleteProject(projectId)
+      await loadChats()
+      await loadProjects()
+      setProjectContextMenu(null)
+    } catch (error) {
+      console.error('Error al eliminar proyecto:', error)
+    }
+  }
+
+  const handleNewChatInProject = async (project) => {
+    try {
+      // Crear un nuevo chat con título genérico
+      const newChat = await chatService.createChat('Nuevo Chat')
+      
+      // Asignar el chat al proyecto
+      await chatService.addChatToProject(newChat.id, project.id)
+      
+      // Actualizar la lista de chats y proyectos
+      await loadChats()
+      await loadProjects()
+      
+      // Abrir el nuevo chat
+      if (onChatSelect) {
+        onChatSelect(newChat.id)
+      }
+      
+      // Cerrar el menú contextual
+      setProjectContextMenu(null)
+    } catch (error) {
+      console.error('Error al crear chat en proyecto:', error)
+    }
+  }
+
+  // Verificar si un proyecto tiene chats vacíos (sin mensajes)
+  const hasEmptyChats = (project) => {
+    if (!project.chats || project.chats.length === 0) {
+      return false
+    }
+
+    return project.chats.some(chat => chat.title === 'Nuevo Chat')
+  }
+
   // Exponer la función refreshChats al componente padre
   useImperativeHandle(ref, () => ({
-    refreshChats: loadChats
+    refreshChats: () => {
+      loadChats()
+      loadProjects()
+    }
   }))
 
   return (
@@ -274,18 +442,92 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
               <div className="chats-list">
                 {isLoadingChats ? (
                   <div className="chats-loading">Cargando chats...</div>
-                ) : filteredChats.length === 0 ? (
+                ) : filteredChats.length === 0 && projects.length === 0 ? (
                   <div className="chats-empty">
                     {searchQuery ? 'No se encontraron chats' : 'No hay chats guardados'}
                   </div>
                 ) : (
                   <>
+                    {/* Sección de proyectos */}
+                    {projects.length > 0 && (
+                      <div className="chats-section">
+                        <div className="chats-section-header">
+                          <div className="chats-section-title">Proyectos</div>
+                          {!searchQuery && (
+                            <button
+                              className="new-project-button"
+                              onClick={() => {
+                                setProjectModalMode('create')
+                                setEditingProject(null)
+                                setSelectedChatForProject(null)
+                                setShowProjectModal(true)
+                              }}
+                              title="Nuevo proyecto"
+                            >
+                              <FaFolderPlus />
+                            </button>
+                          )}
+                        </div>
+                        {projects.map((project) => {
+                          // Filtrar chats del proyecto por búsqueda
+                          const projectFilteredChats = project.chats?.filter(chat =>
+                            filteredChats.some(fc => fc.id === chat.id)
+                          ) || []
+                          
+                          // Solo mostrar proyecto si tiene chats que coinciden con la búsqueda
+                          if (searchQuery && projectFilteredChats.length === 0) {
+                            return null
+                          }
+                          
+                          return (
+                            <div key={project.id} className="project-container">
+                              <div
+                                className="project-header"
+                                onClick={() => handleToggleProjectExpanded(project.id, !project.is_expanded)}
+                                onContextMenu={(e) => handleProjectContextMenu(e, project)}
+                              >
+                                <MdKeyboardArrowDown
+                                  className={`project-arrow ${(searchQuery || project.is_expanded) ? 'expanded' : ''}`}
+                                />
+                                <span className="project-name">{project.name}</span>
+                                <span className="project-count">
+                                  ({searchQuery ? projectFilteredChats.length : project.chats?.length || 0})
+                                </span>
+                              </div>
+                              {(searchQuery || project.is_expanded) && projectFilteredChats.length > 0 && (
+                                <div className="project-chats">
+                                  {projectFilteredChats.map((chat) => (
+                                    <div
+                                      key={chat.id}
+                                      className={`chat-item project-chat ${currentChatId === chat.id ? 'active' : ''} ${isLoading ? 'disabled' : ''}`}
+                                      onClick={() => handleChatClick(chat.id)}
+                                      style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
+                                    >
+                                      <div className="chat-item-title">{chat.title}</div>
+                                      <ChatOptionsMenu
+                                        chat={chat}
+                                        onEdit={handleEditChat}
+                                        onTogglePin={handleTogglePin}
+                                        onDelete={handleDeleteChat}
+                                        onAddToProject={handleAddToProject}
+                                        onRemoveFromProject={handleRemoveFromProject}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
                     {/* Sección de chats fijados */}
-                    {filteredChats.some(chat => chat.pinned) && (
+                    {filteredChats.some(chat => chat.pinned && !chat.project_id) && (
                       <div className="chats-section">
                         <div className="chats-section-title">Fijados</div>
                         {filteredChats
-                          .filter(chat => chat.pinned)
+                          .filter(chat => chat.pinned && !chat.project_id)
                           .map((chat) => (
                             <div
                               key={chat.id}
@@ -299,6 +541,8 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                                 onEdit={handleEditChat}
                                 onTogglePin={handleTogglePin}
                                 onDelete={handleDeleteChat}
+                                onAddToProject={handleAddToProject}
+                                onRemoveFromProject={handleRemoveFromProject}
                               />
                             </div>
                           ))}
@@ -306,13 +550,13 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                     )}
                     
                     {/* Sección de chats recientes */}
-                    {filteredChats.some(chat => !chat.pinned) && (
+                    {filteredChats.some(chat => !chat.pinned && !chat.project_id) && (
                       <div className="chats-section">
-                        {filteredChats.some(chat => chat.pinned) && (
+                        {(filteredChats.some(chat => chat.pinned && !chat.project_id) || projects.length > 0) && (
                           <div className="chats-section-title">Recientes</div>
                         )}
                         {filteredChats
-                          .filter(chat => !chat.pinned)
+                          .filter(chat => !chat.pinned && !chat.project_id)
                           .map((chat) => (
                             <div
                               key={chat.id}
@@ -326,6 +570,8 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                                 onEdit={handleEditChat}
                                 onTogglePin={handleTogglePin}
                                 onDelete={handleDeleteChat}
+                                onAddToProject={handleAddToProject}
+                                onRemoveFromProject={handleRemoveFromProject}
                               />
                             </div>
                           ))}
@@ -362,6 +608,62 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
           </div>
         </div>
       </aside>
+
+      {/* Modal de selector de proyecto */}
+      <ProjectSelector
+        isOpen={showProjectSelector}
+        onClose={() => setShowProjectSelector(false)}
+        onSelectProject={handleSelectProject}
+        projects={projects}
+        position={selectorPosition}
+      />
+
+      {/* Modal para crear/editar proyecto */}
+      <ProjectModal
+        isOpen={showProjectModal}
+        onClose={() => setShowProjectModal(false)}
+        onSave={handleSaveProject}
+        initialName={editingProject?.name || ''}
+        title={projectModalMode === 'create' ? 'Nuevo proyecto' : 'Editar proyecto'}
+      />
+
+      {/* Menú contextual de proyecto */}
+      {projectContextMenu && (
+        <div
+          ref={projectContextMenuRef}
+          className="project-context-menu"
+          style={{
+            position: 'fixed',
+            top: `${projectContextMenu.position.top}px`,
+            left: `${projectContextMenu.position.left}px`,
+            zIndex: 1200
+          }}
+        >
+          <button
+            className="project-context-item"
+            onClick={() => handleNewChatInProject(projectContextMenu.project)}
+            disabled={hasEmptyChats(projectContextMenu.project)}
+            title={hasEmptyChats(projectContextMenu.project) ? 'Ya existe un chat vacío en este proyecto' : 'Crear nuevo chat en este proyecto'}
+          >
+            <RiChatNewLine className="context-icon" />
+            <span>Nuevo chat en proyecto</span>
+          </button>
+          <button
+            className="project-context-item"
+            onClick={() => handleEditProject(projectContextMenu.project)}
+          >
+            <MdEdit className="context-icon" />
+            <span>Editar título</span>
+          </button>
+          <button
+            className="project-context-item delete"
+            onClick={() => handleDeleteProject(projectContextMenu.project.id)}
+          >
+            <FaTrash className="context-icon" />
+            <span>Eliminar</span>
+          </button>
+        </div>
+      )}
     </>
   )
 })

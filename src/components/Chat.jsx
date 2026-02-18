@@ -20,6 +20,7 @@ function Chat({ isAuthenticated }) {
   const [codeRequests, setCodeRequests] = useState([])
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true)
   const [currentChatId, setCurrentChatId] = useState(null)
+  const [currentProjectId, setCurrentProjectId] = useState(null)
   const messagesEndRef = useRef(null)
   const autoScrollEnabled = useRef(true)
   const messagesContainerRef = useRef(null)
@@ -177,20 +178,79 @@ function Chat({ isAuthenticated }) {
         } 
         // Extraer códigos de respuestas de la IA
         else if (isCollectingCodes && !msg.isUser && !msg.isError) {
-          const codeBlockPattern = /```(\w+)?\n([\s\S]*?)```/g
-          let match
+          // Detectar paquetes y códigos
+          const text = msg.text
           
-          while ((match = codeBlockPattern.exec(msg.text)) !== null) {
-            const language = match[1] || 'text'
-            const content = match[2].trim()
-            
-            if (content) {
-              currentRequestCodes.push({
-                content,
-                language
+          // Buscar paquetes y códigos en el texto
+          const packagePattern = /(?:^|\n)(#{1,6})\s*(?:Package|package|Paquete|paquete|PACKAGE|PAQUETE)\s*:?\s*`?([a-zA-Z][a-zA-Z0-9_.-]*)`?/g
+          const codeBlockPattern = /```(\w+)?\n([\s\S]*?)```/g
+          
+          // Crear un array con todas las coincidencias (paquetes y códigos)
+          const allMatches = []
+          
+          let packageMatch
+          while ((packageMatch = packagePattern.exec(text)) !== null) {
+            const headerLevel = packageMatch[1].length // Número de #
+            const packageName = packageMatch[2].trim()
+            if (packageName) {
+              allMatches.push({
+                type: 'package',
+                index: packageMatch.index,
+                name: packageName,
+                level: headerLevel
               })
+              console.log('📦 Paquete detectado:', packageName, 'nivel:', headerLevel, 'en posición:', packageMatch.index)
             }
           }
+          
+          let codeMatch
+          while ((codeMatch = codeBlockPattern.exec(text)) !== null) {
+            const content = codeMatch[2].trim()
+            if (content) {
+              allMatches.push({
+                type: 'code',
+                index: codeMatch.index,
+                language: codeMatch[1] || 'text',
+                content: content
+              })
+              console.log('💻 Código detectado:', codeMatch[1] || 'text', 'en posición:', codeMatch.index)
+            }
+          }
+          
+          // Ordenar por índice de aparición
+          allMatches.sort((a, b) => a.index - b.index)
+          
+          console.log('🔍 Todas las coincidencias ordenadas:', allMatches.map(m => 
+            m.type === 'package' ? `${m.type}: ${m.name} (nivel ${m.level})` : `${m.type}: ${m.language}`
+          ))
+          
+          // Procesar las coincidencias en orden manteniendo la jerarquía de paquetes
+          const packageStack = []
+          
+          allMatches.forEach((match) => {
+            if (match.type === 'package') {
+              // Limpiar paquetes de la pila que estén al mismo nivel o más profundos
+              while (packageStack.length > 0 && packageStack[packageStack.length - 1].level >= match.level) {
+                packageStack.pop()
+              }
+              
+              // Agregar el paquete actual a la pila
+              packageStack.push({ name: match.name, level: match.level })
+              
+            } else if (match.type === 'code' && match.content) {
+              // Obtener el path completo del paquete actual
+              const currentPackage = packageStack.length > 0 
+                ? packageStack.map(p => p.name).join('/')
+                : null
+              
+              console.log('➕ Agregando código al paquete:', currentPackage || 'sin paquete')
+              currentRequestCodes.push({
+                content: match.content,
+                language: match.language,
+                package: currentPackage
+              })
+            }
+          })
         }
       })
 
@@ -320,6 +380,7 @@ function Chat({ isAuthenticated }) {
       
       setMessages(loadedMessages)
       setCurrentChatId(chatId)
+      setCurrentProjectId(chat.project_id || null)
       setIsLoading(false)
     } catch (error) {
       console.error('Error al cargar chat:', error)
@@ -350,7 +411,50 @@ function Chat({ isAuthenticated }) {
     // Crear un nuevo chat vacío
     setMessages([])
     setCurrentChatId(null)
+    setCurrentProjectId(null)
     setImages([])
+  }
+
+  // Función para obtener el historial completo de mensajes de un proyecto
+  const getProjectMessageHistory = async (projectId) => {
+    try {
+      // Obtener todos los proyectos del usuario
+      const projects = await chatService.getUserProjects()
+      
+      // Encontrar el proyecto actual
+      const currentProject = projects.find(p => p.id === projectId)
+      
+      if (!currentProject || !currentProject.chats || currentProject.chats.length === 0) {
+        return []
+      }
+      
+      // Obtener los mensajes de todos los chats del proyecto
+      const allChatsMessages = await Promise.all(
+        currentProject.chats.map(async (chat) => {
+          try {
+            const chatData = await chatService.getChatById(chat.id)
+            return chatData.messages.map(msg => ({
+              ...msg,
+              chatId: chat.id,
+              chatTitle: chat.title
+            }))
+          } catch (error) {
+            console.error(`Error al obtener mensajes del chat ${chat.id}:`, error)
+            return []
+          }
+        })
+      )
+      
+      // Aplanar el array y ordenar por fecha de creación
+      const allMessages = allChatsMessages
+        .flat()
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+      
+      return allMessages
+    } catch (error) {
+      console.error('Error al obtener historial del proyecto:', error)
+      return []
+    }
   }
 
   const handleSendMessage = async (userMessage) => {
@@ -460,10 +564,32 @@ function Chat({ isAuthenticated }) {
       const modelToUse = selectedModel === 'Auto' ? 'qwen2.5-coder:14b' : selectedModel
       const isAutoMode = selectedModel === 'Auto'
       
-      const messageHistory = [...messages, newUserMessage].map(msg => ({
-        role: msg.isUser ? 'user' : 'assistant',
-        content: msg.text
-      }))
+      // Construir historial de mensajes
+      let messageHistory
+      
+      if (currentProjectId && isAuthenticated) {
+        // Si el chat pertenece a un proyecto, obtener historial completo del proyecto
+        const projectMessages = await getProjectMessageHistory(currentProjectId)
+        
+        // Convertir los mensajes de la BD al formato esperado por la API
+        messageHistory = projectMessages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }))
+        
+        // Añadir el mensaje actual del usuario
+        messageHistory.push({
+          role: 'user',
+          content: userMessage
+        })
+        
+      } else {
+        // Si no pertenece a un proyecto, usar solo el historial del chat actual
+        messageHistory = [...messages, newUserMessage].map(msg => ({
+          role: msg.isUser ? 'user' : 'assistant',
+          content: msg.text
+        }))
+      }
       
       const formData = new FormData()
       formData.append('model', modelToUse)

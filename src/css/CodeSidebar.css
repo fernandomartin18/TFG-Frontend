@@ -115,6 +115,34 @@
   gap: 1rem;
 }
 
+/* Header del paquete */
+.package-header {
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.package-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+}
+
+.package-path {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+  font-family: 'Courier New', monospace;
+}
+
 /* Item individual de código */
 .code-item {
   background-color: var(--message-bg);
@@ -123,6 +151,11 @@
   padding: 0.75rem;
   transition: all 0.2s ease;
   cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+.code-item.has-package {
+  margin-left: 0.5rem;
 }
 
 .code-item:hover {
