@@ -1,0 +1,179 @@
+.plantuml-editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--background);
+  color: var(--text-color);
+  overflow: hidden;
+}
+
+.plantuml-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: var(--background);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 10;
+}
+
+.plantuml-editor-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.plantuml-editor-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.plantuml-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.plantuml-btn-cancel {
+  background-color: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.plantuml-btn-cancel:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.plantuml-btn-save {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.plantuml-btn-save:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.plantuml-btn-save:disabled {
+  background-color: var(--border-color);
+  color: var(--text-color);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.plantuml-editor-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.plantuml-editor-left {
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+  height: 100%;
+}
+
+.plantuml-editor-textarea-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--code-bg);
+}
+
+.plantuml-textarea {
+  flex: 1;
+  width: 100%;
+  padding: 1rem;
+  padding-right: 1.5rem;
+  padding-bottom: 1.5rem;
+  font-family: 'Fira Code', 'Courier New', Courier, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #d4d4d4;
+  background-color: transparent;
+  border: none;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+  z-index: 2;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  white-space: pre;
+  overflow: auto;
+}
+
+.plantuml-highlighter-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* This overrides the syntax highlighter styling to layer correctly */
+.plantuml-highlighter {
+  margin: 0 !important;
+  box-sizing: border-box;
+  overflow: visible !important;
+}
+
+[data-theme='light'] .plantuml-textarea {
+  color: #1e1e1e;
+}
+
+/* Custom Scrollbar for PlantUML Editor */
+.plantuml-textarea::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.plantuml-textarea::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+.plantuml-textarea::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 6px;
+  border: 3px solid var(--background);
+  cursor: pointer;
+}
+
+.plantuml-textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+.plantuml-resizer {
+  width: 8px;
+  background-color: var(--border-color);
+  cursor: col-resize;
+  transition: background-color 0.2s;
+  z-index: 10;
+}
+
+.plantuml-resizer:hover, .plantuml-resizer.dragging {
+  background-color: var(--primary-color);
+}
+
+.plantuml-editor-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--background);
+  color: var(--text-color);
+  opacity: 0.5;
+}

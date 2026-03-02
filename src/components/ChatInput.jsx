@@ -5,9 +5,15 @@ import ModelSelector from './ModelSelector'
 import ImageUploader from './ImageUploader'
 import '../css/ChatInput.css'
 
-function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, images, onImagesChange }) {
-  const [input, setInput] = useState('')
+function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, images, onImagesChange, initialInput = '', onInputClear = () => {} }) {
+  const [input, setInput] = useState(initialInput)
   const textareaRef = useRef(null)
+
+  useEffect(() => {
+    if (initialInput) {
+      setInput(initialInput)
+    }
+  }, [initialInput])
 
   useEffect(() => {
     const textarea = textareaRef.current
@@ -32,6 +38,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
     if (input.trim() && !isLoading) {
       onSendMessage(input)
       setInput('')
+      if (onInputClear) onInputClear()
     }
   }
 
@@ -86,7 +93,9 @@ ChatInput.propTypes = {
   selectedModel: PropTypes.string.isRequired,
   onModelChange: PropTypes.func.isRequired,
   images: PropTypes.array.isRequired,
-  onImagesChange: PropTypes.func.isRequired
+  onImagesChange: PropTypes.func.isRequired,
+  initialInput: PropTypes.string,
+  onInputClear: PropTypes.func
 }
 
 export default ChatInput
