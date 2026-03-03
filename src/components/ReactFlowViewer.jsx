@@ -99,9 +99,8 @@ const parsePlantUML = (code, isDarkMode = false) => {
       return;
     }
 
-    if (currentClass && line.match(/^[+-~#]/)) {
-      const cleanlyAt = line.replace(/^[+-~#]\s*/, '');
-      nodeMap[currentClass].data.attributes.push(cleanlyAt);
+    if (currentClass) {
+      nodeMap[currentClass].data.attributes.push(line);
       return;
     }
 
@@ -437,7 +436,7 @@ const generatePlantUMLFromGraph = () => {
     const renderNode = (node, indentLevel) => {
       let code = '';
       const indent = '  '.repeat(indentLevel);
-      const cleanId = node.id.replace(/-/g, '');
+      const cleanId = node.id.replace(/[^a-zA-Z0-9_]/g, '');
       
       if (node.type === 'umlPackage') {
         code += `${indent}package "${node.data.label}" as ${cleanId} {\n`;
@@ -486,7 +485,7 @@ const generatePlantUMLFromGraph = () => {
         default: pArrow = '-->'; break;
       }
 
-      newCode += `${edge.source.replace(/-/g, '')}${sMult}${pArrow}${tMult}${edge.target.replace(/-/g, '')}${lStr}\n`;
+      newCode += `${edge.source.replace(/[^a-zA-Z0-9_]/g, '')}${sMult}${pArrow}${tMult}${edge.target.replace(/[^a-zA-Z0-9_]/g, '')}${lStr}\n`;
     });
     
     newCode += '\n@enduml';
