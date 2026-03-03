@@ -384,15 +384,15 @@ function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, se
       };
 
       const addPackage = () => {
-          const newPkg = {
-            id: `pkg-${nodeId++}`,
-            type: 'umlPackage',
-            position: getSafePosition(nodes),
-            data: { label: `Paquete ${nodeId}` },
-            style: { width: 350, height: 350 }
-          };
-          setNodes((nds) => [...nds, newPkg]);
-        };
+        id: `pkg-${nodeId++}`,
+        type: 'umlPackage',
+        position: getSafePosition(nodes),
+        data: { label: `Paquete ${nodeId}` },
+        style: { width: 350, height: 350 }
+      };
+      setNodes((nds) => [...nds, newPkg]);
+    };
+
 const generatePlantUMLFromGraph = () => {
     let newCode = '@startuml\n\n';
     
@@ -446,7 +446,7 @@ const generatePlantUMLFromGraph = () => {
     setActiveTab('kroki');
   };
 
-  const onNodeDragStop = (event, node, nodes) => {          if (node.type === 'umlNode' || node.type === 'umlPackage') {
+  const onNodeDragStop = (event, node, nodes) => {      takeSnapshot();    if (node.type === 'umlNode' || node.type === 'umlPackage') {
       const absX = node.positionAbsolute ? node.positionAbsolute.x : node.position.x;
       const absY = node.positionAbsolute ? node.positionAbsolute.y : node.position.y;
 
