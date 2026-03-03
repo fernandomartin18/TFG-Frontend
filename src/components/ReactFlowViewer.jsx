@@ -443,7 +443,6 @@ const generatePlantUMLFromGraph = () => {
     
     newCode += '\n@enduml';
     setCode(newCode);
-    setActiveTab('kroki');
   };
 
   const onNodeDragStop = (event, node, nodes) => {          if (node.type === 'umlNode' || node.type === 'umlPackage') {

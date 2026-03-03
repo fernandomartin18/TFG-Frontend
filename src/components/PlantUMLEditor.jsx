@@ -123,6 +123,15 @@ function PlantUMLEditor() {
     })
   }
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    if (tab === 'reactflow') {
+      setLeftWidth(20)
+    } else {
+      setLeftWidth(50)
+    }
+  }
+
   const codeStyle = isDarkMode ? vscDarkPlus : vs
 
   return (
@@ -134,13 +143,13 @@ function PlantUMLEditor() {
         <div className="view-mode-tabs" style={{ display: 'flex', justifyContent: 'center', flex: 1, margin: 0, gap: '2rem' }}>
           <button 
             className={`view-mode-tab ${activeTab === 'kroki' ? 'active' : ''}`}
-            onClick={() => setActiveTab('kroki')}
+            onClick={() => handleTabChange('kroki')}
           >
             Código
           </button>
           <button 
             className={`view-mode-tab ${activeTab === 'reactflow' ? 'active' : ''}`}
-            onClick={() => setActiveTab('reactflow')}
+            onClick={() => handleTabChange('reactflow')}
           >
             Diagrama
           </button>
@@ -170,7 +179,13 @@ function PlantUMLEditor() {
               onChange={handleCodeChange}
               onScroll={handleScroll}
               spellCheck="false"
-              style={{ color: 'transparent', caretColor: isDarkMode ? '#fff' : '#000' }}
+              readOnly={activeTab === 'reactflow'}
+              style={{ 
+                color: 'transparent', 
+                caretColor: isDarkMode ? '#fff' : '#000',
+                opacity: activeTab === 'reactflow' ? 0.7 : 1,
+                cursor: activeTab === 'reactflow' ? 'not-allowed' : 'text'
+              }}
             />
             {/* Syntax highlighter behind/overlay the textarea */}
             <div 
