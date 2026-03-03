@@ -11,6 +11,8 @@ function UmlEdge({
   sourcePosition,
   targetPosition,
   style = {},
+  selected,
+  markerStart,
   markerEnd,
   data
 }) {
@@ -42,7 +44,7 @@ function UmlEdge({
 
   return (
     <>
-      <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} interactionWidth={25} />
+      <BaseEdge path={edgePath} markerStart={markerStart} markerEnd={markerEnd} style={{ stroke: selected ? "#ff0072" : "var(--text-color)", strokeWidth: selected ? 2 : 1.5, ...style }} interactionWidth={25} />
       
       <EdgeLabelRenderer>
         <div
@@ -63,9 +65,10 @@ function UmlEdge({
             placeholder=""
             style={{ 
               width: '80px', 
-              background: 'transparent', 
-              color: 'var(--text-primary)', 
-              border: 'none', 
+              background: data?.label ? 'transparent' : 'rgba(255, 255, 255, 0.8)', 
+              color: data?.label ? 'var(--text-color)' : '#333', 
+              border: data?.label ? 'none' : '1px dashed #aaa', 
+              borderRadius: '4px',
               outline: 'none', 
               textAlign: 'center', 
               fontSize: '12px'
@@ -90,9 +93,10 @@ function UmlEdge({
             placeholder=""
             style={{ 
               width: '40px', 
-              background: 'transparent', 
-              color: '#ff8800', 
-              border: 'none', 
+              background: data?.sourceMultiplicity ? 'transparent' : 'rgba(255, 255, 255, 0.8)', 
+              color: data?.sourceMultiplicity ? '#ff8800' : '#333', 
+              border: data?.sourceMultiplicity ? 'none' : '1px dashed #aaa', 
+              borderRadius: '4px',
               outline: 'none', 
               textAlign: 'center', 
               fontSize: '12px', 
@@ -118,9 +122,10 @@ function UmlEdge({
             placeholder=""
             style={{ 
               width: '40px', 
-              background: 'transparent', 
-              color: '#ff8800', 
-              border: 'none', 
+              background: data?.targetMultiplicity ? 'transparent' : 'rgba(255, 255, 255, 0.8)', 
+              color: data?.targetMultiplicity ? '#ff8800' : '#333', 
+              border: data?.targetMultiplicity ? 'none' : '1px dashed #aaa', 
+              borderRadius: '4px',
               outline: 'none', 
               textAlign: 'center', 
               fontSize: '12px', 

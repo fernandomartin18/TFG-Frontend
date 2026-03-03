@@ -75,7 +75,7 @@ const getLayoutedElements = (nodes, edges, direction = 'TB') => {
   return { nodes, edges };
 };
 
-const parsePlantUML = (code) => {
+const parsePlantUML = (code, isDarkMode = false) => {
   const lines = code.split('\n');
   const parsedNodes = [];
   const parsedEdges = [];
@@ -190,13 +190,32 @@ const parsePlantUML = (code) => {
         }
       });
 
+      let relationType = 'association';
+      if (edgeStyle.includes('.')) {
+        if (edgeStyle.includes('|>')) relationType = 'realization';
+        else relationType = 'dependency';
+      } else {
+        if (edgeStyle.includes('|>')) relationType = 'inheritance';
+        else if (edgeStyle.includes('*')) relationType = 'composition';
+        else if (edgeStyle.includes('o')) relationType = 'aggregation';
+        else relationType = 'association';
+      }
+
+      const newMarkerEndType = (relationType === 'inheritance' || relationType === 'realization') ? `inheritance-end-${isDarkMode ? 'dark' : 'light'}` : 
+                           (relationType !== 'composition' && relationType !== 'aggregation' ? { type: MarkerType.ArrowClosed } : undefined);
+      
+      const newMarkerStart = relationType === 'composition' ? `composition-start-${isDarkMode ? 'dark' : 'light'}` :
+                             relationType === 'aggregation' ? `aggregation-start-${isDarkMode ? 'dark' : 'light'}` : undefined;
+
       parsedEdges.push({
         id: `e${edgeId++}-${source}-${target}`,
         source,
         target,
         type: 'umlEdge',
-        data: { label, sourceMultiplicity, targetMultiplicity },
-        markerEnd: { type: MarkerType.ArrowClosed }
+        data: { label, sourceMultiplicity, targetMultiplicity, relationType },
+        style: (relationType === 'dependency' || relationType === 'realization') ? { strokeDasharray: '5 5' } : {},
+        markerEnd: newMarkerEndType,
+        markerStart: newMarkerStart
       });
     }
   });
@@ -210,6 +229,24 @@ function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, se
   const [past, setPast] = useState([]);
   const [future, setFuture] = useState([]);
   const isUndoRedoAction = React.useRef(false);
+
+  // Actualizar marcadores si cambia el tema oscuro/claro
+  useEffect(() => {
+    setEdges(eds => eds.map(edge => {
+      const relType = edge.data?.relationType;
+      if (!relType || relType === 'association' || relType === 'dependency') return edge;
+
+      const newMarkerEndObj = (relType === 'inheritance' || relType === 'realization') ? `inheritance-end-${isDarkMode ? 'dark' : 'light'}` : undefined;
+      const newMarkerStart = relType === 'composition' ? `composition-start-${isDarkMode ? 'dark' : 'light'}` :
+                             relType === 'aggregation' ? `aggregation-start-${isDarkMode ? 'dark' : 'light'}` : undefined;
+      
+      return {
+        ...edge,
+        markerEnd: newMarkerEndObj || edge.markerEnd,
+        markerStart: newMarkerStart || edge.markerStart
+      };
+    }));
+  }, [isDarkMode, setEdges]);
 
   // Auto-snapshot con debounce para capturar TODOS los cambios (arrastrar, editar desde dentro de los nodos, etc.)
   useEffect(() => {
@@ -299,7 +336,7 @@ function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, se
     if (nodes.length <= 1 && nodes[0]?.data.label === 'Inicio') {
         if (code && code.trim().length > 15) { 
         // Parse whenever the code changes actively and we need to reset
-        const { nodes: layoutedNodes, edges: layoutedEdges } = parsePlantUML(code);
+        const { nodes: layoutedNodes, edges: layoutedEdges } = parsePlantUML(code, isDarkMode);
         if (layoutedNodes.length > 0) {
             setNodes([...layoutedNodes]);
             setEdges([...layoutedEdges]);
@@ -310,7 +347,7 @@ function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, se
 
   const onConnect = useCallback(
       (params) => {
-        setEdges((eds) => addEdge({ ...params, type: 'umlEdge', data: { label: '', sourceMultiplicity: '', targetMultiplicity: '' }, markerEnd: { type: MarkerType.ArrowClosed } }, eds));
+        setEdges((eds) => addEdge({ ...params, type: 'umlEdge', data: { label: '', sourceMultiplicity: '', targetMultiplicity: '', relationType: 'association' }, markerEnd: { type: MarkerType.ArrowClosed } }, eds));
       },
       [setEdges]
     );
@@ -438,7 +475,18 @@ const generatePlantUMLFromGraph = () => {
       const sMult = edge.data?.sourceMultiplicity ? ` "${edge.data.sourceMultiplicity}" ` : ' ';
       const tMult = edge.data?.targetMultiplicity ? ` "${edge.data.targetMultiplicity}" ` : ' ';
 
-      newCode += `${edge.source.replace(/-/g, '')}${sMult}-->${tMult}${edge.target.replace(/-/g, '')}${lStr}\n`;
+      let pArrow = '-->';
+      switch (edge.data?.relationType) {
+        case 'inheritance': pArrow = '--|>'; break;
+        case 'composition': pArrow = '*--'; break;
+        case 'aggregation': pArrow = 'o--'; break;
+        case 'dependency': pArrow = '..>'; break;
+        case 'realization': pArrow = '..|>'; break;
+        case 'association':
+        default: pArrow = '-->'; break;
+      }
+
+      newCode += `${edge.source.replace(/-/g, '')}${sMult}${pArrow}${tMult}${edge.target.replace(/-/g, '')}${lStr}\n`;
     });
     
     newCode += '\n@enduml';
@@ -491,6 +539,28 @@ const generatePlantUMLFromGraph = () => {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+        <defs>
+          <marker id="inheritance-end-light" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto">
+            <polygon points="0,0 0,14 14,7" fill="#fff" stroke="#000" strokeWidth="1.5" />
+          </marker>
+          <marker id="inheritance-end-dark" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto">
+            <polygon points="0,0 0,14 14,7" fill="#1e1e1e" stroke="#fff" strokeWidth="1.5" />
+          </marker>
+          <marker id="composition-start-light" markerWidth="14" markerHeight="14" refX="0" refY="7" orient="auto">
+            <polygon points="0,7 7,0 14,7 7,14" fill="#000" stroke="#000" strokeWidth="1" />
+          </marker>
+          <marker id="composition-start-dark" markerWidth="14" markerHeight="14" refX="0" refY="7" orient="auto">
+            <polygon points="0,7 7,0 14,7 7,14" fill="#fff" stroke="#fff" strokeWidth="1" />
+          </marker>
+          <marker id="aggregation-start-light" markerWidth="14" markerHeight="14" refX="0" refY="7" orient="auto">
+            <polygon points="0,7 7,0 14,7 7,14" fill="#fff" stroke="#000" strokeWidth="1.5" />
+          </marker>
+          <marker id="aggregation-start-dark" markerWidth="14" markerHeight="14" refX="0" refY="7" orient="auto">
+            <polygon points="0,7 7,0 14,7 7,14" fill="#1e1e1e" stroke="#fff" strokeWidth="1.5" />
+          </marker>
+        </defs>
+      </svg>
       <div className="react-flow-panel">
         <button className="react-flow-btn" onClick={addNode}>+ Nodo</button>
         <button className="react-flow-btn" onClick={addPackage}>+ Paquete</button>
@@ -530,10 +600,69 @@ const generatePlantUMLFromGraph = () => {
             borderRadius: '6px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
             padding: '4px',
-            minWidth: '120px'
+            minWidth: '160px'
           }}
           onContextMenu={(e) => e.preventDefault()}
         >
+          <div style={{ padding: '4px 8px', fontSize: '12px', fontWeight: 'bold', color: isDarkMode ? '#bbb' : '#666', borderBottom: '1px solid #ccc', marginBottom: '4px' }}>
+            Tipo de Relación
+          </div>
+          {[
+            { type: 'association', label: 'Asociación (-->)' },
+            { type: 'inheritance', label: 'Herencia (--|>)' },
+            { type: 'composition', label: 'Composición (*--)' },
+            { type: 'aggregation', label: 'Agregación (o--)' },
+            { type: 'dependency', label: 'Dependencia (..>)' },
+            { type: 'realization', label: 'Realización (..|>)' }
+          ].map(rel => (
+            <button
+              key={rel.type}
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                setEdges(eds => eds.map(edge => {
+                  if (edge.id === edgeMenu.id) {
+                    const isDashed = rel.type === 'dependency' || rel.type === 'realization';
+                    const newMarkerEndType = (rel.type === 'inheritance' || rel.type === 'realization') ? `inheritance-end-${isDarkMode ? 'dark' : 'light'}` : 
+                                         (rel.type !== 'composition' && rel.type !== 'aggregation' ? MarkerType.ArrowClosed : undefined);
+                    
+                    let newMarkerEndObj = newMarkerEndType;
+                    if (newMarkerEndType === MarkerType.ArrowClosed) newMarkerEndObj = { type: MarkerType.ArrowClosed };
+                    
+                    const newMarkerStart = rel.type === 'composition' ? `composition-start-${isDarkMode ? 'dark' : 'light'}` :
+                                           rel.type === 'aggregation' ? `aggregation-start-${isDarkMode ? 'dark' : 'light'}` : undefined;
+                     
+                    return {
+                      ...edge,
+                      data: { ...edge.data, relationType: rel.type },
+                      style: isDashed ? { strokeDasharray: '5 5' } : {},
+                      markerEnd: newMarkerEndObj,
+                      markerStart: newMarkerStart
+                    };
+                  }
+                  return edge;
+                }));
+                setEdgeMenu(null);
+                isUndoRedoAction.current = false;
+              }}
+              style={{
+                background: 'transparent',
+                color: isDarkMode ? '#eee' : '#333',
+                border: 'none',
+                padding: '6px 12px',
+                cursor: 'pointer',
+                width: '100%',
+                textAlign: 'left',
+                fontSize: '13px',
+                borderRadius: '4px',
+                transition: 'background 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.background = isDarkMode ? '#444' : '#e0e0e0'}
+              onMouseLeave={(e) => e.target.style.background = 'transparent'}
+            >
+              {rel.label}
+            </button>
+          ))}
+          <div style={{ height: '1px', background: '#ccc', margin: '4px 0' }} />
           <button
             onPointerDown={(e) => {
               e.stopPropagation();
