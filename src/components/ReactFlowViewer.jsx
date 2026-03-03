@@ -492,14 +492,55 @@ const generatePlantUMLFromGraph = () => {
     setCode(newCode);
   };
 
-  const onNodeDragStop = (event, node, nodes) => {          if (node.type === 'umlNode' || node.type === 'umlPackage') {
-      const absX = node.positionAbsolute ? node.positionAbsolute.x : node.position.x;
-      const absY = node.positionAbsolute ? node.positionAbsolute.y : node.position.y;
+const onNodeDragStop = (event, node, nodes) => {
+    if (node.type === 'umlNode' || node.type === 'umlPackage') {
+      // Función auxiliar para obtener la posición absoluta de un nodo sumando las coordenadas de sus padres
+      const getAbsNodePos = (n) => {
+        let x = n.position.x;
+        let y = n.position.y;
+        let currId = n.parentId;
+        while (currId) {
+          const p = nodes.find(parent => parent.id === currId);
+          if (p) {
+            x += p.position.x;
+            y += p.position.y;
+            currId = p.parentId;
+          } else {
+            currId = null;
+          }
+        }
+        return { x, y };
+      };
 
-      const pkgs = nodes.filter(n => n.type === 'umlPackage' && n.id !== node.id &&
-        absX > n.position.x && absX < n.position.x + (n.style?.width || 350) &&
-        absY > n.position.y && absY < n.position.y + (n.style?.height || 350)
-      );
+      const absX = node.positionAbsolute ? node.positionAbsolute.x : getAbsNodePos(node).x;
+      const absY = node.positionAbsolute ? node.positionAbsolute.y : getAbsNodePos(node).y;
+
+      const nodeWidth = node.style?.width || (node.type === 'umlPackage' ? 350 : 160);
+      const nodeHeight = node.style?.height || (node.type === 'umlPackage' ? 350 : 100);
+      
+      const centerX = absX + nodeWidth / 2;
+      const centerY = absY + nodeHeight / 2;
+
+      const pkgs = nodes.filter(n => {
+        if (n.type !== 'umlPackage' || n.id === node.id) return false;
+        
+        // Evitar anidaciones cíclicas (padre metido dentro de su hijo)
+        let isDescendant = false;
+        let currId = n.parentId;
+        while (currId) {
+          if (currId === node.id) { isDescendant = true; break; }
+          const p = nodes.find(parent => parent.id === currId);
+          currId = p ? p.parentId : null;
+        }
+        if (isDescendant) return false;
+
+        const pkgAbs = getAbsNodePos(n);
+        const w = n.style?.width || 350;
+        const h = n.style?.height || 350;
+
+        return centerX > pkgAbs.x && centerX < pkgAbs.x + w &&
+               centerY > pkgAbs.y && centerY < pkgAbs.y + h;
+      });
 
       pkgs.sort((a, b) => {
         const areaA = (a.style?.width || 350) * (a.style?.height || 350);
@@ -508,30 +549,30 @@ const generatePlantUMLFromGraph = () => {
       });
 
       const pkg = pkgs.length > 0 ? pkgs[0] : null;
-      
+
       if (pkg && node.parentId !== pkg.id) {
+        const pkgAbs = getAbsNodePos(pkg);
         setNodes(nds => nds.map(n => {
           if (n.id === node.id) {
             return {
               ...n,
               parentId: pkg.id,
-              position: { x: absX - pkg.position.x, y: absY - pkg.position.y }
+              position: { x: absX - pkgAbs.x, y: absY - pkgAbs.y }
             };
           }
           return n;
         }));
       } else if (!pkg && node.parentId) {
-          // Si lo sacan de cualquier paquete, quitamos el parentId
-          setNodes(nds => nds.map(n => {
-            if (n.id === node.id) {
-                return {
-                    ...n,
-                    parentId: undefined,
-                    position: { x: absX, y: absY }
-                }
-            }
-            return n;
-          }));
+        setNodes(nds => nds.map(n => {
+          if (n.id === node.id) {
+            return {
+              ...n,
+              parentId: undefined,
+              position: { x: absX, y: absY }
+            };
+          }
+          return n;
+        }));
       }
     }
   };
