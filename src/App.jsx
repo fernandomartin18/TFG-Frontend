@@ -4,6 +4,7 @@ import './css/App.css'
 import Chat from './components/Chat'
 import Login from './components/Login'
 import Register from './components/Register'
+import PlantUMLEditor from './components/PlantUMLEditor'
 import authService from './services/auth.service'
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
       <Route path="/" element={<Chat isAuthenticated={isAuthenticated} />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/editor" element={<PlantUMLEditor />} />
     </Routes>
   )
 }

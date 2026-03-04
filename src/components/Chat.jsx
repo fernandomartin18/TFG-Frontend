@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import '../css/App.css'
@@ -9,11 +10,22 @@ import { fetchWithAuth } from '../services/api.service'
 import chatService from '../services/chat.service'
 
 function Chat({ isAuthenticated }) {
+  const location = useLocation()
   const [messages, setMessages] = useState([])
+  const [initialInputText, setInitialInputText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [selectedModel, setSelectedModel] = useState('')
   const [images, setImages] = useState([])
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
+    // Priorizar localStorage
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme) {
+      return savedTheme === 'dark'
+    }
+    // Si hay un atributo en el html, usar ese
+    if (document.documentElement.hasAttribute('data-theme')) {
+      return document.documentElement.getAttribute('data-theme') === 'dark'
+    }
     // Detectar preferencia del sistema
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
@@ -28,9 +40,30 @@ function Chat({ isAuthenticated }) {
   const leftSidebarRef = useRef(null)
   const hasProcessedPendingMessages = useRef(false)
 
+  // Procesar si venimos del editor de PlantUML
+  useEffect(() => {
+    if (location.state?.returnToChatId && currentChatId !== location.state.returnToChatId) {
+      if (isAuthenticated) {
+        handleChatSelect(location.state.returnToChatId)
+      } else {
+        setCurrentChatId(location.state.returnToChatId)
+      }
+    }
+
+    if (location.state?.plantumlEdited) {
+      const code = location.state.editedCode
+      setInitialInputText(`He modificado el código PlantUML anterior. Aquí está la nueva versión:\n${code}\nPor favor, devuélveme los códigos para implementar el nuevo PlantUML.`)
+      // Limpiar el state para que no se vuelva a ejecutar si recarga
+      window.history.replaceState({}, document.title)
+    } else if (location.state?.returnToChatId) {
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state, isAuthenticated])
+
   // Aplicar tema
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light')
+    localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light')
   }, [isDarkTheme])
 
   // Limpiar chat cuando el usuario cierra sesión
@@ -199,7 +232,7 @@ function Chat({ isAuthenticated }) {
                 name: packageName,
                 level: headerLevel
               })
-              console.log('📦 Paquete detectado:', packageName, 'nivel:', headerLevel, 'en posición:', packageMatch.index)
+              console.log('Paquete detectado:', packageName, 'nivel:', headerLevel, 'en posición:', packageMatch.index)
             }
           }
           
@@ -220,7 +253,7 @@ function Chat({ isAuthenticated }) {
           // Ordenar por índice de aparición
           allMatches.sort((a, b) => a.index - b.index)
           
-          console.log('🔍 Todas las coincidencias ordenadas:', allMatches.map(m => 
+          console.log('Todas las coincidencias ordenadas:', allMatches.map(m => 
             m.type === 'package' ? `${m.type}: ${m.name} (nivel ${m.level})` : `${m.type}: ${m.language}`
           ))
           
@@ -243,7 +276,7 @@ function Chat({ isAuthenticated }) {
                 ? packageStack.map(p => p.name).join('/')
                 : null
               
-              console.log('➕ Agregando código al paquete:', currentPackage || 'sin paquete')
+              console.log('Agregando código al paquete:', currentPackage || 'sin paquete')
               currentRequestCodes.push({
                 content: match.content,
                 language: match.language,
@@ -897,6 +930,7 @@ function Chat({ isAuthenticated }) {
               step1Text={msg.step1Text || ''}
               step2Text={msg.step2Text || ''}
               currentStep={msg.currentStep || 0}
+              chatId={currentChatId}
             />
           ))
         )}
@@ -910,6 +944,8 @@ function Chat({ isAuthenticated }) {
         onModelChange={setSelectedModel}
         images={images}
         onImagesChange={setImages}
+        initialInput={initialInputText}
+        onInputClear={() => setInitialInputText('')}
       />
     </div>
   )

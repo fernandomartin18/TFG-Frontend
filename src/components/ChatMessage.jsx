@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import { FaCopy, FaChevronUp, FaChevronDown } from 'react-icons/fa6'
+import { FaCopy, FaChevronUp, FaChevronDown, FaPenToSquare } from 'react-icons/fa6'
 import ReactMarkdown from 'react-markdown'
+import { useNavigate } from 'react-router-dom'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import ImageModal from './ImageModal'
@@ -19,13 +20,15 @@ function ChatMessage({
   isTwoStep = false,
   step1Text = '',
   step2Text = '',
-  currentStep = 0
+  currentStep = 0,
+  chatId = null
 }) {
   const [copiedIndex, setCopiedIndex] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(null)
   const [showDropdown, setShowDropdown] = useState(false)
   const [showPlantUML, setShowPlantUML] = useState(false)
+  const navigate = useNavigate()
   const [isDarkMode, setIsDarkMode] = useState(
     document.documentElement.getAttribute('data-theme') === 'dark'
   )
@@ -81,6 +84,10 @@ function ChatMessage({
   const handleCloseModal = () => {
     setShowModal(false)
     setSelectedImageIndex(null)
+  }
+
+  const handleEditPlantUML = (code) => {
+    navigate('/editor', { state: { code, chatId } })
   }
 
   // Si es usuario, mostrar como burbuja normal
@@ -228,6 +235,14 @@ function ChatMessage({
                               <span className="code-language">{part.language}</span>
                               {part.complete && (
                                 <div className="copy-button-container">
+                                  <button 
+                                    className="copy-button"
+                                    onClick={() => handleEditPlantUML(part.content)}
+                                    title="Editar PlantUML"
+                                    style={{ marginRight: '8px' }}
+                                  >
+                                    <FaPenToSquare size={16} />
+                                  </button>
                                   <button 
                                     className="copy-button"
                                     onClick={() => handleCopy(part.content, `step1-${index}`)}
@@ -435,7 +450,8 @@ ChatMessage.propTypes = {
   isTwoStep: PropTypes.bool,
   step1Text: PropTypes.string,
   step2Text: PropTypes.string,
-  currentStep: PropTypes.number
+  currentStep: PropTypes.number,
+  chatId: PropTypes.number
 }
 
 export default ChatMessage
