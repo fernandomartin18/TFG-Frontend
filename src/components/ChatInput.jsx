@@ -9,11 +9,11 @@ import '../css/ChatInput.css'
 const PROMPT_TEMPLATES = [
   {
     title: "Código Híbrido desde Imagen",
-    prompt: "Analiza el diagrama de clases de la imagen adjunta y genera el código en Python y Qiskit necesario para implementarlo. Ten en cuenta que es un sistema híbrido que contiene tanto clases clásicas como componentes cuánticos. Por favor, sé riguroso y profesional, aplicando buenas prácticas de ingeniería de software y tipado."
+    prompt: "Analiza el diagrama de clases de la imagen adjunta y genera los códigos en Python y Qiskit necesarios para implementarlo. Ten en cuenta que es un sistema híbrido que contiene tanto clases clásicas como componentes cuánticos. Por favor, sé riguroso y profesional, aplicando buenas prácticas de ingeniería de software y tipado."
   },
   {
     title: "Código Clásico desde Imagen",
-    prompt: "Analiza el diagrama de clases de la imagen adjunta y extrae la estructura mostrada para generar el código fuente en [INDICAR LENGUAJE]. Implementa correctamente las clases, métodos, y las relaciones orientadas a objetos (herencia, composición, etc.) que se aprecien visualmente."
+    prompt: "Analiza el diagrama de clases de la imagen adjunta y extrae la estructura mostrada para generar los códigos necesarios en [INDICAR LENGUAJE]. Implementa correctamente las clases, métodos, y las relaciones orientadas a objetos (herencia, composición, etc.) que se aprecien visualmente."
   },
   {
     title: "Código Cuántico (Qiskit)",
@@ -21,7 +21,7 @@ const PROMPT_TEMPLATES = [
   },
   {
     title: "Código a partir de PlantUML",
-    prompt: "A partir del siguiente diseño en formato PlantUML, genera el código fuente equivalente en [INDICAR LENGUAJE]. Asegúrate de incluir la definición completa de las clases, atributos, métodos y la correcta implementación de las relaciones orientadas a objetos (herencia, composición, agregación, etc.):\n\n[PEGA TU PLANTUML AQUÍ]"
+    prompt: "A partir del siguiente diseño en formato PlantUML, genera los códigos equivalentes en [INDICAR LENGUAJE]. Asegúrate de incluir la definición completa de las clases, atributos, métodos y la correcta implementación de las relaciones orientadas a objetos (herencia, composición, agregación, etc.):\n\n[PEGA TU PLANTUML AQUÍ]"
   },
   {
     title: "Optimización de Código",

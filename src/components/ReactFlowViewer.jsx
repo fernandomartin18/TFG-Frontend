@@ -167,14 +167,21 @@ const parsePlantUML = (code, isDarkMode = false) => {
 
     // Detectar flechas (Soporte Multiplicidades y Strings con espacios)
     // Ej: App "1" --> "1" MainForm : contains
-    const edgeMatch = line.match(/^(?:"([^"]+)"|([\w]+))(?:\s+"([^"]+)")?\s+([.-]+[|>*]*)\s+(?:"([^"]+)"\s+)?(?:"([^"]+)"|([\w]+))(?:\s*:\s*(.*))?/);
-    if (edgeMatch && (line.includes('-->') || line.includes('..>') || line.includes('--|>') || line.includes('-') || line.includes('.'))) {
-      const source = edgeMatch[1] || edgeMatch[2];
-      const sourceMultiplicity = edgeMatch[3] || '';
+    const edgeMatch = line.match(/^(?:"([^"]+)"|([\w]+))(?:\s+"([^"]+)")?\s+([<o*|]*[.-]+[|>o*]*)\s+(?:"([^"]+)"\s+)?(?:"([^"]+)"|([\w]+))(?:\s*:\s*(.*))?/);
+    if (edgeMatch && (line.includes('-') || line.includes('.'))) {
+      const rawSource = edgeMatch[1] || edgeMatch[2];
+      const rawSourceMultiplicity = edgeMatch[3] || '';
       const edgeStyle = edgeMatch[4];
-      const targetMultiplicity = edgeMatch[5] || '';
-      const target = edgeMatch[6] || edgeMatch[7];
+      const rawTargetMultiplicity = edgeMatch[5] || '';
+      const rawTarget = edgeMatch[6] || edgeMatch[7];
       const label = edgeMatch[8] || '';
+
+      const isReverse = edgeStyle.startsWith('<') || edgeStyle.endsWith('o') || edgeStyle.endsWith('*');
+
+      const source = isReverse ? rawTarget : rawSource;
+      const target = isReverse ? rawSource : rawTarget;
+      const sourceMultiplicity = isReverse ? rawTargetMultiplicity : rawSourceMultiplicity;
+      const targetMultiplicity = isReverse ? rawSourceMultiplicity : rawTargetMultiplicity;
       
       [source, target].forEach(nId => {
         if (!nodeSet.has(nId)) {
@@ -191,10 +198,10 @@ const parsePlantUML = (code, isDarkMode = false) => {
 
       let relationType = 'association';
       if (edgeStyle.includes('.')) {
-        if (edgeStyle.includes('|>')) relationType = 'realization';
+        if (edgeStyle.includes('|')) relationType = 'realization';
         else relationType = 'dependency';
       } else {
-        if (edgeStyle.includes('|>')) relationType = 'inheritance';
+        if (edgeStyle.includes('|')) relationType = 'inheritance';
         else if (edgeStyle.includes('*')) relationType = 'composition';
         else if (edgeStyle.includes('o')) relationType = 'aggregation';
         else relationType = 'association';
