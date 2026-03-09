@@ -6,34 +6,30 @@ import ModelSelector from './ModelSelector'
 import ImageUploader from './ImageUploader'
 import '../css/ChatInput.css'
 
-const PROMPT_TEMPLATES = [
-  {
-    title: "Código Híbrido desde Imagen",
-    prompt: "Analiza el diagrama de clases de la imagen adjunta y genera los códigos en Python y Qiskit necesarios para implementarlo. Ten en cuenta que es un sistema híbrido que contiene tanto clases clásicas como componentes cuánticos. Por favor, sé riguroso y profesional, aplicando buenas prácticas de ingeniería de software y tipado."
-  },
-  {
-    title: "Código Clásico desde Imagen",
-    prompt: "Analiza el diagrama de clases de la imagen adjunta y extrae la estructura mostrada para generar los códigos necesarios en [INDICAR LENGUAJE]. Implementa correctamente las clases, métodos, y las relaciones orientadas a objetos (herencia, composición, etc.) que se aprecien visualmente."
-  },
-  {
-    title: "Código Cuántico (Qiskit)",
-    prompt: "Diseña un circuito cuántico utilizando Qiskit en Python para resolver:\n\n[DESCRIBE EL PROBLEMA O ALGORITMO QUANTUM AQUÍ]\n\nPor favor, incluye comentarios explicando cada compuerta (gates), el proceso de medición, y cómo ejecutarlo usando un simulador de Aer."
-  },
-  {
-    title: "Código a partir de PlantUML",
-    prompt: "A partir del siguiente diseño en formato PlantUML, genera los códigos equivalentes en [INDICAR LENGUAJE]. Asegúrate de incluir la definición completa de las clases, atributos, métodos y la correcta implementación de las relaciones orientadas a objetos (herencia, composición, agregación, etc.):\n\n[PEGA TU PLANTUML AQUÍ]"
-  },
-  {
-    title: "Optimización de Código",
-    prompt: "Analiza el siguiente código y sugiere optimizaciones de rendimiento y mejoras siguiendo principios SOLID y de buenas prácticas de código limpio:\n\n[PEGA TU CÓDIGO AQUÍ]"
-  }
-];
-
 function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, images, onImagesChange, initialInput = '', onInputClear = () => {} }) {
   const [input, setInput] = useState(initialInput)
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false)
+  const [templates, setTemplates] = useState([])
   const textareaRef = useRef(null)
   const menuRef = useRef(null)
+
+  useEffect(() => {
+    // Fetch plantillas
+    const fetchTemplates = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/templates');
+        if (response.ok) {
+          const data = await response.json();
+          setTemplates(data);
+        } else {
+          console.error("Error fetching templates, status:", response.status);
+        }
+      } catch (error) {
+        console.error("Error fetching templates:", error);
+      }
+    };
+    fetchTemplates();
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -107,9 +103,9 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
                 </button>
               </div>
               <div className="prompt-templates-list">
-                {PROMPT_TEMPLATES.map((t, idx) => (
+                {templates.map((t, idx) => (
                   <button
-                    key={idx}
+                    key={t.id || idx}
                     type="button"
                     className="prompt-template-item"
                     onClick={() => {
