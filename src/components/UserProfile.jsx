@@ -45,7 +45,18 @@ function UserProfile({ isDarkTheme, onToggleTheme, compact = false }) {
 
   return (
     <>
-      <div className={`user-profile ${compact ? 'compact' : ''}`} onClick={handleToggleModal}>
+      <div 
+        className={`user-profile ${compact ? 'compact' : ''}`} 
+        onClick={handleToggleModal}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            handleToggleModal()
+          }
+        }}
+      >
         {/* Avatar o inicial */}
         <div className="user-avatar">
           {user.avatarUrl ? (

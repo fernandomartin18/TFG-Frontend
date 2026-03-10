@@ -443,7 +443,7 @@ const generatePlantUMLFromGraph = () => {
     const renderNode = (node, indentLevel) => {
       let code = '';
       const indent = '  '.repeat(indentLevel);
-      const cleanId = node.id.replace(/[^a-zA-Z0-9_]/g, '');
+      const cleanId = node.id.replaceAll(/[^a-zA-Z0-9_]/g, '');
       
       if (node.type === 'umlPackage') {
         code += `${indent}package "${node.data.label}" as ${cleanId} {\n`;
@@ -492,7 +492,7 @@ const generatePlantUMLFromGraph = () => {
         default: pArrow = '-->'; break;
       }
 
-      newCode += `${edge.source.replace(/[^a-zA-Z0-9_]/g, '')}${sMult}${pArrow}${tMult}${edge.target.replace(/[^a-zA-Z0-9_]/g, '')}${lStr}\n`;
+      newCode += `${edge.source.replaceAll(/[^a-zA-Z0-9_]/g, '')}${sMult}${pArrow}${tMult}${edge.target.replaceAll(/[^a-zA-Z0-9_]/g, '')}${lStr}\n`;
     });
     
     newCode += '\n@enduml';
@@ -650,6 +650,7 @@ const onNodeDragStop = (event, node, nodes) => {
             minWidth: '160px'
           }}
           onContextMenu={(e) => e.preventDefault()}
+          role="presentation"
         >
           <div style={{ padding: '4px 8px', fontSize: '12px', fontWeight: 'bold', color: isDarkMode ? '#bbb' : '#666', borderBottom: '1px solid #ccc', marginBottom: '4px' }}>
             Tipo de Relación

@@ -215,6 +215,14 @@ function ChatMessage({
               <div 
                 className="plantuml-header"
                 onClick={() => setShowPlantUML(!showPlantUML)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setShowPlantUML(!showPlantUML)
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               >
                 <span className="plantuml-title">Generando PlantUML</span>
                 <button className="plantuml-toggle" aria-label={showPlantUML ? "Contraer" : "Expandir"}>

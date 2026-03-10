@@ -33,8 +33,26 @@ const ProjectModal = ({ isOpen, onClose, onSave, initialName = '', title = 'Nuev
   if (!isOpen) return null
 
   return (
-    <div className="project-modal-overlay" onClick={onClose}>
-      <div className="project-modal" onClick={(e) => e.stopPropagation()}>
+    <div 
+      className="project-modal-overlay" 
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose()
+        }
+      }}
+      role="presentation"
+    >
+      <div 
+        className="project-modal" 
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.stopPropagation()
+          }
+        }}
+        role="presentation"
+      >
         <h3 className="project-modal-title">{title}</h3>
         <form onSubmit={handleSubmit}>
           <input

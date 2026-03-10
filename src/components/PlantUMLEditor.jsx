@@ -221,6 +221,9 @@ function PlantUMLEditor() {
         <div 
           className={`plantuml-resizer ${isDragging ? 'dragging' : ''}`} 
           onMouseDown={handleMouseDown}
+          role="separator"
+          tabIndex={0}
+          aria-valuenow={leftWidth}
         />
 
         <div className="plantuml-editor-right" style={{ width: `calc(100% - ${leftWidth}% - 8px)` }}>

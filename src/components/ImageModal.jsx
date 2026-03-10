@@ -11,7 +11,16 @@ function ImageModal({ image, onClose, onDelete, showDeleteButton = true }) {
   }
 
   const modalContent = (
-    <div className="image-modal-backdrop" onClick={handleBackdropClick}>
+    <div 
+      className="image-modal-backdrop" 
+      onClick={handleBackdropClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose()
+        }
+      }}
+      role="presentation"
+    >
       <div className="image-modal">
         <div className="image-modal-header">
           <h3 className="image-modal-title">{image.name}</h3>

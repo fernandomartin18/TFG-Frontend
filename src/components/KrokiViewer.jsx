@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 
 function KrokiViewer({ code }) {
@@ -77,6 +78,10 @@ function KrokiViewer({ code }) {
       )}
     </>
   )
+}
+
+KrokiViewer.propTypes = {
+  code: PropTypes.string.isRequired
 }
 
 export default KrokiViewer

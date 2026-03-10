@@ -53,7 +53,16 @@ function CodeModal({ code, language, onClose, onDownload }) {
   }, [])
 
   return (
-    <div className="code-modal-backdrop" onClick={handleBackdropClick}>
+    <div 
+      className="code-modal-backdrop" 
+      onClick={handleBackdropClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose()
+        }
+      }}
+      role="presentation"
+    >
       <div className="code-modal-container">
         <div className="code-modal-header">
           <div className="code-modal-info">
