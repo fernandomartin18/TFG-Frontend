@@ -73,7 +73,7 @@ function CodeSidebar({ codeRequests }) {
     if (language === 'html') {
       const titleMatch = code.match(/<title>(.*?)<\/title>/i)
       if (titleMatch && titleMatch[1].trim() && !titleMatch[1].toLowerCase().includes('title')) {
-        const cleanTitle = titleMatch[1].trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')
+        const cleanTitle = titleMatch[1].trim().replaceAll(/\s+/g, '_').replaceAll(/[^a-zA-Z0-9_]/g, '')
         if (!genericNames.includes(cleanTitle.toLowerCase())) {
           return cleanTitle
         }
@@ -186,7 +186,7 @@ function CodeSidebar({ codeRequests }) {
     if (descriptionMatch) {
       const description = descriptionMatch[1].trim().split(/\s+/).slice(0, 2).join('_')
       if (description && !genericNames.includes(description.toLowerCase())) {
-        return description.replace(/[^a-zA-Z0-9_]/g, '')
+        return description.replaceAll(/[^a-zA-Z0-9_]/g, '')
       }
     }
     
@@ -232,7 +232,7 @@ function CodeSidebar({ codeRequests }) {
     // Si solo hay un código, usar su nombre
     if (codes.length === 1) {
       const name = generateDescriptiveName(codes[0].content, codes[0].language, userMessage, 0)
-      return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+      return name.replaceAll(/_/g, ' ').replaceAll(/\b\w/g, l => l.toUpperCase())
     }
     
     // Para múltiples códigos, obtener nombres de todos
@@ -360,7 +360,7 @@ function CodeSidebar({ codeRequests }) {
     // Nombre del ZIP título de la sección
     // Eliminar el contador de archivos
     const cleanTitle = sectionTitle.replace(/\s*\(\d+\s+archivos?\)$/i, '').trim()
-    const zipName = cleanTitle.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_áéíóúñ]/gi, '')
+    const zipName = cleanTitle.replaceAll(/\s+/g, '_').replaceAll(/[^a-zA-Z0-9_áéíóúñ]/gi, '')
     link.download = `${zipName}.zip`
     
     document.body.appendChild(link)
@@ -471,6 +471,14 @@ function CodeSidebar({ codeRequests }) {
                           key={code.originalIndex} 
                           className={`code-item ${packageName !== '__NO_PACKAGE__' ? 'has-package' : ''}`}
                           onClick={(e) => handleCodeClick(e, code.content, code.language, requestIndex, code.originalIndex)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              handleCodeClick(e, code.content, code.language, requestIndex, code.originalIndex)
+                            }
+                          }}
+                          role="button"
+                          tabIndex={0}
                         >
                           <div className="code-item-header">
                             <span className="code-language">{code.language || 'text'}</span>

@@ -134,23 +134,23 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
         
         if (match[0].startsWith(match[1]) && match[1].length === 4) {
           // Formato YYYY-MM-DD
-          year = parseInt(match[1])
-          month = parseInt(match[2]) - 1
-          day = parseInt(match[3])
+          year = Number.parseInt(match[1])
+          month = Number.parseInt(match[2]) - 1
+          day = Number.parseInt(match[3])
         } else if (match.length === 3) {
           // Formato DD/MM (año actual)
-          day = parseInt(match[1])
-          month = parseInt(match[2]) - 1
+          day = Number.parseInt(match[1])
+          month = Number.parseInt(match[2]) - 1
           year = new Date().getFullYear()
         } else {
           // Formato DD/MM/YYYY
-          day = parseInt(match[1])
-          month = parseInt(match[2]) - 1
-          year = parseInt(match[3])
+          day = Number.parseInt(match[1])
+          month = Number.parseInt(match[2]) - 1
+          year = Number.parseInt(match[3])
         }
         
         const date = new Date(year, month, day)
-        if (!isNaN(date.getTime())) {
+        if (!Number.isNaN(date.getTime())) {
           return date
         }
       }
@@ -484,7 +484,15 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                               <div
                                 className="project-header"
                                 onClick={() => handleToggleProjectExpanded(project.id, !project.is_expanded)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault()
+                                    handleToggleProjectExpanded(project.id, !project.is_expanded)
+                                  }
+                                }}
                                 onContextMenu={(e) => handleProjectContextMenu(e, project)}
+                                role="button"
+                                tabIndex={0}
                               >
                                 <MdKeyboardArrowDown
                                   className={`project-arrow ${(searchQuery || project.is_expanded) ? 'expanded' : ''}`}
@@ -501,7 +509,15 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                                       key={chat.id}
                                       className={`chat-item project-chat ${currentChatId === chat.id ? 'active' : ''} ${isLoading ? 'disabled' : ''}`}
                                       onClick={() => handleChatClick(chat.id)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                          e.preventDefault()
+                                          handleChatClick(chat.id)
+                                        }
+                                      }}
                                       style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
+                                      role="button"
+                                      tabIndex={0}
                                     >
                                       <div className="chat-item-title">{chat.title}</div>
                                       <ChatOptionsMenu
@@ -533,7 +549,15 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                               key={chat.id}
                               className={`chat-item ${currentChatId === chat.id ? 'active' : ''} ${isLoading ? 'disabled' : ''}`}
                               onClick={() => handleChatClick(chat.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  handleChatClick(chat.id)
+                                }
+                              }}
                               style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
+                              role="button"
+                              tabIndex={0}
                             >
                               <div className="chat-item-title">{chat.title}</div>
                               <ChatOptionsMenu
@@ -562,7 +586,15 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                               key={chat.id}
                               className={`chat-item ${currentChatId === chat.id ? 'active' : ''} ${isLoading ? 'disabled' : ''}`}
                               onClick={() => handleChatClick(chat.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  handleChatClick(chat.id)
+                                }
+                              }}
                               style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
+                              role="button"
+                              tabIndex={0}
                             >
                               <div className="chat-item-title">{chat.title}</div>
                               <ChatOptionsMenu

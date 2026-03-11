@@ -836,7 +836,7 @@ function Chat({ isAuthenticated }) {
                   }
                   
                   // Limpiar y limitar el título generado
-                  const cleanTitle = generatedTitle.trim().replace(/["']/g, '')
+                  const cleanTitle = generatedTitle.trim().replaceAll(/["']/g, '')
                   const titleWords = cleanTitle.split(/\s+/).slice(0, 4).join(' ')
                   
                   if (titleWords) {

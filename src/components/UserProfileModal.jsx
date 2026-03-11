@@ -254,8 +254,22 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
   if (!user) return null
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
+    <div 
+      className="modal-overlay" 
+      onClick={handleClose}
+      role="presentation"
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          handleClose()
+        }
+      }}
+    >
+      <div 
+        className="profile-modal" 
+        onClick={(e) => e.stopPropagation()}
+        role="presentation"
+        onKeyDown={(e) => e.stopPropagation()}
+      >
         {/* Botón cerrar */}
         <button className="modal-close-btn" onClick={handleClose}>
           <IoClose />
@@ -390,7 +404,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
             <div className="modal-option theme-option">
               <CgDarkMode className="option-icon" />
               <span className="option-label">Modo oscuro</span>
-              <label className="theme-switch">
+              <label className="theme-switch" aria-label="Alternar modo oscuro">
                 <input
                   type="checkbox"
                   checked={isDarkTheme}

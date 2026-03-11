@@ -36,6 +36,12 @@ const ProjectSelector = ({ isOpen, onClose, onSelectProject, projects, position 
       className="project-selector-menu"
       style={style}
       onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.stopPropagation()
+        }
+      }}
+      role="presentation"
     >
       {/* Opción para crear nuevo proyecto */}
       <button

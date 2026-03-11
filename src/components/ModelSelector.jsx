@@ -163,6 +163,15 @@ function ModelSelector({ selectedModel, onModelChange }) {
               <div 
                 className={`model-option ${selectedModel === 'Auto' ? 'selected' : ''} ${!autoAvailable ? 'disabled' : ''}`}
                 onClick={autoAvailable ? () => handleSelectModel('Auto') : undefined}
+                onKeyDown={autoAvailable ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    handleSelectModel('Auto')
+                  }
+                } : undefined}
+                role="button"
+                tabIndex={autoAvailable ? 0 : -1}
+                aria-disabled={!autoAvailable}
               >
                 Auto
               </div>
@@ -171,6 +180,14 @@ function ModelSelector({ selectedModel, onModelChange }) {
                   key={model.name}
                   className={`model-option ${selectedModel === model.name ? 'selected' : ''}`}
                   onClick={() => handleSelectModel(model.name)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleSelectModel(model.name)
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
                 >
                   {model.name}
                 </div>
@@ -181,7 +198,16 @@ function ModelSelector({ selectedModel, onModelChange }) {
       )}
 
       {showInfoModal && (
-        <div className="info-modal-backdrop" onClick={handleBackdropClick}>
+        <div 
+          className="info-modal-backdrop" 
+          onClick={handleBackdropClick}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              handleCloseModal()
+            }
+          }}
+          role="presentation"
+        >
           <div className="info-modal">
             <button 
               className="info-modal-close"
@@ -202,7 +228,7 @@ function ModelSelector({ selectedModel, onModelChange }) {
                 >
                   pulsa aquí
                 </a>
-                .
+                {'.'}
               </p>
               <p>Instala el que desees vía terminal usando el comando:</p>
               <code className="info-code">ollama pull &lt;nombre_del_modelo[:parámetros]&gt;</code>
