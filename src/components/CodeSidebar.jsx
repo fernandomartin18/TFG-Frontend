@@ -232,7 +232,7 @@ function CodeSidebar({ codeRequests }) {
     // Si solo hay un código, usar su nombre
     if (codes.length === 1) {
       const name = generateDescriptiveName(codes[0].content, codes[0].language, userMessage, 0)
-      return name.replaceAll(/_/g, ' ').replaceAll(/\b\w/g, l => l.toUpperCase())
+      return name.replaceAll('_', ' ').replaceAll(/\b\w/g, l => l.toUpperCase())
     }
     
     // Para múltiples códigos, obtener nombres de todos

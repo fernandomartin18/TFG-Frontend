@@ -220,9 +220,8 @@ function PlantUMLEditor() {
 
         <div 
           className={`plantuml-resizer ${isDragging ? 'dragging' : ''}`} 
-          onMouseDown={handleMouseDown}
+          onPointerDown={handleMouseDown}
           role="separator"
-          tabIndex={0}
           aria-valuenow={leftWidth}
         />
 
