@@ -26,6 +26,7 @@ const ProjectModal = ({ isOpen, onClose, onSave, initialName = '', title = 'Nuev
 
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') {
+      e.stopPropagation()
       onClose()
     }
   }
