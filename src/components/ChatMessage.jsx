@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import { FaCopy, FaChevronUp, FaChevronDown } from 'react-icons/fa6'
+import { FaCopy, FaChevronUp, FaChevronDown, FaPenToSquare } from 'react-icons/fa6'
 import ReactMarkdown from 'react-markdown'
+import { useNavigate } from 'react-router-dom'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import ImageModal from './ImageModal'
@@ -19,13 +20,15 @@ function ChatMessage({
   isTwoStep = false,
   step1Text = '',
   step2Text = '',
-  currentStep = 0
+  currentStep = 0,
+  chatId = null
 }) {
   const [copiedIndex, setCopiedIndex] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(null)
   const [showDropdown, setShowDropdown] = useState(false)
   const [showPlantUML, setShowPlantUML] = useState(false)
+  const navigate = useNavigate()
   const [isDarkMode, setIsDarkMode] = useState(
     document.documentElement.getAttribute('data-theme') === 'dark'
   )
@@ -81,6 +84,10 @@ function ChatMessage({
   const handleCloseModal = () => {
     setShowModal(false)
     setSelectedImageIndex(null)
+  }
+
+  const handleEditPlantUML = (code) => {
+    navigate('/editor', { state: { code, chatId } })
   }
 
   // Si es usuario, mostrar como burbuja normal
@@ -191,8 +198,11 @@ function ChatMessage({
 
   const messageParts = parseMessage(message)
 
-  // Si es un mensaje de dos pasos, mostrar interfaz especial
-  if (!isUser && isTwoStep) {
+  // Validar si el contenido es un error de diagrama no detectado
+  const isNoDiagramError = step1Text && step1Text.includes('No se ha detectado ningún diagrama UML')
+
+  // Si es un mensaje de dos pasos Y NO es el error de diagrama, mostrar interfaz especial
+  if (!isUser && isTwoStep && !isNoDiagramError) {
     const step1Parts = step1Text ? parseMessage(step1Text) : []
     const step2Parts = step2Text ? parseMessage(step2Text) : []
     
@@ -205,6 +215,14 @@ function ChatMessage({
               <div 
                 className="plantuml-header"
                 onClick={() => setShowPlantUML(!showPlantUML)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setShowPlantUML(!showPlantUML)
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               >
                 <span className="plantuml-title">Generando PlantUML</span>
                 <button className="plantuml-toggle" aria-label={showPlantUML ? "Contraer" : "Expandir"}>
@@ -225,6 +243,14 @@ function ChatMessage({
                               <span className="code-language">{part.language}</span>
                               {part.complete && (
                                 <div className="copy-button-container">
+                                  <button 
+                                    className="copy-button"
+                                    onClick={() => handleEditPlantUML(part.content)}
+                                    title="Editar PlantUML"
+                                    style={{ marginRight: '8px' }}
+                                  >
+                                    <FaPenToSquare size={16} />
+                                  </button>
                                   <button 
                                     className="copy-button"
                                     onClick={() => handleCopy(part.content, `step1-${index}`)}
@@ -343,6 +369,19 @@ function ChatMessage({
     )
   }
 
+  // Si es el error de diagrama no detectado, mostrarlo como mensaje de error simple
+  if (isNoDiagramError) {
+    return (
+      <div className="message-wrapper ai-message">
+        <div className="ai-content error-message">
+          <div className="ai-text markdown-content">
+            <ReactMarkdown>{step1Text}</ReactMarkdown>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Renderizado normal para mensajes de un solo paso
   return (
     <div className="message-wrapper ai-message">
@@ -419,7 +458,8 @@ ChatMessage.propTypes = {
   isTwoStep: PropTypes.bool,
   step1Text: PropTypes.string,
   step2Text: PropTypes.string,
-  currentStep: PropTypes.number
+  currentStep: PropTypes.number,
+  chatId: PropTypes.number
 }
 
 export default ChatMessage

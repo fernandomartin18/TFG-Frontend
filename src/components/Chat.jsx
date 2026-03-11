@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import '../css/App.css'
@@ -9,17 +10,29 @@ import { fetchWithAuth } from '../services/api.service'
 import chatService from '../services/chat.service'
 
 function Chat({ isAuthenticated }) {
+  const location = useLocation()
   const [messages, setMessages] = useState([])
+  const [initialInputText, setInitialInputText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [selectedModel, setSelectedModel] = useState('')
   const [images, setImages] = useState([])
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
+    // Priorizar localStorage
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme) {
+      return savedTheme === 'dark'
+    }
+    // Si hay un atributo en el html, usar ese
+    if (document.documentElement.hasAttribute('data-theme')) {
+      return document.documentElement.getAttribute('data-theme') === 'dark'
+    }
     // Detectar preferencia del sistema
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
   const [codeRequests, setCodeRequests] = useState([])
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true)
   const [currentChatId, setCurrentChatId] = useState(null)
+  const [currentProjectId, setCurrentProjectId] = useState(null)
   const messagesEndRef = useRef(null)
   const autoScrollEnabled = useRef(true)
   const messagesContainerRef = useRef(null)
@@ -27,9 +40,30 @@ function Chat({ isAuthenticated }) {
   const leftSidebarRef = useRef(null)
   const hasProcessedPendingMessages = useRef(false)
 
+  // Procesar si venimos del editor de PlantUML
+  useEffect(() => {
+    if (location.state?.returnToChatId && currentChatId !== location.state.returnToChatId) {
+      if (isAuthenticated) {
+        handleChatSelect(location.state.returnToChatId)
+      } else {
+        setCurrentChatId(location.state.returnToChatId)
+      }
+    }
+
+    if (location.state?.plantumlEdited) {
+      const code = location.state.editedCode
+      setInitialInputText(`He modificado el código PlantUML anterior. Aquí está la nueva versión:\n${code}\nPor favor, devuélveme los códigos para implementar el nuevo PlantUML.`)
+      // Limpiar el state para que no se vuelva a ejecutar si recarga
+      window.history.replaceState({}, document.title)
+    } else if (location.state?.returnToChatId) {
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state, isAuthenticated])
+
   // Aplicar tema
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light')
+    localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light')
   }, [isDarkTheme])
 
   // Limpiar chat cuando el usuario cierra sesión
@@ -81,7 +115,13 @@ function Chat({ isAuthenticated }) {
               for (const msg of pendingMessages) {
                 if (!msg.isError && !msg.isLoading) {
                   const role = msg.isUser ? 'user' : 'assistant'
-                  await chatService.createMessage(chatId, role, msg.text, [])
+                  await chatService.createMessage(
+                    chatId, 
+                    role, 
+                    msg.text, 
+                    msg.isError || false, 
+                    msg.isTwoStep || false
+                  )
                 }
               }
               
@@ -171,20 +211,79 @@ function Chat({ isAuthenticated }) {
         } 
         // Extraer códigos de respuestas de la IA
         else if (isCollectingCodes && !msg.isUser && !msg.isError) {
-          const codeBlockPattern = /```(\w+)?\n([\s\S]*?)```/g
-          let match
+          // Detectar paquetes y códigos
+          const text = msg.text
           
-          while ((match = codeBlockPattern.exec(msg.text)) !== null) {
-            const language = match[1] || 'text'
-            const content = match[2].trim()
-            
-            if (content) {
-              currentRequestCodes.push({
-                content,
-                language
+          // Buscar paquetes y códigos en el texto
+          const packagePattern = /(?:^|\n)(#{1,6})\s*(?:Package|package|Paquete|paquete|PACKAGE|PAQUETE)\s*:?\s*`?([a-zA-Z][a-zA-Z0-9_.-]*)`?/g
+          const codeBlockPattern = /```(\w+)?\n([\s\S]*?)```/g
+          
+          // Crear un array con todas las coincidencias (paquetes y códigos)
+          const allMatches = []
+          
+          let packageMatch
+          while ((packageMatch = packagePattern.exec(text)) !== null) {
+            const headerLevel = packageMatch[1].length // Número de #
+            const packageName = packageMatch[2].trim()
+            if (packageName) {
+              allMatches.push({
+                type: 'package',
+                index: packageMatch.index,
+                name: packageName,
+                level: headerLevel
               })
+              console.log('Paquete detectado:', packageName, 'nivel:', headerLevel, 'en posición:', packageMatch.index)
             }
           }
+          
+          let codeMatch
+          while ((codeMatch = codeBlockPattern.exec(text)) !== null) {
+            const content = codeMatch[2].trim()
+            if (content) {
+              allMatches.push({
+                type: 'code',
+                index: codeMatch.index,
+                language: codeMatch[1] || 'text',
+                content: content
+              })
+              console.log('💻 Código detectado:', codeMatch[1] || 'text', 'en posición:', codeMatch.index)
+            }
+          }
+          
+          // Ordenar por índice de aparición
+          allMatches.sort((a, b) => a.index - b.index)
+          
+          console.log('Todas las coincidencias ordenadas:', allMatches.map(m => 
+            m.type === 'package' ? `${m.type}: ${m.name} (nivel ${m.level})` : `${m.type}: ${m.language}`
+          ))
+          
+          // Procesar las coincidencias en orden manteniendo la jerarquía de paquetes
+          const packageStack = []
+          
+          allMatches.forEach((match) => {
+            if (match.type === 'package') {
+              // Limpiar paquetes de la pila que estén al mismo nivel o más profundos
+              while (packageStack.length > 0 && packageStack[packageStack.length - 1].level >= match.level) {
+                packageStack.pop()
+              }
+              
+              // Agregar el paquete actual a la pila
+              packageStack.push({ name: match.name, level: match.level })
+              
+            } else if (match.type === 'code' && match.content) {
+              // Obtener el path completo del paquete actual
+              const currentPackage = packageStack.length > 0 
+                ? packageStack.map(p => p.name).join('/')
+                : null
+              
+              console.log('Agregando código al paquete:', currentPackage || 'sin paquete')
+              currentRequestCodes.push({
+                content: match.content,
+                language: match.language,
+                package: currentPackage
+              })
+            }
+          })
         }
       })
 
@@ -260,6 +359,11 @@ function Chat({ isAuthenticated }) {
 
   // Función para cargar un chat existente
   const handleChatSelect = async (chatId) => {
+    // No permitir cambiar de chat si la IA está respondiendo
+    if (isLoading) {
+      return
+    }
+    
     try {
       setIsLoading(true)
       const chat = await chatService.getChatById(chatId)
@@ -281,13 +385,35 @@ function Chat({ isAuthenticated }) {
           text: msg.content,
           isUser: msg.role === 'user',
           isLoading: false,
+          isError: msg.is_error || false,
+          isTwoStep: msg.is_collapsible || false,
           images: formattedImages
         }
+        
+        // Si es un mensaje desplegable (isTwoStep), necesitamos separar step1 y step2
+        if (formattedMessage.isTwoStep && !formattedMessage.isUser) {
+          // Buscar el separador especial
+          const parts = msg.content.split('\n\n[STEP_SEPARATOR]\n\n')
+          if (parts.length === 2) {
+            // Tenemos ambos pasos
+            formattedMessage.step1Text = parts[0]
+            formattedMessage.step2Text = parts[1]
+            formattedMessage.currentStep = 2
+            formattedMessage.text = parts[1] // El texto principal es el step2
+          } else {
+            // Solo tenemos un paso (backward compatibility)
+            formattedMessage.step1Text = msg.content
+            formattedMessage.step2Text = ''
+            formattedMessage.currentStep = 1
+          }
+        }
+        
         return formattedMessage
       })
       
       setMessages(loadedMessages)
       setCurrentChatId(chatId)
+      setCurrentProjectId(chat.project_id || null)
       setIsLoading(false)
     } catch (error) {
       console.error('Error al cargar chat:', error)
@@ -302,6 +428,11 @@ function Chat({ isAuthenticated }) {
 
   // Función para crear un nuevo chat vacío
   const handleNewChat = async () => {
+    // No permitir crear un nuevo chat si la IA está respondiendo
+    if (isLoading) {
+      return
+    }
+    
     // Si hay mensajes en el chat actual y el usuario está autenticado
     if (messages.length > 0 && isAuthenticated) {
       // Actualizar la lista de chats para mostrar el chat que acabamos de usar
@@ -313,7 +444,50 @@ function Chat({ isAuthenticated }) {
     // Crear un nuevo chat vacío
     setMessages([])
     setCurrentChatId(null)
+    setCurrentProjectId(null)
     setImages([])
+  }
+
+  // Función para obtener el historial completo de mensajes de un proyecto
+  const getProjectMessageHistory = async (projectId) => {
+    try {
+      // Obtener todos los proyectos del usuario
+      const projects = await chatService.getUserProjects()
+      
+      // Encontrar el proyecto actual
+      const currentProject = projects.find(p => p.id === projectId)
+      
+      if (!currentProject || !currentProject.chats || currentProject.chats.length === 0) {
+        return []
+      }
+      
+      // Obtener los mensajes de todos los chats del proyecto
+      const allChatsMessages = await Promise.all(
+        currentProject.chats.map(async (chat) => {
+          try {
+            const chatData = await chatService.getChatById(chat.id)
+            return chatData.messages.map(msg => ({
+              ...msg,
+              chatId: chat.id,
+              chatTitle: chat.title
+            }))
+          } catch (error) {
+            console.error(`Error al obtener mensajes del chat ${chat.id}:`, error)
+            return []
+          }
+        })
+      )
+      
+      // Aplanar el array y ordenar por fecha de creación
+      const allMessages = allChatsMessages
+        .flat()
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+      
+      return allMessages
+    } catch (error) {
+      console.error('Error al obtener historial del proyecto:', error)
+      return []
+    }
   }
 
   const handleSendMessage = async (userMessage) => {
@@ -384,7 +558,8 @@ function Chat({ isAuthenticated }) {
           chatId, 
           'user', 
           userMessage, 
-          [], 
+          false,  // isError
+          false,  // isCollapsible
           imagesToSave
         )
         userMessageId = savedUserMessage.id
@@ -422,10 +597,32 @@ function Chat({ isAuthenticated }) {
       const modelToUse = selectedModel === 'Auto' ? 'qwen2.5-coder:14b' : selectedModel
       const isAutoMode = selectedModel === 'Auto'
       
-      const messageHistory = [...messages, newUserMessage].map(msg => ({
-        role: msg.isUser ? 'user' : 'assistant',
-        content: msg.text
-      }))
+      // Construir historial de mensajes
+      let messageHistory
+      
+      if (currentProjectId && isAuthenticated) {
+        // Si el chat pertenece a un proyecto, obtener historial completo del proyecto
+        const projectMessages = await getProjectMessageHistory(currentProjectId)
+        
+        // Convertir los mensajes de la BD al formato esperado por la API
+        messageHistory = projectMessages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }))
+        
+        // Añadir el mensaje actual del usuario
+        messageHistory.push({
+          role: 'user',
+          content: userMessage
+        })
+        
+      } else {
+        // Si no pertenece a un proyecto, usar solo el historial del chat actual
+        messageHistory = [...messages, newUserMessage].map(msg => ({
+          role: msg.isUser ? 'user' : 'assistant',
+          content: msg.text
+        }))
+      }
       
       const formData = new FormData()
       formData.append('model', modelToUse)
@@ -469,7 +666,31 @@ function Chat({ isAuthenticated }) {
               break
             }
             if (data.startsWith('[ERROR]')) {
-              throw new Error(data.slice(8))
+              const errorMessage = data.slice(8)
+              // Si es un error de diagrama no detectado, mostrar fuera del desplegable
+              if (errorMessage.includes('No se ha detectado ningún diagrama UML')) {
+                // Resetear el estado antes de mostrar el error
+                currentStep = 0
+                accumulatedText = ''
+                step1Text = ''
+                step2Text = ''
+                
+                setMessages(prev => {
+                  const newMessages = [...prev]
+                  newMessages[aiMessageIndex] = {
+                    text: errorMessage,
+                    isUser: false,
+                    isError: true,
+                    isLoading: false
+                    // No incluir propiedades de dos pasos
+                  }
+                  return newMessages
+                })
+                // Terminar el loop sin lanzar error
+                reader.cancel()
+                return
+              }
+              throw new Error(errorMessage)
             }
             
             try {
@@ -544,8 +765,24 @@ function Chat({ isAuthenticated }) {
       // Guardar mensaje de la IA en la base de datos si hay chat activo
       if (chatId && isAuthenticated) {
         try {
-          await chatService.createMessage(chatId, 'assistant', accumulatedText, 
-            selectedModel && selectedModel !== 'Auto' ? [selectedModel] : []
+          // Determinar si el mensaje es un error o es desplegable
+          // Solo es error si incluye el mensaje específico de diagrama no detectado
+          const isErrorMessage = accumulatedText.includes('No se ha detectado ningún diagrama UML')
+          // Es desplegable si tenemos step1Text (PlantUML) y no es un error
+          const isCollapsibleMessage = step1Text && step1Text.length > 0 && !isErrorMessage
+          
+          // Si es un mensaje de dos pasos, combinar ambos pasos con un separador
+          let contentToSave = accumulatedText
+          if (isCollapsibleMessage && step1Text && accumulatedText) {
+            contentToSave = `${step1Text}\n\n[STEP_SEPARATOR]\n\n${accumulatedText}`
+          }
+          
+          await chatService.createMessage(
+            chatId, 
+            'assistant', 
+            contentToSave,
+            isErrorMessage,
+            isCollapsibleMessage
           )
           
           // Generar título usando IA si es el primer mensaje y tiene más de 4 palabras
@@ -599,7 +836,7 @@ function Chat({ isAuthenticated }) {
                   }
                   
                   // Limpiar y limitar el título generado
-                  const cleanTitle = generatedTitle.trim().replace(/["']/g, '')
+                  const cleanTitle = generatedTitle.trim().replaceAll(/["']/g, '')
                   const titleWords = cleanTitle.split(/\s+/).slice(0, 4).join(' ')
                   
                   if (titleWords) {
@@ -669,6 +906,7 @@ function Chat({ isAuthenticated }) {
         currentChatId={currentChatId}
         onNewChat={handleNewChat}
         hasMessages={messages.length > 0}
+        isLoading={isLoading}
       />
       
       <CodeSidebar codeRequests={codeRequests} />
@@ -692,6 +930,7 @@ function Chat({ isAuthenticated }) {
               step1Text={msg.step1Text || ''}
               step2Text={msg.step2Text || ''}
               currentStep={msg.currentStep || 0}
+              chatId={currentChatId}
             />
           ))
         )}
@@ -705,6 +944,8 @@ function Chat({ isAuthenticated }) {
         onModelChange={setSelectedModel}
         images={images}
         onImagesChange={setImages}
+        initialInput={initialInputText}
+        onInputClear={() => setInitialInputText('')}
       />
     </div>
   )

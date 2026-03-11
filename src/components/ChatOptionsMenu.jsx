@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { PiDotsThreeVerticalBold } from 'react-icons/pi'
-import { MdEdit } from 'react-icons/md'
+import { MdEdit, MdFolderOff } from 'react-icons/md'
 import { BsFillPinAngleFill } from 'react-icons/bs'
 import { RiUnpinFill } from 'react-icons/ri'
-import { FaTrash } from 'react-icons/fa6'
+import { FaTrash, FaFolderOpen } from 'react-icons/fa'
 import '../css/ChatOptionsMenu.css'
 
-const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete }) => {
+const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete, onAddToProject, onRemoveFromProject }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState(chat.title)
@@ -44,6 +44,11 @@ const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete }) => {
       inputRef.current.select()
     }
   }, [isEditing])
+
+  // Sincronizar editTitle cuando cambie chat.title
+  useEffect(() => {
+    setEditTitle(chat.title)
+  }, [chat.title])
 
   const handleToggleMenu = (e) => {
     e.stopPropagation()
@@ -102,9 +107,35 @@ const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete }) => {
     setShowDeleteConfirm(false)
   }
 
+  const handleAddToProject = (e) => {
+    e.stopPropagation()
+    const rect = e.currentTarget.getBoundingClientRect()
+    if (onAddToProject) {
+      onAddToProject(chat.id, { top: rect.top, left: rect.right + 5 })
+    }
+    setIsMenuOpen(false)
+  }
+
+  const handleRemoveFromProject = async (e) => {
+    e.stopPropagation()
+    if (onRemoveFromProject) {
+      await onRemoveFromProject(chat.id)
+    }
+    setIsMenuOpen(false)
+  }
+
   if (isEditing) {
     return (
-      <div className="chat-edit-container" onClick={(e) => e.stopPropagation()}>
+      <div 
+        className="chat-edit-container" 
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.stopPropagation()
+          }
+        }}
+        role="presentation"
+      >
         <input
           ref={inputRef}
           type="text"
@@ -131,26 +162,44 @@ const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete }) => {
       </button>
 
       {isMenuOpen && (
-        <div ref={menuRef} className="chat-options-menu" onClick={(e) => e.stopPropagation()}>
+        <div ref={menuRef} className="chat-options-menu">
           {!showDeleteConfirm ? (
             <>
+              {/* Solo mostrar opción de fijar si no está en un proyecto */}
+              {!chat.project_id && (
+                <button className="chat-option-item" onClick={handlePinClick}>
+                  {chat.pinned ? (
+                    <>
+                      <RiUnpinFill className="option-icon" />
+                      <span>Desfijar</span>
+                    </>
+                  ) : (
+                    <>
+                      <BsFillPinAngleFill className="option-icon" />
+                      <span>Fijar</span>
+                    </>
+                  )}
+                </button>
+              )}
+              
+              {/* Mostrar "Añadir a proyecto" o "Retirar de proyecto" */}
+              {chat.project_id ? (
+                <button className="chat-option-item" onClick={handleRemoveFromProject}>
+                  <MdFolderOff className="option-icon" />
+                  <span>Retirar de proyecto</span>
+                </button>
+              ) : (
+                <button className="chat-option-item" onClick={handleAddToProject}>
+                  <FaFolderOpen className="option-icon" />
+                  <span>Añadir a proyecto</span>
+                </button>
+              )}
+              
               <button className="chat-option-item" onClick={handleEditClick}>
                 <MdEdit className="option-icon" />
                 <span>Editar título</span>
               </button>
-              <button className="chat-option-item" onClick={handlePinClick}>
-                {chat.pinned ? (
-                  <>
-                    <RiUnpinFill className="option-icon" />
-                    <span>Desfijar</span>
-                  </>
-                ) : (
-                  <>
-                    <BsFillPinAngleFill className="option-icon" />
-                    <span>Fijar</span>
-                  </>
-                )}
-              </button>
+              
               <button className="chat-option-item delete" onClick={handleDeleteClick}>
                 <FaTrash className="option-icon" />
                 <span>Eliminar</span>
@@ -180,10 +229,13 @@ ChatOptionsMenu.propTypes = {
     id: PropTypes.number.isRequired,
     title: PropTypes.string.isRequired,
     pinned: PropTypes.bool,
+    project_id: PropTypes.number,
   }).isRequired,
   onEdit: PropTypes.func.isRequired,
   onTogglePin: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
+  onAddToProject: PropTypes.func,
+  onRemoveFromProject: PropTypes.func
 }
 
 export default ChatOptionsMenu

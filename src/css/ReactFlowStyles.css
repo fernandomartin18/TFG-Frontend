@@ -1,0 +1,51 @@
+.react-flow-panel {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  display: flex;
+  gap: 10px;
+}
+.react-flow-btn {
+  background: var(--background);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.react-flow-btn:hover {
+  background: var(--primary-color-light);
+}
+.react-flow-btn-sync {
+  background: var(--primary-color);
+  border: 1px solid var(--border-color);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.react-flow-btn-sync:hover {
+  filter: brightness(1.1);
+}
+.view-mode-tabs {
+  display: flex;
+  gap: 10px;
+  margin-left: 20px;
+}
+.view-mode-tab {
+  background: transparent;
+  color: var(--text-color);
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  opacity: 0.5;
+  border-bottom: 2px solid transparent;
+}
+.view-mode-tab.active {
+  opacity: 1;
+  border-bottom: 2px solid var(--primary-color);
+  font-weight: bold;
+}

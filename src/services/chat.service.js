@@ -105,10 +105,10 @@ class ChatService {
   /**
    * Crear un mensaje en un chat
    */
-  async createMessage(chatId, role, content, modelsUsed = [], images = []) {
+  async createMessage(chatId, role, content, isError = false, isCollapsible = false, images = []) {
     const response = await fetchWithAuth(`${API_URL}/chats/${chatId}/messages`, {
       method: 'POST',
-      body: JSON.stringify({ role, content, modelsUsed, images }),
+      body: JSON.stringify({ role, content, isError, isCollapsible, images }),
     })
 
     const data = await response.json()
@@ -151,6 +151,130 @@ class ChatService {
     }
 
     return data.code
+  }
+
+  /**
+   * PROYECTOS
+   */
+
+  /**
+   * Obtener todos los proyectos del usuario
+   */
+  async getUserProjects() {
+    const response = await fetchWithAuth(`${API_URL}/projects`)
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || 'Error al obtener proyectos')
+    }
+
+    return data
+  }
+
+  /**
+   * Crear un nuevo proyecto
+   */
+  async createProject(name) {
+    const response = await fetchWithAuth(`${API_URL}/projects`, {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || 'Error al crear proyecto')
+    }
+
+    return data
+  }
+
+  /**
+   * Actualizar nombre de un proyecto
+   */
+  async updateProjectName(projectId, name) {
+    const response = await fetchWithAuth(`${API_URL}/projects/${projectId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || 'Error al actualizar proyecto')
+    }
+
+    return data
+  }
+
+  /**
+   * Alternar estado expandido/colapsado del proyecto
+   */
+  async toggleProjectExpanded(projectId, isExpanded) {
+    const response = await fetchWithAuth(`${API_URL}/projects/${projectId}/toggle-expand`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isExpanded }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || 'Error al cambiar estado del proyecto')
+    }
+
+    return data
+  }
+
+  /**
+   * Eliminar un proyecto
+   */
+  async deleteProject(projectId) {
+    const response = await fetchWithAuth(`${API_URL}/projects/${projectId}`, {
+      method: 'DELETE',
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || 'Error al eliminar proyecto')
+    }
+
+    return data
+  }
+
+  /**
+   * Agregar un chat a un proyecto
+   */
+  async addChatToProject(chatId, projectId) {
+    const response = await fetchWithAuth(`${API_URL}/projects/add-chat`, {
+      method: 'POST',
+      body: JSON.stringify({ chatId, projectId }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || 'Error al agregar chat al proyecto')
+    }
+
+    return data
+  }
+
+  /**
+   * Quitar un chat de un proyecto
+   */
+  async removeChatFromProject(chatId) {
+    const response = await fetchWithAuth(`${API_URL}/projects/remove-chat/${chatId}`, {
+      method: 'DELETE',
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || 'Error al quitar chat del proyecto')
+    }
+
+    return data
   }
 }
 
