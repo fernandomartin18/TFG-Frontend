@@ -200,15 +200,19 @@ function PlantUMLEditor() {
                   backgroundColor: 'transparent',
                   margin: 0,
                   padding: '1rem',
-                  paddingRight: '1.5rem',
-                  paddingBottom: '1.5rem',
+                  paddingRight: '3rem',
+                  paddingBottom: '3rem',
                   minHeight: '100%',
+                  whiteSpace: 'pre',
+                  wordBreak: 'normal',
+                  overflowWrap: 'normal',
                 }}
                 codeTagProps={{
                   style: {
-                    fontFamily: "'Fira Code', 'Courier New', monospace",
+                    fontFamily: "'Fira Code', 'Courier New', Courier, monospace",
                     lineHeight: '1.5',
                     fontSize: '14px',
+                    whiteSpace: 'pre',
                   }
                 }}
               >
