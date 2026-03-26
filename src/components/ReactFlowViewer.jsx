@@ -339,7 +339,7 @@ function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, se
   }, [undo, redo]);
 
   useEffect(() => {
-    if (nodes.length <= 1 && nodes[0]?.data.label === 'Inicio') {
+    if (nodes.length <= 1) {
         if (code && code.trim().length > 15) { 
         // Parse whenever the code changes actively and we need to reset
         const { nodes: layoutedNodes, edges: layoutedEdges } = parsePlantUML(code, isDarkMode);
@@ -414,12 +414,18 @@ function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, se
   };
 
   const addNode = () => {
+        // Encontrar el siguiente ID disponible buscando en los nodos actuales
+        let nextId = 1;
+        while (nodes.some(n => n.id === `node-${nextId}`)) {
+          nextId++;
+        }
+        
         const newNode = {
-          id: `node-${nodeId++}`,
+          id: `node-${nextId}`,
           type: 'umlNode',
           position: getSafePosition(nodes),
           data: { 
-            label: `Nodo ${nodeId}`, 
+            label: `Nodo ${nextId}`, 
             attributes: []
           }
         };
@@ -427,11 +433,17 @@ function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, se
       };
 
       const addPackage = () => {
+          // Encontrar el siguiente ID disponible buscando en los paquetes actuales
+          let nextId = 1;
+          while (nodes.some(n => n.id === `pkg-${nextId}`)) {
+            nextId++;
+          }
+
           const newPkg = {
-            id: `pkg-${nodeId++}`,
+            id: `pkg-${nextId}`,
             type: 'umlPackage',
             position: getSafePosition(nodes),
-            data: { label: `Paquete ${nodeId}` },
+            data: { label: `Paquete ${nextId}` },
             style: { width: 350, height: 350 }
           };
           setNodes((nds) => [...nds, newPkg]);
