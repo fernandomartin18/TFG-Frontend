@@ -50,7 +50,11 @@ function Chat({ isAuthenticated }) {
       }
     }
 
-    if (location.state?.plantumlEdited) {
+    if (location.state?.plantumlCreated) {
+      const code = location.state.editedCode
+      setInitialInputText(`\`\`\`plantuml\n${code}\n\`\`\`\n\nDado este código plantuml, genera los códigos necesarios en [INDICAR LENGUAJE]. Implementa correctamente las clases, métodos, y las relaciones orientadas a objetos (herencia, composición, etc.) que se aprecien visualmente y, antes de enviar cada código, indica en texto el paquete al que pertenece si es que los hay.`)
+      window.history.replaceState({}, document.title)
+    } else if (location.state?.plantumlEdited) {
       const code = location.state.editedCode
       setInitialInputText(`He modificado el código PlantUML anterior. Aquí está la nueva versión:\n${code}\nPor favor, devuélveme los códigos para implementar el nuevo PlantUML.`)
       // Limpiar el state para que no se vuelva a ejecutar si recarga
@@ -946,6 +950,7 @@ function Chat({ isAuthenticated }) {
         onImagesChange={setImages}
         initialInput={initialInputText}
         onInputClear={() => setInitialInputText('')}
+        currentChatId={currentChatId}
       />
     </div>
   )

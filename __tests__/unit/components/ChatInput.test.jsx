@@ -1,5 +1,6 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import ChatInput from '../../../src/components/ChatInput.jsx';
 
 // Mock simple para los componentes hijos que podrían causar problemas sin contexto o props más complejas.
@@ -44,7 +45,11 @@ describe('ChatInput Component - Templates', () => {
   };
 
   test('debe cargar las plantillas al montar el componente', async () => {
-    render(<ChatInput {...defaultProps} />);
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
 
     // Verificar que fetch se llamó para obtener las plantillas
     await waitFor(() => {
@@ -53,7 +58,11 @@ describe('ChatInput Component - Templates', () => {
   });
 
   test('abrir el menú de plantillas muestra las opciones cargadas', async () => {
-    render(<ChatInput {...defaultProps} />);
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
 
     // Esperar a que se carguen las plantillas
     await waitFor(() => {
@@ -71,7 +80,11 @@ describe('ChatInput Component - Templates', () => {
   });
 
   test('al hacer clic en una plantilla, el input cambia a su prompt', async () => {
-    render(<ChatInput {...defaultProps} />);
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled();

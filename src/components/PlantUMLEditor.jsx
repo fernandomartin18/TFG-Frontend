@@ -24,9 +24,7 @@ function PlantUMLEditor() {
   const [activeTab, setActiveTab] = useState('kroki') // 'kroki' | 'reactflow'
   
   // Estados para React Flow
-  const [nodes, setNodes, onNodesChange] = useNodesState([
-    { id: 'node-0', position: { x: 100, y: 100 }, data: { label: 'Inicio' } }
-  ])
+  const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -116,7 +114,8 @@ function PlantUMLEditor() {
   const handleSave = () => {
     navigate('/', { 
       state: { 
-        plantumlEdited: true,
+        plantumlCreated: location.state?.createNew,
+        plantumlEdited: !location.state?.createNew,
         editedCode: code,
         returnToChatId: sourceChatId
       } 
@@ -141,6 +140,14 @@ function PlantUMLEditor() {
           <h1 className="plantuml-editor-title">Editor PlantUML</h1>
         </div>
         <div className="view-mode-tabs" style={{ display: 'flex', justifyContent: 'center', flex: 1, margin: 0, gap: '2rem' }}>
+          {location.state?.createNew && (
+            <button 
+              className={`view-mode-tab ${activeTab === 'templates' ? 'active' : ''}`}
+              onClick={() => handleTabChange('templates')}
+            >
+              Plantillas
+            </button>
+          )}
           <button 
             className={`view-mode-tab ${activeTab === 'kroki' ? 'active' : ''}`}
             onClick={() => handleTabChange('kroki')}
@@ -161,7 +168,7 @@ function PlantUMLEditor() {
           <button 
             className="plantuml-btn plantuml-btn-save" 
             onClick={handleSave}
-            disabled={!hasChanges}
+            disabled={!hasChanges && !location.state?.createNew}
           >
             Aceptar
           </button>
@@ -169,82 +176,95 @@ function PlantUMLEditor() {
       </header>
 
       <div className="plantuml-editor-content">
-        <div className="plantuml-editor-left" style={{ width: `${leftWidth}%` }}>
-          <div className="plantuml-editor-textarea-container">
-            {/* The actual editable textarea with transparent text to allow syntax highlighting underneath/above */}
-            <textarea
-              ref={textareaRef}
-              className="plantuml-textarea"
-              value={code}
-              onChange={handleCodeChange}
-              onScroll={handleScroll}
-              spellCheck="false"
-              readOnly={activeTab === 'reactflow'}
-              style={{ 
-                color: 'transparent', 
-                caretColor: isDarkMode ? '#fff' : '#000',
-                opacity: activeTab === 'reactflow' ? 0.7 : 1,
-                cursor: activeTab === 'reactflow' ? 'not-allowed' : 'text'
-              }}
-            />
-            {/* Syntax highlighter behind/overlay the textarea */}
+        {activeTab === 'templates' ? (
+          <div className="plantuml-templates-container" style={{ width: '100%', padding: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'var(--text-color)' }}>
+            <h2>Sección de plantillas (Próximamente)</h2>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', width: '100%', height: '100%' }}>
+            <div className="plantuml-editor-left" style={{ width: `${leftWidth}%` }}>
+              <div className="plantuml-editor-textarea-container">
+                {/* The actual editable textarea with transparent text to allow syntax highlighting underneath/above */}
+                <textarea
+                  ref={textareaRef}
+                  className="plantuml-textarea"
+                  value={code}
+                  onChange={handleCodeChange}
+                  onScroll={handleScroll}
+                  placeholder="Escribe aquí tu código PlantUML..."
+                  spellCheck="false"
+                  readOnly={activeTab === 'reactflow'}
+                  style={{ 
+                    color: 'transparent', 
+                    caretColor: isDarkMode ? '#fff' : '#000',
+                    opacity: activeTab === 'reactflow' ? 0.7 : 1,
+                    cursor: activeTab === 'reactflow' ? 'not-allowed' : 'text'
+                  }}
+                />
+                {/* Syntax highlighter behind/overlay the textarea */}
+                <div 
+                  className="plantuml-highlighter-wrapper" 
+                  ref={highlighterRef}
+                >
+                  <SyntaxHighlighter
+                    language="plantuml"
+                    style={codeStyle}
+                    className="plantuml-highlighter"
+                    customStyle={{
+                      backgroundColor: 'transparent',
+                      margin: 0,
+                      padding: '1rem',
+                      paddingRight: '3rem',
+                      paddingBottom: '3rem',
+                      minHeight: '100%',
+                      whiteSpace: 'pre',
+                      wordBreak: 'normal',
+                      overflowWrap: 'normal',
+                    }}
+                    codeTagProps={{
+                      style: {
+                        fontFamily: "'Fira Code', 'Courier New', Courier, monospace",
+                        lineHeight: '1.5',
+                        fontSize: '14px',
+                        whiteSpace: 'pre',
+                      }
+                    }}
+                  >
+                    {code}
+                  </SyntaxHighlighter>
+                </div>
+              </div>
+            </div>
+
             <div 
-              className="plantuml-highlighter-wrapper" 
-              ref={highlighterRef}
-            >
-              <SyntaxHighlighter
-                language="plantuml"
-                style={codeStyle}
-                className="plantuml-highlighter"
-                customStyle={{
-                  backgroundColor: 'transparent',
-                  margin: 0,
-                  padding: '1rem',
-                  paddingRight: '1.5rem',
-                  paddingBottom: '1.5rem',
-                  minHeight: '100%',
-                }}
-                codeTagProps={{
-                  style: {
-                    fontFamily: "'Fira Code', 'Courier New', monospace",
-                    lineHeight: '1.5',
-                    fontSize: '14px',
-                  }
-                }}
-              >
-                {code}
-              </SyntaxHighlighter>
+              className={`plantuml-resizer ${isDragging ? 'dragging' : ''}`} 
+              onPointerDown={handleMouseDown}
+              role="separator"
+              aria-valuenow={leftWidth}
+            />
+
+            <div className="plantuml-editor-right" style={{ width: `calc(100% - ${leftWidth}% - 8px)` }}>
+              <div className="plantuml-viewer-container">
+                {activeTab === 'kroki' ? (
+                  <KrokiViewer code={code} />
+                ) : (
+                  <ReactFlowViewer 
+                    isDarkMode={isDarkMode}
+                    nodes={nodes}
+                    setNodes={setNodes}
+                    onNodesChange={onNodesChange}
+                    edges={edges}
+                    setEdges={setEdges}
+                    onEdgesChange={onEdgesChange}
+                    setCode={setCode}
+                    setActiveTab={setActiveTab}
+                    code={code}
+                  />
+                )}
+              </div>
             </div>
           </div>
-        </div>
-
-        <div 
-          className={`plantuml-resizer ${isDragging ? 'dragging' : ''}`} 
-          onPointerDown={handleMouseDown}
-          role="separator"
-          aria-valuenow={leftWidth}
-        />
-
-        <div className="plantuml-editor-right" style={{ width: `calc(100% - ${leftWidth}% - 8px)` }}>
-          <div className="plantuml-viewer-container">
-            {activeTab === 'kroki' ? (
-              <KrokiViewer code={code} />
-            ) : (
-              <ReactFlowViewer 
-                isDarkMode={isDarkMode}
-                nodes={nodes}
-                setNodes={setNodes}
-                onNodesChange={onNodesChange}
-                edges={edges}
-                setEdges={setEdges}
-                onEdgesChange={onEdgesChange}
-                setCode={setCode}
-                setActiveTab={setActiveTab}
-                code={code}
-              />
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )

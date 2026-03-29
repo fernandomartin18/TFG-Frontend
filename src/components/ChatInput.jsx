@@ -2,16 +2,20 @@ import { useState, useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { IoSend } from 'react-icons/io5'
 import { HiOutlineLightBulb, HiX } from 'react-icons/hi'
+import { BsDiagram2 } from 'react-icons/bs'
+import { FiPlus } from 'react-icons/fi'
+import { useNavigate } from 'react-router-dom'
 import ModelSelector from './ModelSelector'
 import ImageUploader from './ImageUploader'
 import '../css/ChatInput.css'
 
-function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, images, onImagesChange, initialInput = '', onInputClear = () => {} }) {
+function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, images, onImagesChange, initialInput = '', onInputClear = () => {}, currentChatId }) {
   const [input, setInput] = useState(initialInput)
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false)
   const [templates, setTemplates] = useState([])
   const textareaRef = useRef(null)
   const menuRef = useRef(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     // Fetch plantillas
@@ -86,7 +90,27 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
   return (
     <div className="chat-input-container">
       <div className="chat-input-form">
-        <div className="image-uploader-group">
+        <div className="image-uploader-group" style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end' }}>
+          <button
+            type="button"
+            className="add-image-button"
+            onClick={() => navigate('/editor', { state: { createNew: true, chatId: currentChatId } })}
+            title="Crear diagrama PlantUML"
+            style={{ position: 'relative' }}
+          >
+            <BsDiagram2 size={24} />
+            <FiPlus 
+              size={12} 
+              style={{ 
+                position: 'absolute', 
+                bottom: '10px', 
+                right: '9px',
+                strokeWidth: 4,
+                backgroundColor: 'var(--input-bg)',
+                borderRadius: '50%'
+              }} 
+            />
+          </button>
           <ImageUploader 
             images={images}
             onImagesChange={onImagesChange}
@@ -169,7 +193,8 @@ ChatInput.propTypes = {
   images: PropTypes.array.isRequired,
   onImagesChange: PropTypes.func.isRequired,
   initialInput: PropTypes.string,
-  onInputClear: PropTypes.func
+  onInputClear: PropTypes.func,
+  currentChatId: PropTypes.number
 }
 
 export default ChatInput
