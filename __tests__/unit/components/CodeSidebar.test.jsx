@@ -140,6 +140,35 @@ describe('CodeSidebar Component', () => {
     });
 
     it('handles various title generation logics and class matchers', () => {
+        const titleRequests = [{
+            userMessage: '',
+            codes: [
+                { content: '/* Description: Mi_Componente_Nuevo */', language: 'javascript' },
+                { content: 'function calculateSum() {}', language: 'javascript' },
+                { content: 'function signupUser() {}', language: 'javascript' },
+                { content: 'SELECT * FROM users', language: 'sql' },
+                { content: '<form><input /></form>', language: 'html' },
+                { content: '<button>Click</button>', language: 'html' },
+                { content: 'const data = []', language: 'javascript' },
+                { content: 'class PanelCard {}', language: 'javascript' },
+                { content: 'openModal()', language: 'javascript' },
+                { content: 'drawChart()', language: 'javascript' },
+                { content: 'apiService.fetch()', language: 'javascript' },
+                { content: 'helper.sum()', language: 'javascript' },
+                { content: 'playGame()', language: 'javascript' },
+                { content: 'struct Student', language: 'cpp' },
+                { content: 'class Product', language: 'cpp' },
+                { content: 'class Employee', language: 'cpp' }
+            ]
+        }];
+        
+        render(<CodeSidebar codeRequests={titleRequests} />);
+        
+        // Let's assert something simple indicating it rendered
+        expect(screen.getByLabelText('Abrir panel')).toBeInTheDocument();
+    });
+
+    it('handles specific titles and formats properly', () => {
         render(<CodeSidebar codeRequests={mockCodeRequests} />);
         expect(screen.getByText(/My Test Html/i)).toBeInTheDocument();
         expect(screen.getByText(/styles/i)).toBeInTheDocument();

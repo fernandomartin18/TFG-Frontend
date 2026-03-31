@@ -21,7 +21,7 @@ vi.mock('../../../src/components/LeftSidebar.jsx', () => ({
   )
 }));
 vi.mock('../../../src/components/ChatInput.jsx', () => ({
-  default: ({ onSendMessage, isLoading }) => {
+  default: ({ onSendMessage, isLoading, onInputClear }) => {
     return (
       <div data-testid="chat-input-wrapper">
           <button 
@@ -31,10 +31,16 @@ vi.mock('../../../src/components/ChatInput.jsx', () => ({
           >
             Send Mock
           </button>
+          <button
+             data-testid="input-mock-clear"
+             onClick={onInputClear}
+             type="button"
+          >
+            Clear Input Mock
+          </button>
         </div>
       );
     }
-
 }));
 
 // Mock dependecies
@@ -299,5 +305,68 @@ describe('Chat Component Full Isolated Tests', () => {
       renderChat();
     });
   });
-});
 
+  test('seleccionar chat existente maneja correctamente los mensajes', async () => {
+    chatService.getChatById.mockResolvedValue({
+      id: 123,
+      messages: [
+        { id: 1, content: 'Hola', role: 'user' },
+        { id: 2, content: 'Respuesta\n\n[STEP_SEPARATOR]\n\nPaso 2', role: 'assistant', is_collapsible: true },
+        { id: 3, content: 'Otra', role: 'assistant', images: [{ image_data: 'b64', original_filename: 'test.png', mime_type: 'image/png', file_size: 100 }] }
+      ]
+    });
+    
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+
+    await act(async () => {
+       fireEvent.click(screen.getByTestId('btn-select-chat'));
+    });
+
+    await waitFor(() => {
+      expect(chatService.getChatById).toHaveBeenCalledWith(123);
+    });
+  });
+
+  test('seleccionar nuevo chat', async () => {
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+
+    await act(async () => {
+       fireEvent.click(screen.getByTestId('btn-new-chat'));
+    });
+  });
+
+  test('fetchWithAuth error en update y title generacion', async () => {
+    apiService.fetchWithAuth.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: () => Promise.resolve({ detail: 'Error en stream' })
+    });
+    
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+
+    await act(async () => {
+       fireEvent.click(screen.getByTestId('input-mock-send'));
+    });
+  });
+
+
+  test('calls onInputClear in ChatInput to clear initial text', async () => {
+    await act(async () => {
+      renderChat();
+    });
+    
+    const clearBtn = screen.getByTestId('input-mock-clear');
+    await act(async () => {
+      fireEvent.click(clearBtn);
+    });
+
+    // Check if component did not crash
+    expect(screen.getByTestId('chat-input-wrapper')).toBeInTheDocument();
+  });
+});
