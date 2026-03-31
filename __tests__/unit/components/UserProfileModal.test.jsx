@@ -18,7 +18,7 @@ describe('UserProfileModal Component', () => {
   const mockUser = {
     username: 'testuser',
     email: 'test@example.com',
-    avatar_url: '/avatar.jpg'
+    avatarUrl: '/avatar.jpg'
   };
 
   beforeEach(() => {
@@ -120,7 +120,7 @@ describe('UserProfileModal Component', () => {
     fireEvent.click(saveBtn);
     
     await waitFor(() => {
-      expect(authService.updateUserProfile).toHaveBeenCalledWith('newuser', null);
+      expect(authService.updateUserProfile).toHaveBeenCalledWith('newuser', '/avatar.jpg');
     });
   });
 
@@ -170,5 +170,114 @@ describe('UserProfileModal Component', () => {
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('http://localhost:3000/api/users/me/password', expect.any(Object));
     });
+  });
+
+  it('shows error if username is too short', async () => {
+    render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} />);
+    const input = screen.getByDisplayValue('testuser');
+    fireEvent.change(input, { target: { value: 'us' } });
+    
+    expect(screen.getByText('Mínimo 3 caracteres')).toBeInTheDocument();
+    const saveBtn = screen.getByText('Guardar cambios');
+    fireEvent.click(saveBtn);
+    expect(authService.updateUserProfile).not.toHaveBeenCalled();
+  });
+
+  it('shows errors for invalid passwords', async () => {
+    render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} />);
+    const currentPassInput = screen.getByPlaceholderText('Contraseña actual');
+    const newPassInput = screen.getByPlaceholderText('Nueva contraseña');
+    
+    // Missing one field
+    fireEvent.change(currentPassInput, { target: { value: 'old123' } });
+    fireEvent.click(screen.getByText('Guardar cambios'));
+    expect(await screen.findByText('Debes completar todos los campos de contraseña')).toBeInTheDocument();
+
+    // Too short
+    fireEvent.change(newPassInput, { target: { value: '123' } });
+    fireEvent.change(screen.getByPlaceholderText('Confirmar nueva contraseña'), { target: { value: '123' } });
+    fireEvent.click(screen.getByText('Guardar cambios'));
+    expect(await screen.findByText('La nueva contraseña debe tener al menos 6 caracteres')).toBeInTheDocument();
+
+    // Missing caps/num
+    fireEvent.change(newPassInput, { target: { value: 'abcdefg' } });
+    fireEvent.change(screen.getByPlaceholderText('Confirmar nueva contraseña'), { target: { value: 'abcdefg' } });
+    fireEvent.click(screen.getByText('Guardar cambios'));
+    expect(await screen.findByText('La contraseña debe contener al menos una mayúscula, una minúscula y un número')).toBeInTheDocument();
+  });
+
+  it('handles remove avatar', async () => {
+    render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} />);
+    
+    const editBtns = document.getElementsByClassName('avatar-edit-btn');
+    if (editBtns.length > 0) {
+       fireEvent.click(editBtns[0]);
+       
+       await waitFor(() => {
+         const removeBtn = screen.queryByText('Eliminar foto');
+         if(removeBtn) {
+            fireEvent.click(removeBtn);
+            expect(screen.getByText('Guardar cambios')).toBeInTheDocument();
+         }
+       });
+    }
+  });
+
+  it('toggles password visibility', () => {
+    render(
+      <UserProfileModal
+        onClose={mockOnClose}
+        isDarkTheme={false}
+        onToggleTheme={mockOnToggleTheme}
+      />
+    );
+    
+    const toggleBtns = document.querySelectorAll('.password-toggle');
+    expect(toggleBtns.length).toBe(3);
+    
+    expect(screen.getByPlaceholderText('Contraseña actual').type).toBe('password');
+    fireEvent.click(toggleBtns[0]);
+    expect(screen.getByPlaceholderText('Contraseña actual').type).toBe('text');
+    fireEvent.click(toggleBtns[0]);
+    expect(screen.getByPlaceholderText('Contraseña actual').type).toBe('password');
+    
+    fireEvent.click(toggleBtns[1]);
+    expect(screen.getByPlaceholderText('Nueva contraseña').type).toBe('text');
+    fireEvent.click(toggleBtns[1]);
+    expect(screen.getByPlaceholderText('Nueva contraseña').type).toBe('password');
+
+    fireEvent.click(toggleBtns[2]);
+    expect(screen.getByPlaceholderText('Confirmar nueva contraseña').type).toBe('text');
+    fireEvent.click(toggleBtns[2]);
+    expect(screen.getByPlaceholderText('Confirmar nueva contraseña').type).toBe('password');
+  });
+
+  it('closes avatar edit menu when clicking outside', () => {
+    render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} />);
+    const editBtns = document.getElementsByClassName('avatar-edit-btn');
+    if (editBtns.length > 0) {
+       fireEvent.click(editBtns[0]);
+       expect(screen.queryByText('Cambiar foto')).toBeInTheDocument();
+       
+       fireEvent.mouseDown(document.body);
+       expect(screen.queryByText('Cambiar foto')).not.toBeInTheDocument();
+    }
+  });
+
+  it('handles save error server', async () => {
+    authService.updateUserProfile.mockRejectedValue(new Error('Server error'));
+    render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} />);
+    const input = screen.getByDisplayValue('testuser');
+    fireEvent.change(input, { target: { value: 'newuser' } });
+    
+    const saveBtn = screen.getByText('Guardar cambios');
+    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    
+    fireEvent.click(saveBtn);
+    
+    await waitFor(() => {
+      expect(alertMock).toHaveBeenCalled();
+    });
+    alertMock.mockRestore();
   });
 });

@@ -1,0 +1,128 @@
+
+> tfg-frontend@0.0.0 test
+> vitest --coverage
+
+
+[1m[44m DEV [49m[22m [34mv4.0.18 [39m[90m/Users/fer/Desktop/Uni/4 Curso/x TFG/app/frontend[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32m✓[39m __tests__/unit/components/ModelSelector.test.jsx [2m([22m[2m9 tests[22m[2m)[22m[33m 330[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/Login.test.jsx [2m([22m[2m10 tests[22m[2m)[22m[33m 373[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/UserProfileModal.test.jsx [2m([22m[2m14 tests[22m[2m)[22m[33m 439[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/LeftSidebar.test.jsx [2m([22m[2m10 tests[22m[2m)[22m[33m 462[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/Register.test.jsx [2m([22m[2m12 tests[22m[2m)[22m[33m 587[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/ChatInput.test.jsx [2m([22m[2m8 tests[22m[2m)[22m[32m 210[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/UmlEdge.test.jsx [2m([22m[2m3 tests[22m[2m)[22m[32m 166[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/ChatOptionsMenu.test.jsx [2m([22m[2m9 tests[22m[2m)[22m[32m 162[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/ChatMessage.test.jsx [2m([22m[2m14 tests[22m[2m)[22m[32m 164[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/PlantUMLEditor.test.jsx [2m([22m[2m9 tests[22m[2m)[22m[32m 182[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/ReactFlowViewer.test.jsx [2m([22m[2m7 tests[22m[2m)[22m[32m 152[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/CodeSidebar.test.jsx [2m([22m[2m10 tests[22m[2m)[22m[32m 168[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/ImageDropdown.test.jsx [2m([22m[2m6 tests[22m[2m)[22m[32m 125[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/UmlNode.test.jsx [2m([22m[2m7 tests[22m[2m)[22m[32m 102[2mms[22m[39m
+[90mstdout[2m | __tests__/unit/components/Chat.test.jsx[2m > [22m[2mChat Component Full Isolated Tests[2m > [22m[2menvio de mensaje llama a fetchWithAuth y guarda history
+[22m[39mImágenes a guardar: [33m0[39m []
+Todas las coincidencias ordenadas: []
+
+[90mstdout[2m | __tests__/unit/components/Chat.test.jsx[2m > [22m[2mChat Component Full Isolated Tests[2m > [22m[2menvio sin autenticar no llama a chatService pero guarda el mensaje en UI y localStorage
+[22m[39mTodas las coincidencias ordenadas: []
+
+[90mstdout[2m | __tests__/unit/components/Chat.test.jsx[2m > [22m[2mChat Component Full Isolated Tests[2m > [22m[2mfetchWithAuth error muestra error en UI
+[22m[39mImágenes a guardar: [33m0[39m []
+Todas las coincidencias ordenadas: []
+
+ [32m✓[39m __tests__/unit/components/Chat.test.jsx [2m([22m[2m9 tests[22m[2m)[22m[32m 92[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/UmlPackage.test.jsx [2m([22m[2m3 tests[22m[2m)[22m[32m 76[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/ProjectModal.test.jsx [2m([22m[2m10 tests[22m[2m)[22m[32m 67[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/ImageUploader.test.jsx [2m([22m[2m10 tests[22m[2m)[22m[32m 68[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/UserProfile.test.jsx [2m([22m[2m6 tests[22m[2m)[22m[32m 45[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/CodeModal.test.jsx [2m([22m[2m6 tests[22m[2m)[22m[32m 48[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/ProjectSelector.test.jsx [2m([22m[2m7 tests[22m[2m)[22m[32m 44[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/KrokiViewer.test.jsx [2m([22m[2m4 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/LoadingDots.test.jsx [2m([22m[2m4 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m __tests__/unit/components/ImageModal.test.jsx [2m([22m[2m6 tests[22m[2m)[22m[32m 53[2mms[22m[39m
+ [32m✓[39m __tests__/unit/App.test.jsx [2m([22m[2m5 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+ [32m✓[39m __tests__/unit/services/chat.service.test.js [2m([22m[2m27 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m __tests__/unit/services/auth.service.test.js [2m([22m[2m28 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m __tests__/unit/services/api.service.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m28 passed[39m[22m[90m (28)[39m
+[2m      Tests [22m [1m[32m261 passed[39m[22m[90m (261)[39m
+[2m   Start at [22m 18:28:42
+[2m   Duration [22m 4.77s[2m (transform 684ms, setup 2.16s, import 2.36s, tests 4.24s, environment 9.37s)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   76.27 |    64.25 |   78.55 |   77.16 |                   
+ src               |     100 |      100 |     100 |     100 |                   
+  App.jsx          |     100 |      100 |     100 |     100 |                   
+ src/assets        |       0 |        0 |       0 |       0 |                   
+  ...al_Violet.png |       0 |        0 |       0 |       0 |                   
+  ...gn_Violet.png |       0 |        0 |       0 |       0 |                   
+ src/components    |   74.78 |    64.65 |   77.03 |   75.66 |                   
+  Chat.jsx         |   44.34 |    40.83 |   45.45 |   45.15 | ...60-876,897,952 
+  ChatInput.jsx    |   96.55 |    76.66 |     100 |   96.36 | 52,68             
+  ChatMessage.jsx  |   86.66 |    83.05 |   65.21 |    87.5 | ...56-292,321,374 
+  ...tionsMenu.jsx |   89.87 |     72.5 |      85 |   89.87 | ...,82-83,131-134 
+  CodeModal.jsx    |   81.48 |    68.75 |      70 |      84 | 18,37,60-61       
+  CodeSidebar.jsx  |   75.92 |    59.34 |    87.5 |    76.3 | ...09,340-342,348 
+  ...eDropdown.jsx |     100 |    91.66 |     100 |     100 | 11                
+  ImageModal.jsx   |      75 |    71.42 |   66.66 |      75 | 18-19             
+  ...eUploader.jsx |   90.56 |       74 |    92.3 |   93.75 | 69-70,135         
+  KrokiViewer.jsx  |    87.5 |       90 |     100 |   86.95 | 14-16             
+  LeftSidebar.jsx  |   80.17 |       60 |   77.58 |   79.82 | ...46-555,590-656 
+  LoadingDots.jsx  |     100 |      100 |     100 |     100 |                   
+  Login.jsx        |     100 |    96.15 |     100 |     100 | 58                
+  ...lSelector.jsx |   92.94 |    72.22 |   94.44 |   92.94 | 97-102,182        
+  ...UMLEditor.jsx |   81.42 |       72 |   72.22 |   82.35 | ...7-73,79-80,153 
+  ProjectModal.jsx |   82.14 |    61.11 |   66.66 |   81.48 | 13,41-42,51-52    
+  ...tSelector.jsx |   90.47 |    70.58 |   88.88 |      90 | 40-41             
+  ...lowViewer.jsx |   78.06 |    62.57 |   71.05 |   81.13 | ...19-720,744-745 
+  Register.jsx     |   92.59 |    86.95 |      75 |   92.59 | 39-40,154,182     
+  UmlEdge.jsx      |   93.75 |    90.32 |     100 |   93.33 | 35                
+  UmlNode.jsx      |    87.5 |       55 |      92 |      90 | 16,29,40,49       
+  UmlPackage.jsx   |     100 |    83.33 |     100 |     100 | 19                
+  UserProfile.jsx  |   82.75 |    68.42 |   88.88 |   88.46 | 54-56             
+  ...fileModal.jsx |   71.33 |       75 |   73.07 |   71.42 | ...62-263,271-312 
+ src/css           |       0 |        0 |       0 |       0 |                   
+  App.css          |       0 |        0 |       0 |       0 |                   
+  ChatInput.css    |       0 |        0 |       0 |       0 |                   
+  ChatMessage.css  |       0 |        0 |       0 |       0 |                   
+  ...tionsMenu.css |       0 |        0 |       0 |       0 |                   
+  CodeModal.css    |       0 |        0 |       0 |       0 |                   
+  CodeSidebar.css  |       0 |        0 |       0 |       0 |                   
+  ...eDropdown.css |       0 |        0 |       0 |       0 |                   
+  ImageModal.css   |       0 |        0 |       0 |       0 |                   
+  ...eUploader.css |       0 |        0 |       0 |       0 |                   
+  LeftSidebar.css  |       0 |        0 |       0 |       0 |                   
+  LoadingDots.css  |       0 |        0 |       0 |       0 |                   
+  Login.css        |       0 |        0 |       0 |       0 |                   
+  ...lSelector.css |       0 |        0 |       0 |       0 |                   
+  ...UMLEditor.css |       0 |        0 |       0 |       0 |                   
+  ProjectModal.css |       0 |        0 |       0 |       0 |                   
+  ...tSelector.css |       0 |        0 |       0 |       0 |                   
+  ...lowStyles.css |       0 |        0 |       0 |       0 |                   
+  Register.css     |       0 |        0 |       0 |       0 |                   
+  UserProfile.css  |       0 |        0 |       0 |       0 |                   
+  ...fileModal.css |       0 |        0 |       0 |       0 |                   
+ src/services      |    96.1 |    59.05 |     100 |    96.1 |                   
+  api.service.js   |     100 |      100 |     100 |     100 |                   
+  auth.service.js  |     100 |    76.47 |     100 |     100 | ...,42,95,165-169 
+  chat.service.js  |   92.68 |    47.61 |     100 |   92.68 | ...04,222,257,274 
+-------------------|---------|----------|---------|---------|-------------------
+[1m[42m PASS [49m[22m [32mWaiting for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2m__tests__/unit/components/Chat.test.jsx [22m[34mx1 [34m[39m
+
+ [31m❯[39m __tests__/unit/components/Chat.test.jsx [2m([22m[2m9 tests[22m[2m | [22m[31m9 failed[39m[2m)[22m[32m 5[2mms[22m[39m
+[31m     [31m×[31m renderiza vacío correctamente[39m[32m 3[2mms[22m[39m
+[31m     [31m×[31m seleccionar un chat del sidebarcarga mensajes[39m[32m 0[2mms[22m[39m
+[31m     [31m×[31m crear nuevo chat limpia la pantalla[39m[32m 0[2mms[22m[39m
+[31m     [31m×[31m envio de mensaje llama a fetchWithAuth y guarda history[39m[32m 0[2mms[22m[39m
+[31m     [31m×[31m envio sin autenticar no llama a chatService pero guarda el mensaje en UI y localStorage[39m[32m 0[2mms[22m[39m
+[31m     [31m×[31m fetchWithAuth error muestra error en UI[39m[32m 0[2mms[22m[39m
+[31m     [31m×[31m recibir un historyState de location simula inicializacion[39m[32m 0[2mms[22m[39m
+[31m     [31m×[31m recibir historyState plantumlEdited[39m[32m 0[2mms[22m[39m
+[31m     [31m×[31m puede cambiar modelo e imágenes desde ChatInput[39m[32m 0[2mms[22m[39m

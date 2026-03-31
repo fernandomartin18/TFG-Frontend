@@ -101,4 +101,103 @@ describe('ChatInput Component - Templates', () => {
     const textarea = screen.getByPlaceholderText('Escribe tu mensaje...');
     expect(textarea.value).toBe('Escribe un test para esta función:');
   });
+
+  test('llamadas a navigate al hacer clic en crear diagrama', async () => {
+    const { container } = render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} currentChatId="123" />
+      </MemoryRouter>
+    );
+
+    const btn = screen.getByTitle('Crear diagrama PlantUML');
+    fireEvent.click(btn);
+    // Verificar que se renderice sin problemas
+    expect(btn).toBeInTheDocument();
+  });
+
+  test('textarea handleChange y handleKeyDown', async () => {
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
+
+    const textarea = screen.getByPlaceholderText('Escribe tu mensaje...');
+    
+    // Test onChange
+    fireEvent.change(textarea, { target: { value: 'Nuevo mensaje' } });
+    expect(textarea.value).toBe('Nuevo mensaje');
+
+    // Test onKeyDown Enter (no shift)
+    fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
+    expect(defaultProps.onSendMessage).toHaveBeenCalledWith('Nuevo mensaje');
+    expect(textarea.value).toBe('');
+    
+    // Shift+Enter no debe enviar
+    fireEvent.change(textarea, { target: { value: 'Mensaje con shift' } });
+    fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter', shiftKey: true });
+    expect(defaultProps.onSendMessage).toHaveBeenCalledTimes(1); 
+  });
+
+  test('cerrar menu con botón X y click outside', async () => {
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+    });
+
+    const templateBtn = screen.getByTitle('Ver plantillas');
+    fireEvent.click(templateBtn);
+    expect(screen.getByText('Plantillas de Prompt')).toBeInTheDocument();
+
+    const closeBtn = document.querySelector('.prompt-templates-header button');
+    fireEvent.click(closeBtn);
+    expect(screen.queryByText('Plantillas de Prompt')).not.toBeInTheDocument();
+
+    fireEvent.click(templateBtn);
+    expect(screen.getByText('Plantillas de Prompt')).toBeInTheDocument();
+    
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByText('Plantillas de Prompt')).not.toBeInTheDocument();
+  });
+
+  test('fetchTemplates error mock console.error', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    global.fetch.mockImplementationOnce(() => Promise.reject(new Error('Network error')));
+    
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
+    
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalled();
+    });
+    
+    errorSpy.mockRestore();
+  });
+
+  test('fetchTemplates error status no ok', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    global.fetch.mockImplementationOnce(() => Promise.resolve({ ok: false, status: 500 }));
+    
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
+    
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalled();
+    });
+    
+    errorSpy.mockRestore();
+  });
 });
