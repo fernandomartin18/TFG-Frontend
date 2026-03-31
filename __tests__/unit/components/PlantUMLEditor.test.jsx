@@ -106,14 +106,17 @@ describe('PlantUMLEditor Component', () => {
     renderComponent();
     const textarea = screen.getByRole('textbox');
     fireEvent.scroll(textarea, { target: { scrollTop: 100, scrollLeft: 50 } });
+    expect(textarea).toBeInTheDocument();
   });
 
   it('handles drag logic', () => {
     const { container } = renderComponent();
     // Start drag
-    const resizer = container.querySelector('.plantuml-editor-resizer');
+    const resizer = container.querySelector('.plantuml-resizer');
+    expect(resizer).toBeInTheDocument();
+    
     if (resizer) {
-      fireEvent.mouseDown(resizer);
+      fireEvent.pointerDown(resizer);
       // Move
       fireEvent.mouseMove(document, { clientX: 300 });
       // Stop drag
