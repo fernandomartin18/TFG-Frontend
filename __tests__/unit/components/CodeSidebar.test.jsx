@@ -23,9 +23,10 @@ beforeEach(() => {
 
 // Mock CodeModal
 vi.mock('../../../src/components/CodeModal', () => ({
-  default: ({ onClose }) => (
+  default: ({ onClose, onDownload }) => (
     <div data-testid="code-modal">
       <button onClick={onClose}>Mock Cerrar</button>
+      <button onClick={onDownload} data-testid="mock-download">Mock Descargar</button>
     </div>
   )
 }));
@@ -142,5 +143,41 @@ describe('CodeSidebar Component', () => {
         render(<CodeSidebar codeRequests={mockCodeRequests} />);
         expect(screen.getByText(/My Test Html/i)).toBeInTheDocument();
         expect(screen.getByText(/styles/i)).toBeInTheDocument();
+    });
+
+    it('opens code modal on Enter and Space keydown', () => {
+        render(<CodeSidebar codeRequests={mockCodeRequests} />);
+        // Open the sidebar
+        fireEvent.click(screen.getByLabelText('Abrir panel'));
+
+        const codeItems = document.querySelectorAll('.code-item');
+        expect(codeItems.length).toBeGreaterThan(0);
+        
+        // Trigger Enter
+        fireEvent.keyDown(codeItems[0], { key: 'Enter' });
+        expect(screen.getByTestId('code-modal')).toBeInTheDocument();
+        
+        // Close modal
+        fireEvent.click(screen.getByText('Mock Cerrar'));
+
+        // Trigger Space
+        fireEvent.keyDown(codeItems[0], { key: ' ' });
+        expect(screen.getByTestId('code-modal')).toBeInTheDocument();
+    });
+
+    it('triggers download from CodeModal', async () => {
+        render(<CodeSidebar codeRequests={mockCodeRequests} />);
+        fireEvent.click(screen.getByLabelText('Abrir panel'));
+        
+        const codeItems = document.querySelectorAll('.code-item');
+        // Open modal
+        fireEvent.click(codeItems[0]);
+        
+        const downloadBtn = screen.getByTestId('mock-download');
+        fireEvent.click(downloadBtn);
+        
+        await waitFor(() => {
+            expect(global.URL.createObjectURL).toHaveBeenCalled();
+        });
     });
 });

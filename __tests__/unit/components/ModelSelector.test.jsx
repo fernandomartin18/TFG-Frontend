@@ -106,4 +106,103 @@ describe('ModelSelector Component', () => {
     fireEvent.click(closeBtn);
     expect(screen.queryByText(/Aquí se mostrarán los modelos/i)).not.toBeInTheDocument();
   });
+
+  test('selecciona Auto y se dispara onModelChange y cierra al hacer click', async () => {
+    fetchWithAuth.mockImplementation(async (url) => {
+      if (url.includes('/auto-select')) {
+        return { ok: true, json: () => Promise.resolve({ auto_available: true }) };
+      }
+      return { ok: true, json: () => Promise.resolve({ models: [{ name: 'Model1' }] }) };
+    });
+
+    render(<ModelSelector {...defaultProps} selectedModel="Model1" />);
+    
+    // Abrir dropdown
+    const button = screen.getByRole('button', { name: /Modelo/i });
+    fireEvent.click(button);
+
+    // Click Auto
+    const autoOption = await screen.findByText('Auto');
+    fireEvent.click(autoOption);
+    expect(defaultProps.onModelChange).toHaveBeenCalledWith('Auto');
+  });
+
+  test('selecciona modelo via Enter en teclado', async () => {
+    fetchWithAuth.mockImplementation(async (url) => {
+      if (url.includes('/auto-select')) {
+        return { ok: true, json: () => Promise.resolve({ auto_available: true }) };
+      }
+      return { ok: true, json: () => Promise.resolve({ models: [{ name: 'Model1' }] }) };
+    });
+
+    render(<ModelSelector {...defaultProps} selectedModel="Auto" />);
+    
+    const button = screen.getByRole('button', { name: /Modelo/i });
+    fireEvent.click(button);
+
+    const modelOption = await screen.findByText('Model1');
+    fireEvent.keyDown(modelOption, { key: 'Enter' });
+    expect(defaultProps.onModelChange).toHaveBeenCalledWith('Model1');
+    
+    fireEvent.click(button);
+    const modelOption2 = await screen.findByText('Model1');
+    fireEvent.keyDown(modelOption2, { key: ' ' });
+    expect(defaultProps.onModelChange).toHaveBeenCalledWith('Model1');
+    
+    fireEvent.click(button);
+    const autoOptions = await screen.findAllByText('Auto');
+    fireEvent.keyDown(autoOptions[autoOptions.length - 1], { key: 'Enter' });
+    expect(defaultProps.onModelChange).toHaveBeenCalledWith('Auto');
+    
+    fireEvent.click(button);
+    const autoOptions2 = await screen.findAllByText('Auto');
+    fireEvent.keyDown(autoOptions2[autoOptions2.length - 1], { key: ' ' });
+    expect(defaultProps.onModelChange).toHaveBeenCalledWith('Auto');
+  });
+
+  test('maneja error en fetchModels y checkAutoMode', async () => {
+    let callCount = 0;
+    fetchWithAuth.mockImplementation(async () => {
+      callCount++;
+      if (callCount <= 2) {
+        throw new Error('API error');
+      }
+      return { ok: false };
+    });
+    const { container } = render(<ModelSelector {...defaultProps} />);
+    
+    await waitFor(() => {
+      expect(defaultProps.onModelChange).toHaveBeenCalledWith('No hay LLMs');
+    });
+  });
+
+  test('cierra el info modal al presionar Escape o hacer click en backdrop', async () => {
+    fetchWithAuth.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ models: [] }),
+    });
+
+    render(<ModelSelector {...defaultProps} selectedModel="Llama3" />);
+    
+    // Abrir dropdown
+    const button = screen.getByRole('button', { name: /Modelo/i });
+    fireEvent.click(button);
+
+    // Abrir info modal
+    const infoButton = await screen.findByTitle('Información sobre modelos');
+    fireEvent.click(infoButton);
+
+    // Cerrar al presionar escape
+    const backdrop = document.querySelector('.info-modal-backdrop');
+    fireEvent.keyDown(backdrop, { key: 'Escape' });
+    expect(screen.queryByText(/Aquí se mostrarán los modelos que tengas instalados en Ollama/i)).not.toBeInTheDocument();
+
+    // Abrir de nuevo infomodal y click backdrop
+    fireEvent.click(screen.getByTitle('Información sobre modelos'));
+    
+    const newBackdrop = document.querySelector('.info-modal-backdrop');
+    fireEvent.click(newBackdrop);
+    expect(screen.queryByText(/Aquí/i)).not.toBeInTheDocument();
+  });
+
 });

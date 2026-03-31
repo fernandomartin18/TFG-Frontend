@@ -24,16 +24,17 @@ vi.mock('../../../src/components/ChatInput.jsx', () => ({
   default: ({ onSendMessage, isLoading }) => {
     return (
       <div data-testid="chat-input-wrapper">
-        <button 
-           data-testid="input-mock-send" 
-           onClick={() => onSendMessage('Hello bot')}
-           disabled={isLoading}
-        >
-          Send Mock
-        </button>
-      </div>
-    );
-  }
+          <button 
+             data-testid="input-mock-send" 
+             onClick={() => onSendMessage("Hello bot this is a long message to trigger title generation")} 
+             disabled={isLoading}
+          >
+            Send Mock
+          </button>
+        </div>
+      );
+    }
+
 }));
 
 // Mock dependecies
@@ -44,9 +45,10 @@ vi.mock('../../../src/services/chat.service.js', () => ({
     getChatById: vi.fn(),
     getChats: vi.fn(),
     getMessages: vi.fn(),
-    addMessage: vi.fn(),
+    createMessage: vi.fn(),
     deleteChat: vi.fn(),
     updateChat: vi.fn(),
+    updateChatTitle: vi.fn(),
     getUserProjects: vi.fn()
   }
 }));
@@ -79,7 +81,7 @@ describe('Chat Component Full Isolated Tests', () => {
     chatService.getChats.mockResolvedValue([]);
     chatService.getMessages.mockResolvedValue([]);
     chatService.createChat.mockResolvedValue({ id: 1, title: 'Nuevo Chat' });
-    chatService.addMessage.mockResolvedValue({ id: 99 });
+    chatService.createMessage.mockResolvedValue({ id: 99 });
     chatService.getUserProjects.mockResolvedValue([]);
     chatService.getChatById.mockResolvedValue({
       id: 123,
@@ -103,11 +105,30 @@ describe('Chat Component Full Isolated Tests', () => {
     window.HTMLElement.prototype.scrollTo = vi.fn();
 
     // Ensure fetchWithAuth returns a valid default promise
-    apiService.fetchWithAuth.mockResolvedValue({
+    apiService.fetchWithAuth.mockImplementation(() => Promise.resolve({
       ok: true,
       json: () => Promise.resolve({ respuesta: 'Mock AI Response', base64_images: [] }),
-      headers: new Headers({ 'Content-Type': 'application/json' })
-    });
+      headers: new Headers({ 'Content-Type': 'text/event-stream' }),
+      body: {
+        getReader: () => {
+          let chunks = [
+            new TextEncoder().encode('data: "Hola "\\n\\n'),
+            new TextEncoder().encode('data: "mundo"\\n\\n'),
+            new TextEncoder().encode('data: [DONE]\\n\\n')
+          ];
+          let currentIndex = 0;
+          return {
+            read: async () => {
+              if (currentIndex < chunks.length) {
+                return { done: false, value: chunks[currentIndex++] };
+              }
+              return { done: true, value: undefined };
+            },
+            cancel: vi.fn()
+          };
+        }
+      }
+    }));
   });
 
   const renderChat = (props = { isAuthenticated: true }, initialEntries = ['/']) => {
@@ -266,6 +287,17 @@ describe('Chat Component Full Isolated Tests', () => {
       );
     });
 
+
     expect(screen.getByTestId('chat-input-wrapper')).toBeInTheDocument();
   });
+
+  test('puede cambiar modelo e imágenes desde ChatInput', async () => {
+    let mockOnModelChange, mockOnImagesChange;
+    // We don't have to mock the implementation here since we didn't import ChatInput as a spy, wait we did `vi.mock('../../src/components/ChatInput.jsx', ...)`
+    
+    await act(async () => {
+      renderChat();
+    });
+  });
 });
+

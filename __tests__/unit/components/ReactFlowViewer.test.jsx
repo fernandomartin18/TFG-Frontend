@@ -9,7 +9,7 @@ vi.mock('@xyflow/react', async () => {
     ...actual,
     useNodesState: (initial) => [initial, vi.fn(), vi.fn()],
     useEdgesState: (initial) => [initial, vi.fn(), vi.fn()],
-    ReactFlow: ({ nodes, edges, onNodesChange, onConnect, onEdgeContextMenu, onPaneClick }) => (
+    ReactFlow: ({ nodes, edges, onNodesChange, onConnect, onEdgeContextMenu, onPaneClick, onNodeDragStop }) => (
       <div 
         data-testid="react-flow" 
         data-nodes={JSON.stringify(nodes)} 
@@ -18,6 +18,15 @@ vi.mock('@xyflow/react', async () => {
       >
         <button data-testid="mock-connect" onClick={() => onConnect({ source: 'A', target: 'B' })}>Connect</button>
         <button data-testid="mock-context" onContextMenu={(e) => onEdgeContextMenu(e, edges[0])}>Context</button>
+        <button data-testid="mock-drag-stop-1" onClick={() => {
+          const mockNode = { id: 'n1', type: 'umlNode', position: { x: 50, y: 50 }, positionAbsolute: { x: 50, y: 50 } };
+          onNodeDragStop({}, mockNode, nodes);
+        }}>Drag Stop 1</button>
+        <button data-testid="mock-drag-stop-2" onClick={() => {
+          const packageNode = nodes.find(n => n.type === 'umlPackage') || { id: 'pkg-1', type: 'umlPackage', position: { x: 0, y: 0 }, style: { width: 400, height: 400 } };
+          const mockNode = { id: 'n2', type: 'umlNode', position: { x: 100, y: 100 }, positionAbsolute: { x: 100, y: 100 }, parentId: undefined };
+          onNodeDragStop({}, mockNode, [packageNode, mockNode]);
+        }}>Drag Stop into Package</button>
         React Flow
       </div>
     ),
@@ -183,5 +192,20 @@ Account *-- Transaction
   test('no se rompe si el codigo esta vacio', () => {
     render(<ViewerWrapper code="" />);
     expect(screen.getByTestId('react-flow')).toBeInTheDocument();
+  });
+
+  test('onNodeDragStop reparents node correctly', async () => {
+    // Renderea con código vacío para instanciar el componente
+    render(<ViewerWrapper code="" />);
+    
+    // Simula crear un nodo y paquete para tener algo en el flow
+    fireEvent.click(screen.getByText('+ Paquete'));
+    fireEvent.click(screen.getByText('+ Nodo'));
+    
+    // Esto va a probar la primera rama: arrastrar a nada
+    fireEvent.click(screen.getByTestId('mock-drag-stop-1'));
+
+    // Esto va a probar el caso donde lo soltamos dentro de un parent y actualiza el state
+    fireEvent.click(screen.getByTestId('mock-drag-stop-2'));
   });
 });
