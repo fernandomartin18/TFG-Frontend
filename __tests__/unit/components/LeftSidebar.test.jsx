@@ -308,4 +308,61 @@ describe('LeftSidebar Component', () => {
     expect(chatService.getUserChats).toHaveBeenCalled();
     expect(chatService.getUserProjects).toHaveBeenCalled();
   });
+
+  it('renders projects and handles project click interactions', async () => {
+    chatService.getUserChats.mockResolvedValue([
+      { id: '1', title: 'Chat in project', updated_at: new Date().toISOString(), project_id: 'p1' },
+      { id: '2', title: 'Pinned chat', updated_at: new Date().toISOString(), pinned: true }
+    ]);
+    chatService.getUserProjects.mockResolvedValue([
+      { id: 'p1', name: 'My Project', is_expanded: false, chats: [{ id: '1', title: 'Chat in project' }] }
+    ]);
+    
+    // Auth should be true to load properly
+    render(
+      <BrowserRouter>
+        <LeftSidebar isOpen={true} setIsOpen={() => {}} isAuthenticated={true} />
+      </BrowserRouter>
+    );
+    
+    await waitFor(() => {
+      expect(screen.getByText('Proyectos')).toBeInTheDocument();
+    });
+    
+    // Project should be visible
+    const projectHeader = screen.getByText('My Project');
+    expect(projectHeader).toBeInTheDocument();
+    
+    // Click project to expand
+    fireEvent.click(projectHeader);
+
+    // Pinned chats section
+    expect(screen.getByText('Fijados')).toBeInTheDocument();
+  });
+
+  it('handles search queries effectively', async () => {
+    chatService.getUserChats.mockResolvedValue([
+      { id: '1', title: 'Hidden chat', updated_at: new Date().toISOString(), project_id: 'p1' },
+      { id: '2', title: 'Found this one', updated_at: new Date().toISOString() }
+    ]);
+    chatService.getUserProjects.mockResolvedValue([
+      { id: 'p1', name: 'My Project', is_expanded: true, chats: [{ id: '1', title: 'Hidden chat' }] }
+    ]);
+    
+    render(
+      <BrowserRouter>
+        <LeftSidebar isOpen={true} setIsOpen={() => {}} isAuthenticated={true} />
+      </BrowserRouter>
+    );
+    
+    const searchBtn = screen.getByLabelText('Buscar chats');
+    fireEvent.click(searchBtn);
+    const searchInput = await screen.findByPlaceholderText('Buscar por título o fecha');
+    fireEvent.change(searchInput, { target: { value: 'Found' } });
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Hidden chat')).not.toBeInTheDocument();
+      expect(screen.getByText('Found this one')).toBeInTheDocument();
+    });
+  });
 });
