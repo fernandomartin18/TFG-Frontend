@@ -369,4 +369,165 @@ describe('Chat Component Full Isolated Tests', () => {
     // Check if component did not crash
     expect(screen.getByTestId('chat-input-wrapper')).toBeInTheDocument();
   });
+
+  test('migrates pending messages after login and clears localStorage', async () => {
+    localStorage.setItem('pendingMessages', JSON.stringify([
+      { text: 'hola', isUser: true },
+      { text: 'respuesta', isUser: false },
+      { text: 'loader', isUser: false, isLoading: true }
+    ]));
+
+    chatService.createChat.mockResolvedValueOnce({ id: 77, title: 'hola' });
+
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+
+    await waitFor(() => {
+      expect(chatService.createChat).toHaveBeenCalledWith('hola');
+    });
+
+    await waitFor(() => {
+      expect(chatService.createMessage).toHaveBeenCalledTimes(2);
+    });
+
+    expect(localStorage.getItem('pendingMessages')).toBeNull();
+  });
+
+  test('shows error message when selecting chat fails', async () => {
+    chatService.getChatById.mockRejectedValueOnce(new Error('db error'));
+
+    await act(async () => {
+      renderChat();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('btn-select-chat'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Error al cargar el chat. Por favor, intenta de nuevo.')).toBeInTheDocument();
+    });
+  });
+
+  test('uses fallback title when title generation request fails', async () => {
+    const streamResponse = {
+      ok: true,
+      body: {
+        getReader: () => {
+          const chunks = [
+            new TextEncoder().encode('data: "ok"\\n\\n'),
+            new TextEncoder().encode('data: [DONE]\\n\\n')
+          ];
+          let i = 0;
+          return {
+            read: async () => (i < chunks.length ? { done: false, value: chunks[i++] } : { done: true, value: undefined }),
+            cancel: vi.fn()
+          };
+        }
+      }
+    };
+
+    apiService.fetchWithAuth
+      .mockResolvedValueOnce(streamResponse)
+      .mockResolvedValueOnce({ ok: false });
+
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('input-mock-send'));
+    });
+
+    await waitFor(() => {
+      expect(chatService.updateChatTitle).toHaveBeenCalledWith(1, 'Hello bot this is');
+    });
+  });
+
+  test('uses generated title when title stream returns text', async () => {
+    const mainStream = {
+      ok: true,
+      body: {
+        getReader: () => {
+          const chunks = [
+            new TextEncoder().encode('data: "respuesta"\\n\\n'),
+            new TextEncoder().encode('data: [DONE]\\n\\n')
+          ];
+          let i = 0;
+          return {
+            read: async () => (i < chunks.length ? { done: false, value: chunks[i++] } : { done: true, value: undefined }),
+            cancel: vi.fn()
+          };
+        }
+      }
+    };
+
+    const titleStream = {
+      ok: true,
+      body: {
+        getReader: () => {
+          const chunks = [
+            new TextEncoder().encode('data: "Titulo"\\n\\n'),
+            new TextEncoder().encode('data: " generado"\\n\\n'),
+            new TextEncoder().encode('data: [DONE]\\n\\n')
+          ];
+          let i = 0;
+          return {
+            read: async () => (i < chunks.length ? { done: false, value: chunks[i++] } : { done: true, value: undefined }),
+            cancel: vi.fn()
+          };
+        }
+      }
+    };
+
+    apiService.fetchWithAuth
+      .mockResolvedValueOnce(mainStream)
+      .mockResolvedValueOnce(titleStream);
+
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('input-mock-send'));
+    });
+
+    await waitFor(() => {
+      expect(chatService.updateChatTitle).toHaveBeenCalled();
+      const lastCall = chatService.updateChatTitle.mock.calls.at(-1);
+      expect(lastCall[0]).toBe(1);
+      expect(lastCall[1]).toContain('Titulo');
+    });
+  });
+
+  test('handles UML not detected stream error without crashing', async () => {
+    apiService.fetchWithAuth.mockResolvedValueOnce({
+      ok: true,
+      body: {
+        getReader: () => {
+          const chunks = [
+            new TextEncoder().encode('data: [ERROR]No se ha detectado ningún diagrama UML\\n\\n')
+          ];
+          let i = 0;
+          return {
+            read: async () => (i < chunks.length ? { done: false, value: chunks[i++] } : { done: true, value: undefined }),
+            cancel: vi.fn()
+          };
+        }
+      }
+    });
+
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('input-mock-send'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Error al comunicarse con la IA/)).toBeInTheDocument();
+    });
+  });
 });

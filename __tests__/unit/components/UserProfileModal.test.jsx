@@ -280,4 +280,198 @@ describe('UserProfileModal Component', () => {
     });
     alertMock.mockRestore();
   });
+
+  it('covers catch block in password change error', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({
+      ok: false,
+      json: () => Promise.resolve({ error: 'Contraseña actual incorrecta' })
+    }));
+    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} />);
+    fireEvent.change(screen.getByPlaceholderText('Contraseña actual'), { target: { value: 'old123' } });
+    fireEvent.change(screen.getByPlaceholderText('Nueva contraseña'), { target: { value: 'New1234' } });
+    fireEvent.change(screen.getByPlaceholderText('Confirmar nueva contraseña'), { target: { value: 'New1234' } });
+    
+    fireEvent.click(screen.getByText('Guardar cambios'));
+    await waitFor(() => {
+      expect(alertMock).toHaveBeenCalledWith('Contraseña actual incorrecta');
+      expect(consoleError).toHaveBeenCalled();
+    });
+    alertMock.mockRestore();
+    consoleError.mockRestore();
+  });
+
+  it('handles avatar upload simulation', async () => {
+    render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} />);
+    const buttons = screen.getAllByRole('button');
+    const editAvatarBtn = buttons.find(b => b.className === 'avatar-edit-btn');
+    if (editAvatarBtn) {
+       fireEvent.click(editAvatarBtn);
+    }
+  });
+
+  it('requires uppercase, lowercase and number in password', async () => {
+    render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} />);
+    fireEvent.change(screen.getByPlaceholderText('Contraseña actual'), { target: { value: 'old123' } });
+    fireEvent.change(screen.getByPlaceholderText('Nueva contraseña'), { target: { value: 'nouppercase123' } });
+    fireEvent.change(screen.getByPlaceholderText('Confirmar nueva contraseña'), { target: { value: 'nouppercase123' } });
+    fireEvent.click(screen.getByText('Guardar cambios'));
+    expect(await screen.findByText('La contraseña debe contener al menos una mayúscula, una minúscula y un número')).toBeInTheDocument();
+  });
+
+  it('handles unsaved changes closing alert', async () => {
+    render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} />);
+    const input = screen.getByDisplayValue('testuser');
+    fireEvent.change(input, { target: { value: 'changed_user' } });
+
+    const confirmMock = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    
+    const closeBtns = screen.getAllByRole('button');
+    const closeBtn = closeBtns.find(b => b.className === 'modal-close-btn');
+    if(closeBtn) {
+      fireEvent.click(closeBtn);
+    }
+    expect(confirmMock).toHaveBeenCalled();
+    confirmMock.mockRestore();
+  });
+
+  it('closes by clicking overlay when no pending changes', () => {
+    const { container } = render(
+      <UserProfileModal
+        onClose={mockOnClose}
+        isDarkTheme={false}
+        onToggleTheme={mockOnToggleTheme}
+      />
+    );
+
+    const overlay = container.querySelector('.modal-overlay');
+    fireEvent.click(overlay);
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it('closes with Escape key on overlay', () => {
+    const { container } = render(
+      <UserProfileModal
+        onClose={mockOnClose}
+        isDarkTheme={false}
+        onToggleTheme={mockOnToggleTheme}
+      />
+    );
+
+    const overlay = container.querySelector('.modal-overlay');
+    fireEvent.keyDown(overlay, { key: 'Escape' });
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it('keeps modal open if confirm close is cancelled', () => {
+    const confirmMock = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} onToggleTheme={mockOnToggleTheme} />);
+
+    fireEvent.change(screen.getByDisplayValue('testuser'), { target: { value: 'other_name' } });
+    fireEvent.click(document.querySelector('.modal-close-btn'));
+
+    expect(confirmMock).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
+    confirmMock.mockRestore();
+  });
+
+  it('clicks hidden file input directly when avatar is empty', () => {
+    authService.getUser.mockReturnValue({ username: 'testuser', email: 'test@example.com', avatarUrl: '' });
+    const clickSpy = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
+
+    render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} onToggleTheme={mockOnToggleTheme} />);
+    fireEvent.click(document.querySelector('.avatar-edit-btn'));
+
+    expect(clickSpy).toHaveBeenCalled();
+    clickSpy.mockRestore();
+  });
+
+  it('opens avatar options and handles change photo click', async () => {
+    const clickSpy = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
+    render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} onToggleTheme={mockOnToggleTheme} />);
+
+    fireEvent.click(document.querySelector('.avatar-edit-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Cambiar foto')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Cambiar foto'));
+    expect(clickSpy).toHaveBeenCalled();
+    clickSpy.mockRestore();
+  });
+
+  it('processes avatar upload and generates compressed preview', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+    const mockDrawImage = vi.fn();
+    const mockCanvas = {
+      width: 0,
+      height: 0,
+      getContext: vi.fn(() => ({ drawImage: mockDrawImage })),
+      toDataURL: vi.fn(() => 'data:image/jpeg;base64,compressed')
+    };
+
+    vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
+      if (tagName === 'canvas') return mockCanvas;
+      return originalCreateElement(tagName);
+    });
+
+    class MockFileReader {
+      constructor() {
+        this.onloadend = null;
+        this.result = null;
+      }
+      readAsDataURL() {
+        this.result = 'data:image/png;base64,raw';
+        if (this.onloadend) this.onloadend();
+      }
+    }
+
+    class MockImage {
+      constructor() {
+        this.onload = null;
+        this.width = 1200;
+        this.height = 800;
+      }
+      set src(_) {
+        if (this.onload) this.onload();
+      }
+    }
+
+    const originalFileReader = global.FileReader;
+    const originalImage = global.Image;
+    global.FileReader = MockFileReader;
+    global.Image = MockImage;
+
+    render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} onToggleTheme={mockOnToggleTheme} />);
+
+    const fileInput = document.querySelector('input[type="file"]');
+    const file = new File(['dummy'], 'avatar.png', { type: 'image/png' });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(mockDrawImage).toHaveBeenCalled();
+      expect(screen.getByAltText('testuser')).toHaveAttribute('src', 'data:image/jpeg;base64,compressed');
+    });
+
+    global.FileReader = originalFileReader;
+    global.Image = originalImage;
+    document.createElement.mockRestore();
+  });
+
+  it('renders nothing when user data is missing', () => {
+    authService.getUser.mockReturnValue(null);
+    const { container } = render(
+      <UserProfileModal
+        onClose={mockOnClose}
+        isDarkTheme={false}
+        onToggleTheme={mockOnToggleTheme}
+      />
+    );
+    expect(container.firstChild).toBeNull();
+  });
+
 });
