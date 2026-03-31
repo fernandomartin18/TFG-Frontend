@@ -19,7 +19,14 @@ describe('KrokiViewer Component', () => {
   });
 
   test('muestra mensaje de código vacío inicialmente o si no hay código', async () => {
-    render(<KrokiViewer code="" />);
+    const { rerender } = render(<KrokiViewer code="initial space" />);
+    // change code to empty to trigger the timeout effect
+    rerender(<KrokiViewer code="   " />);
+    
+    act(() => {
+        vi.advanceTimersByTime(850);
+    });
+
     expect(screen.getByText('El código está vacío. Escribe PlantUML para ver el diagrama.')).toBeInTheDocument();
   });
 

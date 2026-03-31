@@ -92,4 +92,30 @@ describe('UserProfile Component', () => {
     
     expect(screen.getByText('A')).toBeInTheDocument();
   });
+
+  test('abre el modal de perfil al presionar Enter o Espacio', () => {
+    authService.getUser.mockReturnValue({ username: 'Pepe' });
+    render(<UserProfile {...defaultProps} />);
+    
+    const profileDiv = document.querySelector('.user-profile');
+    
+    // Abrir con Enter
+    fireEvent.keyDown(profileDiv, { key: 'Enter' });
+    expect(screen.getByTestId('user-profile-modal')).toBeInTheDocument();
+    
+    // Cerrar
+    fireEvent.click(screen.getByText('Close Modal'));
+    expect(screen.queryByTestId('user-profile-modal')).not.toBeInTheDocument();
+
+    // Abrir con Espacio
+    fireEvent.keyDown(profileDiv, { key: ' ' });
+    expect(screen.getByTestId('user-profile-modal')).toBeInTheDocument();
+
+    // Cerrar
+    fireEvent.click(screen.getByText('Close Modal'));
+
+    // Otra tecla no abre el modal
+    fireEvent.keyDown(profileDiv, { key: 'Escape' });
+    expect(screen.queryByTestId('user-profile-modal')).not.toBeInTheDocument();
+  });
 });

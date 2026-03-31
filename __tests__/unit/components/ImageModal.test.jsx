@@ -63,6 +63,19 @@ describe('ImageModal Component', () => {
     expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
+  test('cierra el modal al presionar Escape en el backdrop', () => {
+    render(<ImageModal {...defaultProps} />);
+    
+    const backdrop = document.querySelector('.image-modal-backdrop');
+    fireEvent.keyDown(backdrop, { key: 'Escape' });
+    
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+
+    // Otra tecla
+    fireEvent.keyDown(backdrop, { key: 'Enter' });
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+  });
+
   test('muestra el botón de eliminar por defecto y llama a onDelete al hacer clic', () => {
     render(<ImageModal {...defaultProps} />);
     

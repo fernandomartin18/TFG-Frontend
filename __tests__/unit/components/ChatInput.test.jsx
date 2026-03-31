@@ -200,4 +200,37 @@ describe('ChatInput Component - Templates', () => {
     
     errorSpy.mockRestore();
   });
+
+  test('setea el input inicial si se pasa initialInput', () => {
+    const { rerender } = render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole('textbox').value).toBe('');
+
+    rerender(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} initialInput="Texto inicial" />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole('textbox').value).toBe('Texto inicial');
+  });
+
+  test('ajusta la altura y activa scroll si excede maxHeight', () => {
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
+    const textarea = screen.getByRole('textbox');
+    
+    // Simulate scrollHeight greater than maxHeight (8*24+24 = 216)
+    Object.defineProperty(textarea, 'scrollHeight', { value: 300, configurable: true });
+    
+    // Trigger the useEffect dependent on input text change
+    fireEvent.change(textarea, { target: { value: 'many \n lines' } });
+    
+    expect(textarea.style.overflowY).toBe('scroll');
+  });
 });

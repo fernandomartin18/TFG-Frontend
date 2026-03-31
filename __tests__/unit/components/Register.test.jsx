@@ -57,6 +57,13 @@ describe('Register component', () => {
     expect(await screen.findByText(/mínimo 3 caracteres/i)).toBeInTheDocument();
   });
 
+  test('muestra error si el username tiene mas de 50 caracteres', async () => {
+    renderRegister();
+    fillForm({ username: 'a'.repeat(51) });
+    fireEvent.click(screen.getByRole('button', { name: /registrarse/i }));
+    expect(await screen.findByText(/máximo 50 caracteres/i)).toBeInTheDocument();
+  });
+
   test('muestra error si el username tiene caracteres inválidos', async () => {
     renderRegister();
     fillForm({ username: 'user name!' });
@@ -69,6 +76,33 @@ describe('Register component', () => {
     fillForm({ email: 'noesvalido' });
     fireEvent.click(screen.getByRole('button', { name: /registrarse/i }));
     expect(await screen.findByText(/formato de email inválido/i)).toBeInTheDocument();
+  });
+
+  test('cambia la visibilidad de la contraseña y confirmación', () => {
+    renderRegister();
+    
+    const passwordInput = screen.getByLabelText(/^Contraseña/i);
+    const confirmPasswordInput = screen.getByLabelText(/Repetir Contraseña/i);
+    
+    // Al inicio, ambos son de tipo password
+    expect(passwordInput).toHaveAttribute('type', 'password');
+    expect(confirmPasswordInput).toHaveAttribute('type', 'password');
+
+    // Clic en los botones de toggle (asumiremos que están en el DOM, podemos usar container.querySelectorAll)
+    const toggles = document.querySelectorAll('.password-toggle');
+    expect(toggles.length).toBe(2);
+
+    // Toggle password
+    fireEvent.click(toggles[0]);
+    expect(passwordInput).toHaveAttribute('type', 'text');
+    fireEvent.click(toggles[0]);
+    expect(passwordInput).toHaveAttribute('type', 'password');
+
+    // Toggle confirm password
+    fireEvent.click(toggles[1]);
+    expect(confirmPasswordInput).toHaveAttribute('type', 'text');
+    fireEvent.click(toggles[1]);
+    expect(confirmPasswordInput).toHaveAttribute('type', 'password');
   });
 
   test('muestra error si la contraseña es demasiado corta', async () => {
