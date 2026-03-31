@@ -72,6 +72,7 @@ const mockProps = {
 
 const mockChats = [
   { id: 1, title: 'Chat 1', project_id: null, pinned: false, updated_at: new Date().toISOString() },
+  { id: 3, title: 'Chat 3', project_id: null, pinned: true, updated_at: new Date().toISOString() },
   { id: 2, title: 'Chat 2', project_id: 1, pinned: true, updated_at: new Date(Date.now() - 86400000).toISOString() }
 ];
 
@@ -154,7 +155,7 @@ describe('LeftSidebar Component', () => {
   it('handles chat options from ChatOptionsMenu', async () => {
     renderComponent();
     await waitFor(() => {
-      expect(screen.getByTestId('chat-options-menu')).toBeInTheDocument();
+      expect(screen.getAllByTestId('chat-options-menu').length).toBeGreaterThan(0);
     });
     
     chatService.updateChatTitle.mockResolvedValue({});
@@ -163,11 +164,11 @@ describe('LeftSidebar Component', () => {
     chatService.addChatToProject.mockResolvedValue({});
     chatService.removeChatFromProject.mockResolvedValue({});
 
-    fireEvent.click(screen.getByText('Edit Chat'));
-    fireEvent.click(screen.getByText('Toggle Pin'));
-    fireEvent.click(screen.getByText('Delete Chat')); // Should trigger loadChats and if currentChat eq, navigates
-    fireEvent.click(screen.getByText('Add Project')); // shows project selector
-    fireEvent.click(screen.getByText('Remove Project')); // calls remove
+    fireEvent.click(screen.getAllByText('Edit Chat')[0]);
+    fireEvent.click(screen.getAllByText('Toggle Pin')[0]);
+    fireEvent.click(screen.getAllByText('Delete Chat')[0]); // Should trigger loadChats and if currentChat eq, navigates
+    fireEvent.click(screen.getAllByText('Add Project')[0]); // shows project selector
+    fireEvent.click(screen.getAllByText('Remove Project')[0]); // calls remove
 
     await waitFor(() => {
       expect(chatService.updateChatTitle).toHaveBeenCalledWith(1, 'New Title');
@@ -179,11 +180,11 @@ describe('LeftSidebar Component', () => {
   it('handles Project Selector actions', async () => {
     renderComponent();
     await waitFor(() => {
-      expect(screen.getByTestId('chat-options-menu')).toBeInTheDocument();
+      expect(screen.getByText('Chat 1')).toBeInTheDocument();
     });
     
     // Open selector
-    fireEvent.click(screen.getByText('Add Project'));
+    fireEvent.click(screen.getAllByText('Add Project')[0]);
     
     await waitFor(() => {
       expect(screen.getByTestId('project-selector')).toBeInTheDocument();
@@ -197,7 +198,7 @@ describe('LeftSidebar Component', () => {
     });
 
     // Select new project option
-    fireEvent.click(screen.getByText('Add Project')); // reopen
+    fireEvent.click(screen.getAllByText('Add Project')[0]); // reopen
     await waitFor(() => {
       expect(screen.getByText('New Project Option')).toBeInTheDocument();
     });
@@ -363,6 +364,32 @@ describe('LeftSidebar Component', () => {
     await waitFor(() => {
       expect(screen.queryByText('Hidden chat')).not.toBeInTheDocument();
       expect(screen.getByText('Found this one')).toBeInTheDocument();
+    });
+  });
+
+  it('handles pinned chat interactions', async () => {
+    renderComponent();
+    await waitFor(() => {
+      expect(screen.getByText('Chat 3')).toBeInTheDocument();
+    });
+    const pinnedChatElement = screen.getByText('Chat 3').closest('.chat-item');
+    fireEvent.keyDown(pinnedChatElement, { key: 'Enter' });
+    expect(mockProps.onChatSelect).toHaveBeenCalledWith(3);
+  });
+
+  it('displays login button when offline', async () => {
+    renderComponent({...mockProps, isAuthenticated: false, isOpen: true});
+    await waitFor(() => {
+      expect(screen.getByText('Iniciar sesión')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('Iniciar sesión'));
+  });
+
+  it('disables interactions when isLoading is true', async () => {
+    renderComponent({...mockProps, isLoading: true});
+    await waitFor(() => {
+      const activeChat = screen.getByText('Chat 1').closest('.chat-item');
+      expect(activeChat).toHaveClass('disabled');
     });
   });
 });
