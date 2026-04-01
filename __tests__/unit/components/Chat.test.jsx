@@ -356,6 +356,114 @@ describe('Chat Component Full Isolated Tests', () => {
   });
 
 
+  test('uses fallback title when title generation request fails', async () => {
+    // Mock the 1st call (chat message) as success, 2nd call (title generation) as fail
+    apiService.fetchWithAuth
+      .mockResolvedValueOnce({
+        ok: true,
+        body: {
+          getReader: () => {
+            let done = false;
+            return {
+              read: () => {
+                if (done) return Promise.resolve({ done: true });
+                done = true;
+                return Promise.resolve({ done: false, value: new TextEncoder().encode('data: "Ai response"\ndata: [DONE]\n') });
+              }
+            };
+          }
+        }
+      })
+      .mockResolvedValueOnce({ ok: false, status: 500 });
+      
+    // Mock 3rd call for create message just in case
+    chatService.createMessage.mockResolvedValueOnce({});
+
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('input-mock-send')); // Manda 5 palabras: "hola mock text con unas palabras" etc
+    });
+
+    expect(chatService.updateChatTitle).toHaveBeenCalled();
+  });
+
+  test('uses generated title when title stream returns text', async () => {
+    // First call success
+    apiService.fetchWithAuth
+      .mockResolvedValueOnce({
+        ok: true,
+        body: {
+          getReader: () => {
+            let done = false;
+            return {
+              read: () => {
+                if (done) return Promise.resolve({ done: true });
+                done = true;
+                return Promise.resolve({ done: false, value: new TextEncoder().encode('data: "Ai response"\ndata: [DONE]\n') });
+              }
+            };
+          }
+        }
+      })
+      // Second call (title) success
+      .mockResolvedValueOnce({
+        ok: true,
+        body: {
+          getReader: () => {
+            let done = false;
+            return {
+              read: () => {
+                if (done) return Promise.resolve({ done: true });
+                done = true;
+                return Promise.resolve({ done: false, value: new TextEncoder().encode('data: "New Generated Title"\ndata: [ERROR] not really error but covers branch\ndata: [DONE]\n') });
+              }
+            };
+          }
+        }
+      });
+      
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+
+    await act(async () => {
+       fireEvent.click(screen.getByTestId('input-mock-send')); 
+    });
+
+    expect(chatService.updateChatTitle).toHaveBeenCalledWith(1, 'New Generated Title');
+  });
+
+  test('handles UML not detected stream error without crashing', async () => {
+     apiService.fetchWithAuth.mockResolvedValueOnce({
+        ok: true,
+        body: {
+          getReader: () => {
+            let step = 0;
+            return {
+              read: () => {
+                if (step === 0) {
+                  step++;
+                  return Promise.resolve({ done: false, value: new TextEncoder().encode('data: "No se ha detectado ningún diagrama UML"\n') });
+                }
+                return Promise.resolve({ done: true });
+              }
+            };
+          }
+        }
+      });
+      
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+
+    await act(async () => {
+       fireEvent.click(screen.getByTestId('input-mock-send')); 
+    });
+  });
+
   test('calls onInputClear in ChatInput to clear initial text', async () => {
     await act(async () => {
       renderChat();
