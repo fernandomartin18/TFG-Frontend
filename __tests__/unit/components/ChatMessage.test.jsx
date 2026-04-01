@@ -175,5 +175,28 @@ describe('ChatMessage Component', () => {
         render(<MemoryRouter><ChatMessage message={codeMessage} isUser={false} /></MemoryRouter>);
         expect(screen.getByTestId('syntax-highlighter-javascript')).toHaveTextContent('const a = 1;▊');
     });
+
+    it('renders markdown inside step1 section and copies code', async () => {
+        const step1Code = 'Normal Markdown\n```plantuml\n@startuml\n@enduml\n```';
+        const { container } = render(
+            <MemoryRouter>
+                <ChatMessage message="" isUser={false} isTwoStep={true} currentStep={1} step1Text={step1Code} chatId={123} />
+            </MemoryRouter>
+        );
+        
+        const header = container.querySelector('.plantuml-header');
+        fireEvent.click(header); // expand
+        
+        expect(screen.getByTestId('markdown')).toHaveTextContent('Normal Markdown');
+        
+        const copyBtn = screen.getByTitle('Copiar código');
+        fireEvent.click(copyBtn);
+
+        await waitFor(() => {
+            expect(navigator.clipboard.writeText).toHaveBeenCalledWith('@startuml\n@enduml');
+        });
+        
+        expect(screen.getByText('¡Copiado!')).toBeInTheDocument();
+    });
 });
 

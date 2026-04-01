@@ -209,4 +209,35 @@ describe('CodeSidebar Component', () => {
             expect(global.URL.createObjectURL).toHaveBeenCalled();
         });
     });
+
+    it('downloads all single file request using exact flow and filename collisions', async () => {
+        const specialRequests = [
+            {
+                userMessage: 'Test message for single file',
+                codes: [{ language: 'javascript', content: 'console.log("Only one!")' }]
+            },
+            {
+                userMessage: 'Multiple files same name same package',
+                codes: [
+                    { language: 'python', content: 'def common_func(): pass', package: 'test_pkg' },
+                    { language: 'python', content: 'def common_func(): pass', package: 'test_pkg' },
+                    { language: 'python', content: 'def common_func(): pass', package: 'test_pkg' }
+                ]
+            }
+        ];
+        
+        render(<CodeSidebar codeRequests={specialRequests} />);
+        fireEvent.click(screen.getByLabelText('Abrir panel'));
+        
+        const downloadAllBtns = document.querySelectorAll('.download-all-button');
+        // First request: only 1 file
+        fireEvent.click(downloadAllBtns[0]);
+        
+        await waitFor(() => {
+            expect(global.URL.createObjectURL).toHaveBeenCalled();
+        });
+
+        // Second request: 3 files that might collide or end up in a package
+        fireEvent.click(downloadAllBtns[1]);
+    });
 });

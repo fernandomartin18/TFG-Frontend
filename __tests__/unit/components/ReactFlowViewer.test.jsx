@@ -208,4 +208,110 @@ Account *-- Transaction
     // Esto va a probar el caso donde lo soltamos dentro de un parent y actualiza el state
     fireEvent.click(screen.getByTestId('mock-drag-stop-2'));
   });
+
+  test('cubriendo ramas de generatePlantUMLFromGraph', async () => {
+    // Crear nodos y edges que cubran diferentes tipos de atributos y relaciones
+    const mockNodes = [
+      { id: 'pkg1', type: 'umlPackage', data: { label: 'TestPkg' } },
+      { id: 'node1', type: 'umlNode', parentId: 'pkg1', data: { label: 'Node1', attributes: ['+ attr1: int', '- attr2: string'] } },
+      { id: 'node2', type: 'umlNode', data: { label: 'Node2' } }, // Node2 outside pkg and no attributes
+      { id: 'node3', type: 'umlNode', data: { label: 'Node3' } },
+      { id: 'node4', type: 'umlNode', data: { label: 'Node4' } },
+      { id: 'node5', type: 'umlNode', data: { label: 'Node5' } },
+      { id: 'node6', type: 'umlNode', data: { label: 'Node6' } },
+    ];
+
+    const mockEdges = [
+      { source: 'node1', target: 'node2', data: { relationType: 'inheritance', label: 'extends', sourceMultiplicity: '1', targetMultiplicity: '*' } },
+      { source: 'node2', target: 'node3', data: { relationType: 'composition' } },
+      { source: 'node3', target: 'node4', data: { relationType: 'aggregation' } },
+      { source: 'node4', target: 'node5', data: { relationType: 'dependency' } },
+      { source: 'node5', target: 'node6', data: { relationType: 'realization' } },
+      { source: 'node6', target: 'node1', data: { relationType: 'association', label: 'knows' } },
+      { source: 'node1', target: 'node4', data: { relationType: 'default-fallback' } }, // covers default branch
+    ];
+
+    const setCodeMock = vi.fn();
+
+    const ViewerWithCustomState = () => {
+      const [nodes, setNodes] = useState(mockNodes);
+      const [edges, setEdges] = useState(mockEdges);
+      return (
+        <ReactFlowViewer 
+          nodes={nodes} setNodes={setNodes}
+          edges={edges} setEdges={setEdges}
+          setCode={setCodeMock}
+        />
+      );
+    }
+
+    render(<ViewerWithCustomState />);
+    fireEvent.click(screen.getByText('Sincronizar a Código'));
+
+    expect(setCodeMock).toHaveBeenCalled();
+    const generatedCode = setCodeMock.mock.calls[0][0];
+    expect(generatedCode).toContain('package "TestPkg" as pkg1');
+    expect(generatedCode).toContain('class "Node1" as node1');
+    expect(generatedCode).toContain('+ attr1: int');
+    expect(generatedCode).toContain('--|>');
+    expect(generatedCode).toContain('*--');
+    expect(generatedCode).toContain('o--');
+    expect(generatedCode).toContain('..>');
+    expect(generatedCode).toContain('..|>');
+    expect(generatedCode).toContain('-->');
+  });
+
+  test('cubriendo useEffect de isDarkMode', () => {
+    const ViewerModeToggle = () => {
+      const [mode, setMode] = useState(false);
+      const [edges, setEdges] = useState([
+        { id: 'e1', data: { relationType: 'inheritance' } },
+        { id: 'e2', data: { relationType: 'composition' } },
+        { id: 'e3', data: { relationType: 'aggregation' } },
+        { id: 'e4', data: { relationType: 'association' } }
+      ]);
+      return (
+        <div>
+          <button onClick={() => setMode(!mode)}>Toggle Mode</button>
+          <ReactFlowViewer 
+            isDarkMode={mode}
+            nodes={[]} setNodes={vi.fn()}
+            edges={edges} setEdges={setEdges}
+            setCode={vi.fn()}
+          />
+        </div>
+      );
+    };
+
+    render(<ViewerModeToggle />);
+    // Change to dark mode
+    fireEvent.click(screen.getByText('Toggle Mode'));
+  });
+
+  test('cubrir ramas de context menu edge updates', async () => {
+    render(<ViewerWrapper code={samplePlantUML} isDarkMode={false} />);
+    
+    await waitFor(() => {
+      expect(screen.getByTestId('react-flow')).toBeInTheDocument();
+    });
+
+    fireEvent.contextMenu(screen.getByTestId('mock-context'));
+    
+    // Click types
+    const types = [
+      'Herencia (--|>)',
+      'Composición (*--)',
+      'Agregación (o--)',
+      'Realización (..|>)',
+      'Asociación (-->)'
+    ];
+
+    for (const t of types) {
+      if (screen.queryByText(t)) {
+        fireEvent.pointerDown(screen.getByText(t));
+        // Repen menu
+        fireEvent.contextMenu(screen.getByTestId('mock-context'));
+      }
+    }
+  });
 });

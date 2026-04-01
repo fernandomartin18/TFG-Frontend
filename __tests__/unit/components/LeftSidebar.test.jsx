@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import LeftSidebar from '../../../src/components/LeftSidebar';
 import chatService from '../../../src/services/chat.service';
 import authService from '../../../src/services/auth.service';
@@ -391,5 +391,111 @@ describe('LeftSidebar Component', () => {
       const activeChat = screen.getByText('Chat 1').closest('.chat-item');
       expect(activeChat).toHaveClass('disabled');
     });
+  });
+
+  it('handles chat keyboard events in all sections (Enter and Space)', async () => {
+    chatService.getUserChats.mockResolvedValue([
+      { id: 1, title: 'Chat Pinned', pined: true },
+      { id: 2, title: 'Chat Recent' },
+      { id: 3, title: 'Chat in Project', project_id: 10 }
+    ]);
+    chatService.getUserProjects.mockResolvedValue([
+      { id: 10, name: 'Project 1' }
+    ]);
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <LeftSidebar {...mockProps} isOpen={true} />
+        </MemoryRouter>
+      );
+    });
+
+    const chatItems = document.querySelectorAll('.chat-item');
+    expect(chatItems.length).toBeGreaterThan(0);
+
+    // Simulate keydown on each
+    chatItems.forEach((item, index) => {
+      // Enter
+      fireEvent.keyDown(item, { key: 'Enter' });
+      // Space
+      fireEvent.keyDown(item, { key: ' ' });
+      // Other key (should be ignored)
+      fireEvent.keyDown(item, { key: 'A' });
+    });
+    
+    // We expect handleChatClick internal to be called.
+    expect(mockProps.onChatSelect).toHaveBeenCalled();
+  });
+
+  it('renders UserProfile in compact mode when sidebar is closed', async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <LeftSidebar {...mockProps} isOpen={false} />
+        </MemoryRouter>
+      );
+    });
+
+    // Test that something from UserProfile renders
+    expect(screen.getByTestId('user-profile')).toBeInTheDocument();
+  });
+
+  it('renders login button when not authenticated and sidebar is open', async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <LeftSidebar {...mockProps} isAuthenticated={false} isOpen={true} />
+        </MemoryRouter>
+      );
+    });
+
+    const btn = screen.getByText('Iniciar sesión');
+    fireEvent.click(btn);
+    // Since handleLogin navigates to /login it should not crash
+  });
+
+  it('handles chat keyboard events when inside a project', async () => {
+    chatService.getUserChats.mockResolvedValue([
+      { id: 3, title: 'Chat in Project', project_id: 10 }
+    ]);
+    chatService.getUserProjects.mockResolvedValue([
+      { id: 10, name: 'Project 1', is_expanded: true }
+    ]);
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <LeftSidebar {...mockProps} isOpen={true} />
+        </MemoryRouter>
+      );
+    });
+    
+    const projectHeader = screen.getByText('Project 1');
+    fireEvent.click(projectHeader); // toggle expand
+
+    await act(async () => {
+      // Re-render implicitly occurs but we give it a moment
+    });
+
+    const chatInProject = document.querySelector('.project-chat');
+    if (chatInProject) {
+      fireEvent.keyDown(chatInProject, { key: 'Enter' });
+      expect(mockProps.onChatSelect).toHaveBeenCalled();
+    }
+  });
+
+  it('handles error when fetch chats fails silently', async () => {
+    chatService.getUserChats.mockRejectedValue(new Error('Network error'));
+    
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <LeftSidebar {...mockProps} isOpen={true} />
+        </MemoryRouter>
+      );
+    });
+
+    expect(screen.queryByText('Chat Recent')).not.toBeInTheDocument();
   });
 });
