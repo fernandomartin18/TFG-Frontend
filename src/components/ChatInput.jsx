@@ -1,27 +1,45 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import PropTypes from 'prop-types'
 import { IoSend } from 'react-icons/io5'
-import { HiOutlineLightBulb, HiX } from 'react-icons/hi'
+import { HiOutlineLightBulb, HiX, HiPencil, HiOutlineInformationCircle } from 'react-icons/hi'
 import { BsDiagram2 } from 'react-icons/bs'
 import { FiPlus } from 'react-icons/fi'
+import { FaTrash } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
 import ModelSelector from './ModelSelector'
 import ImageUploader from './ImageUploader'
+import { fetchWithAuth } from '../services/api.service'
 import '../css/ChatInput.css'
 
-function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, images, onImagesChange, initialInput = '', onInputClear = () => {}, currentChatId }) {
+function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, autoModeConfig, onAutoModeConfigChange, images, onImagesChange, initialInput = '', onInputClear = () => {}, currentChatId }) {
   const [input, setInput] = useState(initialInput)
+  const [activeTemplateConfig, setActiveTemplateConfig] = useState(null)
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false)
+  const [isCreateTemplateModalOpen, setIsCreateTemplateModalOpen] = useState(false)
+  const [newTemplateTitle, setNewTemplateTitle] = useState('')
+  const [newTemplatePrompt, setNewTemplatePrompt] = useState('')
   const [templates, setTemplates] = useState([])
+  const [editingTemplateId, setEditingTemplateId] = useState(null)
+  const [contextMenu, setContextMenu] = useState({ isVisible: false, x: 0, y: 0, template: null })
+  
   const textareaRef = useRef(null)
   const menuRef = useRef(null)
   const navigate = useNavigate()
 
   useEffect(() => {
+    const handleGlobalClick = () => {
+      if (contextMenu.isVisible) setContextMenu(prev => ({ ...prev, isVisible: false }))
+    }
+    window.addEventListener('click', handleGlobalClick)
+    return () => window.removeEventListener('click', handleGlobalClick)
+  }, [contextMenu.isVisible])
+
+  useEffect(() => {
     // Fetch plantillas
     const fetchTemplates = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/templates');
+        const response = await fetchWithAuth('http://localhost:3000/api/templates');
         if (response.ok) {
           const data = await response.json();
           setTemplates(data);
@@ -49,7 +67,35 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
 
   useEffect(() => {
     if (initialInput) {
-      setInput(initialInput)
+      const regex = /\[(.*?)\]/g;
+      if (regex.test(initialInput)) {
+        let match;
+        let lastIndex = 0;
+        const parts = [];
+        const values = {};
+        
+        // Resetting regex index required after .test()
+        regex.lastIndex = 0;
+        while ((match = regex.exec(initialInput)) !== null) {
+          if (match.index > lastIndex) {
+            parts.push({ type: 'text', content: initialInput.substring(lastIndex, match.index) });
+          }
+          const varId = match[0] + match.index;
+          parts.push({ type: 'var', label: match[1], id: varId });
+          values[varId] = '';
+          lastIndex = match.index + match[0].length;
+        }
+        
+        if (lastIndex < initialInput.length) {
+          parts.push({ type: 'text', content: initialInput.substring(lastIndex) });
+        }
+        
+        setActiveTemplateConfig({ parts, values, original: initialInput });
+        setInput('');
+      } else {
+        setActiveTemplateConfig(null);
+        setInput(initialInput);
+      }
     }
   }, [initialInput])
 
@@ -73,12 +119,95 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
   }, [input])
 
   const handleSend = () => {
-    if (input.trim() && !isLoading) {
-      onSendMessage(input)
+    if (activeTemplateConfig) {
+      const isComplete = activeTemplateConfig.parts.filter(p => p.type === 'var').every(p => activeTemplateConfig.values[p.id]?.trim());
+      if (!isComplete) return; // No enviar si hay huecos sin rellenar
+    }
+
+    let finalInput = input;
+    if (activeTemplateConfig) {
+      finalInput = activeTemplateConfig.parts.map(p => 
+        p.type === 'var' ? (activeTemplateConfig.values[p.id] || `[${p.label}]`) : p.content
+      ).join('');
+    }
+
+    if (finalInput.trim() && !isLoading) {
+      onSendMessage(finalInput)
       setInput('')
+      setActiveTemplateConfig(null)
       if (onInputClear) onInputClear()
     }
   }
+
+  const handleCreateTemplate = async () => {
+    if (!newTemplateTitle.trim() || !newTemplatePrompt.trim()) return;
+    try {
+      const isEditing = editingTemplateId !== null;
+      const url = isEditing 
+        ? `http://localhost:3000/api/templates/${editingTemplateId}`
+        : 'http://localhost:3000/api/templates';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const response = await fetchWithAuth(url, {
+        method,
+        body: JSON.stringify({
+          title: newTemplateTitle.trim(),
+          prompt: newTemplatePrompt.trim()
+        }),
+      });
+      if (response.ok) {
+        const newData = await response.json();
+        if (isEditing) {
+          setTemplates(prev => prev.map(t => t.id === editingTemplateId ? newData : t));
+        } else {
+          setTemplates(prev => [...prev, newData]);
+        }
+        setIsCreateTemplateModalOpen(false);
+        setEditingTemplateId(null);
+        setNewTemplateTitle('');
+        setNewTemplatePrompt('');
+      } else {
+        console.error('Error guardando plantilla', await response.text());
+      }
+    } catch (e) {
+      console.error('Error guardando plantilla', e);
+    }
+  }
+
+  const handleContextMenu = (e, template) => {
+    // Only show for user templates
+    if (template.user_id) {
+      e.preventDefault();
+      setContextMenu({
+        isVisible: true,
+        x: e.pageX,
+        y: e.pageY,
+        template
+      });
+    }
+  };
+
+  const editTemplate = (template) => {
+    setEditingTemplateId(template.id);
+    setNewTemplateTitle(template.title);
+    setNewTemplatePrompt(template.prompt);
+    setIsTemplateMenuOpen(false);
+    setIsCreateTemplateModalOpen(true);
+  };
+
+  const deleteTemplate = async (templateId) => {
+    if (!window.confirm('¿Seguro que quieres borrar esta plantilla?')) return;
+    try {
+      const response = await fetchWithAuth(`http://localhost:3000/api/templates/${templateId}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        setTemplates(prev => prev.filter(t => t.id !== templateId));
+      }
+    } catch (e) {
+      console.error('Error borrando plantilla', e);
+    }
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -121,8 +250,22 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
           {isTemplateMenuOpen && (
             <div className="prompt-templates-dropdown">
               <div className="prompt-templates-header">
-                <span>Plantillas de Prompt</span>
-                <button type="button" onClick={() => setIsTemplateMenuOpen(false)}>
+                <button 
+                  type="button" 
+                  className="create-template-btn" 
+                  onClick={() => {
+                    setIsTemplateMenuOpen(false);
+                    setIsCreateTemplateModalOpen(true);
+                    setEditingTemplateId(null);
+                    setNewTemplateTitle('');
+                    setNewTemplatePrompt('');
+                  }}
+                >
+                  <FiPlus size={14} />
+                  <span>Crear plantilla</span>
+                </button>
+                <span className="prompt-templates-title">Plantillas de Prompt</span>
+                <button type="button" className="close-btn" onClick={() => setIsTemplateMenuOpen(false)}>
                   <HiX />
                 </button>
               </div>
@@ -132,11 +275,37 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
                     key={t.id || idx}
                     type="button"
                     className="prompt-template-item"
+                    onContextMenu={(e) => handleContextMenu(e, t)}
                     onClick={() => {
-                      setInput(t.prompt)
                       setIsTemplateMenuOpen(false)
-                      // Focus using slight delay
-                      setTimeout(() => textareaRef.current?.focus(), 10)
+                      
+                      const regex = /\[(.*?)\]/g;
+                      let match;
+                      let lastIndex = 0;
+                      const parts = [];
+                      const values = {};
+                      
+                      while ((match = regex.exec(t.prompt)) !== null) {
+                        if (match.index > lastIndex) {
+                          parts.push({ type: 'text', content: t.prompt.substring(lastIndex, match.index) });
+                        }
+                        const varId = match[0] + match.index;
+                        parts.push({ type: 'var', id: varId, label: match[1] });
+                        values[varId] = '';
+                        lastIndex = regex.lastIndex;
+                      }
+                      if (lastIndex < t.prompt.length) {
+                        parts.push({ type: 'text', content: t.prompt.substring(lastIndex) });
+                      }
+
+                      if (parts.some(p => p.type === 'var')) {
+                        setActiveTemplateConfig({ parts, values, original: t.prompt });
+                        setInput('');
+                      } else {
+                        setActiveTemplateConfig(null);
+                        setInput(t.prompt);
+                        setTimeout(() => textareaRef.current?.focus(), 10);
+                      }
                     }}
                   >
                     <strong>{t.title}</strong>
@@ -148,39 +317,160 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
               </div>
             </div>
           )}
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Escribe tu mensaje..."
-            className="chat-input"
-            rows={1}
-          />
-          <button 
-            type="button" 
-            className="template-btn" 
-            onClick={() => setIsTemplateMenuOpen(prev => !prev)}
-            title="Ver plantillas"
-          >
-            <HiOutlineLightBulb size={22} />
-          </button>
+          
+          {activeTemplateConfig ? (
+            <div className="chat-input template-active-box">
+              {activeTemplateConfig.parts.map((p, i) => (
+                p.type === 'text' ? (
+                  <span key={i}>{p.content}</span>
+                ) : (
+                  <span
+                    key={i}
+                    className="template-var-input"
+                    contentEditable
+                    suppressContentEditableWarning
+                    data-placeholder={p.label}
+                    onInput={(e) => {
+                      const val = e.currentTarget.innerText;
+                      setActiveTemplateConfig(prev => ({
+                          ...prev,
+                          values: { ...prev.values, [p.id]: val }
+                      }))
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                      }
+                    }}
+                  />
+                )
+              ))}
+            </div>
+          ) : (
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Escribe tu mensaje..."
+              className="chat-input"
+              rows={1}
+            />
+          )}
+
+          <div className="input-actions">
+            {activeTemplateConfig && (
+              <button 
+                type="button"
+                className="edit-text-btn"
+                title="Editar como texto libre"
+                onClick={() => {
+                  const text = activeTemplateConfig.parts.map(p => p.type === 'var' ? (activeTemplateConfig.values[p.id] || `[${p.label}]`) : p.content).join('');
+                  setInput(text);
+                  setActiveTemplateConfig(null);
+                  setTimeout(() => textareaRef.current?.focus(), 10);
+                }}
+              >
+                <HiPencil size={16} />
+                <span>Editar como texto</span>
+              </button>
+            )}
+            <button 
+              type="button" 
+              className="action-icon-btn" 
+              onClick={() => setIsTemplateMenuOpen(prev => !prev)}
+              title="Ver plantillas"
+            >
+              <HiOutlineLightBulb size={22} />
+            </button>
+          </div>
         </div>
         <div className="controls-group">
           <ModelSelector 
             selectedModel={selectedModel}
             onModelChange={onModelChange}
+            autoModeConfig={autoModeConfig}
+            onAutoModeConfigChange={onAutoModeConfigChange}
           />
           <button 
             type="button" 
             onClick={handleSend}
             className="send-button"
-            disabled={!input.trim() || isLoading}
+            disabled={isLoading || (activeTemplateConfig 
+              ? !activeTemplateConfig.parts.filter(p => p.type === 'var').every(p => activeTemplateConfig.values[p.id]?.trim()) 
+              : !input.trim())}
           >
             <IoSend size={20} />
           </button>
         </div>
       </div>
+
+      {contextMenu.isVisible && createPortal(
+        <div 
+          className="template-context-menu"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button onClick={() => {
+            editTemplate(contextMenu.template);
+            setContextMenu(prev => ({ ...prev, isVisible: false }));
+          }}>
+             <HiPencil size={16} /> Editar
+          </button>
+          <button className="delete" onClick={() => {
+            deleteTemplate(contextMenu.template.id);
+            setContextMenu(prev => ({ ...prev, isVisible: false }));
+          }}>
+            <FaTrash size={14} /> Eliminar
+          </button>
+        </div>,
+        document.body
+      )}
+      
+      {isCreateTemplateModalOpen && createPortal(
+        <div className="template-modal-backdrop" onClick={() => setIsCreateTemplateModalOpen(false)}>
+          <div className="template-modal" onClick={e => e.stopPropagation()}>
+            <button className="template-modal-close" onClick={() => setIsCreateTemplateModalOpen(false)}>
+              <HiX size={20} />
+            </button>
+            <h3 className="template-modal-title">{editingTemplateId ? 'Editar plantilla' : 'Crear plantilla'}</h3>
+            
+            <div className="template-modal-info">
+              <HiOutlineInformationCircle size={24} style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div>
+                <p>Para insertar campos a rellenar cuando uses la plantilla, escribe aquello que debería insertarse en el campo entre corchetes.</p>
+                <p className="template-modal-example">Por ejemplo: <span>[Especificar Lenguaje]</span></p>
+              </div>
+            </div>
+
+            <div className="template-modal-form">
+              <input 
+                type="text" 
+                placeholder="Título de la plantilla" 
+                value={newTemplateTitle}
+                onChange={e => setNewTemplateTitle(e.target.value)}
+                className="template-modal-input"
+              />
+              <textarea 
+                placeholder="Escribe tu prompt con las [variables]..."
+                value={newTemplatePrompt}
+                onChange={e => setNewTemplatePrompt(e.target.value)}
+                className="template-modal-textarea"
+              />
+              <button 
+                type="button" 
+                className="template-modal-submit"
+                disabled={!newTemplateTitle.trim() || !newTemplatePrompt.trim()}
+                onClick={handleCreateTemplate}
+              >
+                {editingTemplateId ? 'Guardar Cambios' : 'Crear'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

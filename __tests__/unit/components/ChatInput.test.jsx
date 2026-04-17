@@ -53,7 +53,7 @@ describe('ChatInput Component - Templates', () => {
 
     // Verificar que fetch se llamó para obtener las plantillas
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('http://localhost:3000/api/templates');
+      expect(global.fetch).toHaveBeenCalledWith('http://localhost:3000/api/templates', expect.any(Object));
     });
   });
 
