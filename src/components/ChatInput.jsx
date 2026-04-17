@@ -67,7 +67,35 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
 
   useEffect(() => {
     if (initialInput) {
-      setInput(initialInput)
+      const regex = /\[(.*?)\]/g;
+      if (regex.test(initialInput)) {
+        let match;
+        let lastIndex = 0;
+        const parts = [];
+        const values = {};
+        
+        // Resetting regex index required after .test()
+        regex.lastIndex = 0;
+        while ((match = regex.exec(initialInput)) !== null) {
+          if (match.index > lastIndex) {
+            parts.push({ type: 'text', content: initialInput.substring(lastIndex, match.index) });
+          }
+          const varId = match[0] + match.index;
+          parts.push({ type: 'var', label: match[1], id: varId });
+          values[varId] = '';
+          lastIndex = match.index + match[0].length;
+        }
+        
+        if (lastIndex < initialInput.length) {
+          parts.push({ type: 'text', content: initialInput.substring(lastIndex) });
+        }
+        
+        setActiveTemplateConfig({ parts, values, original: initialInput });
+        setInput('');
+      } else {
+        setActiveTemplateConfig(null);
+        setInput(initialInput);
+      }
     }
   }, [initialInput])
 
