@@ -1,8 +1,22 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ImageUploader from '../../../src/components/ImageUploader.jsx';
 
 // Mock dependencies
+
+vi.mock('../../../src/services/api.service', () => ({
+  fetchWithAuth: vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({
+      models: [
+        { name: 'Llama3-vision', has_vision: true },
+        { name: 'Llama3-text-only', has_vision: false },
+        { name: 'Auto', has_vision: true }
+      ]
+    })
+  })
+}));
+
 vi.mock('../../../src/components/ImageModal', () => ({
   default: ({ onClose, onDelete }) => (
     <div data-testid="image-modal">

@@ -99,7 +99,7 @@ describe('PlantUMLEditor Component', () => {
     });
     renderComponent();
     fireEvent.click(screen.getByText('Plantillas'));
-    expect(screen.getByText('Sección de plantillas (Próximamente)')).toBeInTheDocument();
+    expect(screen.getByText('Nueva plantilla')).toBeInTheDocument();
   });
 
   it('handles scroll sync', () => {
