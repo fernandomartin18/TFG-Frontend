@@ -9,7 +9,7 @@ import ModelSelector from './ModelSelector'
 import ImageUploader from './ImageUploader'
 import '../css/ChatInput.css'
 
-function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, images, onImagesChange, initialInput = '', onInputClear = () => {}, currentChatId }) {
+function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, autoModeConfig, onAutoModeConfigChange, images, onImagesChange, initialInput = '', onInputClear = () => {}, currentChatId }) {
   const [input, setInput] = useState(initialInput)
   const [activeTemplateConfig, setActiveTemplateConfig] = useState(null)
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false)
@@ -255,6 +255,8 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
           <ModelSelector 
             selectedModel={selectedModel}
             onModelChange={onModelChange}
+            autoModeConfig={autoModeConfig}
+            onAutoModeConfigChange={onAutoModeConfigChange}
           />
           <button 
             type="button" 

@@ -15,6 +15,7 @@ function Chat({ isAuthenticated }) {
   const [initialInputText, setInitialInputText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [selectedModel, setSelectedModel] = useState('')
+  const [autoModeConfig, setAutoModeConfig] = useState({ type: 'default', visionModel: '', codingModel: '' })
   const [images, setImages] = useState([])
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
     // Priorizar localStorage
@@ -634,6 +635,11 @@ function Chat({ isAuthenticated }) {
       formData.append('messages', JSON.stringify(messageHistory))
       formData.append('autoMode', isAutoMode ? 'true' : 'false')
       
+      if (isAutoMode && autoModeConfig.type === 'custom') {
+        if (autoModeConfig.visionModel) formData.append('visionModel', autoModeConfig.visionModel)
+        if (autoModeConfig.codingModel) formData.append('codingModel', autoModeConfig.codingModel)
+      }
+
       if (imagesToSend.length > 0) {
         imagesToSend.forEach((img) => {
           formData.append('images', img.file)
@@ -946,6 +952,8 @@ function Chat({ isAuthenticated }) {
         isLoading={isLoading}
         selectedModel={selectedModel}
         onModelChange={setSelectedModel}
+        autoModeConfig={autoModeConfig}
+        onAutoModeConfigChange={setAutoModeConfig}
         images={images}
         onImagesChange={setImages}
         initialInput={initialInputText}
