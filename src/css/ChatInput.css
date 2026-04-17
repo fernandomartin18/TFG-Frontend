@@ -85,6 +85,48 @@
   cursor: not-allowed;
 }
 
+.template-active-box {
+  text-align: left;
+  white-space: pre-wrap;
+  position: relative;
+  min-height: 48px;
+  padding-right: 12rem; /* Additional space for edit text pill and lightbulb */
+}
+
+.template-var-input {
+  display: inline-block;
+  min-width: 80px;
+  max-width: 100%;
+  background: rgba(128, 128, 128, 0.1);
+  border: 1px dashed var(--primary-color);
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin: 0 4px;
+  vertical-align: middle;
+  outline: none;
+  cursor: text;
+  word-break: break-word;
+  color: var(--text-color);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.template-var-input:empty:before {
+  content: attr(data-placeholder);
+  color: var(--text-color);
+  opacity: 0.5;
+  font-style: italic;
+  font-weight: normal;
+  pointer-events: none;
+}
+
+.template-var-input:focus {
+  border-style: solid;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+  color: var(--text-color);
+}
+
 .send-button {
   padding: 0.75rem;
   padding-left: 0.85rem;
@@ -119,10 +161,16 @@
   transform: translateY(0);
 }
 
-.template-btn {
+.input-actions {
   position: absolute;
   right: 0.75rem;
   bottom: 8px;
+  display: flex;
+  gap: 0.25rem;
+  z-index: 2;
+}
+
+.action-icon-btn {
   width: 32px;
   height: 32px;
   background: transparent;
@@ -135,10 +183,32 @@
   justify-content: center;
   border-radius: 50%;
   transition: all 0.2s ease;
-  z-index: 2;
 }
 
-.template-btn:hover {
+.action-icon-btn:hover {
+  opacity: 1;
+  background-color: var(--border-color);
+}
+
+.edit-text-btn {
+  height: 32px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  opacity: 0.7;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.edit-text-btn:hover {
   opacity: 1;
   background-color: var(--border-color);
 }

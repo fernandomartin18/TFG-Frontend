@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { IoSend } from 'react-icons/io5'
-import { HiOutlineLightBulb, HiX } from 'react-icons/hi'
+import { HiOutlineLightBulb, HiX, HiPencil } from 'react-icons/hi'
 import { BsDiagram2 } from 'react-icons/bs'
 import { FiPlus } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
@@ -11,6 +11,7 @@ import '../css/ChatInput.css'
 
 function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, images, onImagesChange, initialInput = '', onInputClear = () => {}, currentChatId }) {
   const [input, setInput] = useState(initialInput)
+  const [activeTemplateConfig, setActiveTemplateConfig] = useState(null)
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false)
   const [templates, setTemplates] = useState([])
   const textareaRef = useRef(null)
@@ -73,9 +74,17 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
   }, [input])
 
   const handleSend = () => {
-    if (input.trim() && !isLoading) {
-      onSendMessage(input)
+    let finalInput = input;
+    if (activeTemplateConfig) {
+      finalInput = activeTemplateConfig.parts.map(p => 
+        p.type === 'var' ? (activeTemplateConfig.values[p.id] || `[${p.label}]`) : p.content
+      ).join('');
+    }
+
+    if (finalInput.trim() && !isLoading) {
+      onSendMessage(finalInput)
       setInput('')
+      setActiveTemplateConfig(null)
       if (onInputClear) onInputClear()
     }
   }
@@ -133,10 +142,35 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
                     type="button"
                     className="prompt-template-item"
                     onClick={() => {
-                      setInput(t.prompt)
                       setIsTemplateMenuOpen(false)
-                      // Focus using slight delay
-                      setTimeout(() => textareaRef.current?.focus(), 10)
+                      
+                      const regex = /\[(.*?)\]/g;
+                      let match;
+                      let lastIndex = 0;
+                      const parts = [];
+                      const values = {};
+                      
+                      while ((match = regex.exec(t.prompt)) !== null) {
+                        if (match.index > lastIndex) {
+                          parts.push({ type: 'text', content: t.prompt.substring(lastIndex, match.index) });
+                        }
+                        const varId = match[0] + match.index;
+                        parts.push({ type: 'var', id: varId, label: match[1] });
+                        values[varId] = '';
+                        lastIndex = regex.lastIndex;
+                      }
+                      if (lastIndex < t.prompt.length) {
+                        parts.push({ type: 'text', content: t.prompt.substring(lastIndex) });
+                      }
+
+                      if (parts.some(p => p.type === 'var')) {
+                        setActiveTemplateConfig({ parts, values, original: t.prompt });
+                        setInput('');
+                      } else {
+                        setActiveTemplateConfig(null);
+                        setInput(t.prompt);
+                        setTimeout(() => textareaRef.current?.focus(), 10);
+                      }
                     }}
                   >
                     <strong>{t.title}</strong>
@@ -148,23 +182,74 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
               </div>
             </div>
           )}
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Escribe tu mensaje..."
-            className="chat-input"
-            rows={1}
-          />
-          <button 
-            type="button" 
-            className="template-btn" 
-            onClick={() => setIsTemplateMenuOpen(prev => !prev)}
-            title="Ver plantillas"
-          >
-            <HiOutlineLightBulb size={22} />
-          </button>
+          
+          {activeTemplateConfig ? (
+            <div className="chat-input template-active-box">
+              {activeTemplateConfig.parts.map((p, i) => (
+                p.type === 'text' ? (
+                  <span key={i}>{p.content}</span>
+                ) : (
+                  <span
+                    key={i}
+                    className="template-var-input"
+                    contentEditable
+                    suppressContentEditableWarning
+                    data-placeholder={p.label}
+                    onInput={(e) => {
+                      const val = e.currentTarget.innerText;
+                      setActiveTemplateConfig(prev => ({
+                          ...prev,
+                          values: { ...prev.values, [p.id]: val }
+                      }))
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                      }
+                    }}
+                  />
+                )
+              ))}
+            </div>
+          ) : (
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Escribe tu mensaje..."
+              className="chat-input"
+              rows={1}
+            />
+          )}
+
+          <div className="input-actions">
+            {activeTemplateConfig && (
+              <button 
+                type="button"
+                className="edit-text-btn"
+                title="Editar como texto libre"
+                onClick={() => {
+                  const text = activeTemplateConfig.parts.map(p => p.type === 'var' ? (activeTemplateConfig.values[p.id] || `[${p.label}]`) : p.content).join('');
+                  setInput(text);
+                  setActiveTemplateConfig(null);
+                  setTimeout(() => textareaRef.current?.focus(), 10);
+                }}
+              >
+                <HiPencil size={16} />
+                <span>Editar como texto</span>
+              </button>
+            )}
+            <button 
+              type="button" 
+              className="action-icon-btn" 
+              onClick={() => setIsTemplateMenuOpen(prev => !prev)}
+              title="Ver plantillas"
+            >
+              <HiOutlineLightBulb size={22} />
+            </button>
+          </div>
         </div>
         <div className="controls-group">
           <ModelSelector 
@@ -175,7 +260,9 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, ima
             type="button" 
             onClick={handleSend}
             className="send-button"
-            disabled={!input.trim() || isLoading}
+            disabled={isLoading || (activeTemplateConfig 
+              ? !activeTemplateConfig.parts.filter(p => p.type === 'var').every(p => activeTemplateConfig.values[p.id]?.trim()) 
+              : !input.trim())}
           >
             <IoSend size={20} />
           </button>
