@@ -353,8 +353,8 @@ describe('ChatInput Component - Templates', () => {
     fireEvent.click(screen.getByText('Var'));
 
     // Nos ha de salir los inputs de variables
-    const nameInput = screen.getByRole('textbox', { name: 'nombre' });
-    const soyInput = screen.getByRole('textbox', { name: 'soy' });
+    const nameInput = screen.getByLabelText('nombre');
+    const soyInput = screen.getByLabelText('soy');
     
     expect(nameInput).toBeInTheDocument();
     

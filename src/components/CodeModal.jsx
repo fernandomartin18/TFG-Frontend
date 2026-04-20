@@ -9,13 +9,13 @@ import '../css/CodeModal.css'
 function CodeModal({ code, language, onClose, onDownload }) {
   const [copied, setCopied] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(
-    document.documentElement.getAttribute('data-theme') === 'dark'
+    document.documentElement.dataset.theme === 'dark'
   )
 
   // Detectar cambios en el tema
   useEffect(() => {
     const observer = new MutationObserver(() => {
-      setIsDarkMode(document.documentElement.getAttribute('data-theme') === 'dark')
+      setIsDarkMode(document.documentElement.dataset.theme === 'dark')
     })
 
     observer.observe(document.documentElement, {
@@ -61,7 +61,6 @@ function CodeModal({ code, language, onClose, onDownload }) {
           onClose()
         }
       }}
-      role="presentation"
     >
       <div className="code-modal-container">
         <div className="code-modal-header">

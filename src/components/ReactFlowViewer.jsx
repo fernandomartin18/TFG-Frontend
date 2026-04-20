@@ -110,7 +110,7 @@ const parsePlantUML = (code, isDarkMode = false) => {
     if (pkgMatch && !line.includes('-->') && !line.includes('..>')) {
       const label = pkgMatch[1];
       const id = pkgMatch[2] || pkgMatch[1];
-      const parentPackage = packageStack.length > 0 ? packageStack[packageStack.length - 1] : null;
+        const parentPackage = packageStack.length > 0 ? packageStack.at(-1) : null;
 
       if (!nodeSet.has(id)) {
         nodeSet.add(id);
@@ -138,7 +138,7 @@ const parsePlantUML = (code, isDarkMode = false) => {
     if (nodeMatch && !line.includes('-->') && !line.includes('..>')) {
       const label = nodeMatch[1];
       const id = nodeMatch[2] || nodeMatch[1];
-      const currentPackage = packageStack.length > 0 ? packageStack[packageStack.length - 1] : null;
+        const currentPackage = packageStack.length > 0 ? packageStack.at(-1) : null;
 
       if (!nodeSet.has(id)) {
         nodeSet.add(id);
@@ -167,7 +167,7 @@ const parsePlantUML = (code, isDarkMode = false) => {
 
     // Detectar flechas (Soporte Multiplicidades y Strings con espacios)
     // Ej: App "1" --> "1" MainForm : contains
-    const edgeMatch = line.match(/^(?:"([^"]+)"|([\w]+))(?:\s+"([^"]+)")?\s+([<o*|]*[.-]+[|>o*]*)\s+(?:"([^"]+)"\s+)?(?:"([^"]+)"|([\w]+))(?:\s*:\s*(.*))?/);
+      const edgeMatch = line.match(/^(?:"([^"]+)"|(\w+))(?:\s+"([^"]+)")?\s+([<o*|]*[.-]+[|>o*]*)\s+(?:"([^"]+)"\s+)?(?:"([^"]+)"|(\w+))(?:\s*:\s*(.*))?/);
     if (edgeMatch && (line.includes('-') || line.includes('.'))) {
       const rawSource = edgeMatch[1] || edgeMatch[2];
       const rawSourceMultiplicity = edgeMatch[3] || '';
@@ -186,38 +186,50 @@ const parsePlantUML = (code, isDarkMode = false) => {
       [source, target].forEach(nId => {
         if (!nodeSet.has(nId)) {
           nodeSet.add(nId);
-          const currentPackage = packageStack.length > 0 ? packageStack[packageStack.length - 1] : null;
-          const newNode = { 
-            id: nId, type: 'umlNode', data: { label: nId, attributes: [], id: nId }, position: { x: 0, y: 0 },
-            ...(currentPackage ? { parentId: currentPackage } : {})
-          };
-          parsedNodes.push(newNode);
-          nodeMap[nId] = newNode;
-        }
-      });
+            const currentPackage = packageStack.length > 0 ? packageStack.at(-1) : null;
+            const newNode = { 
+              id: nId, type: 'umlNode', data: { label: nId, attributes: [], id: nId }, position: { x: 0, y: 0 },
+              ...(currentPackage ? { parentId: currentPackage } : {})
+            };
+            parsedNodes.push(newNode);
+            nodeMap[nId] = newNode;
+          }
+        });
 
-      let relationType = 'association';
-      if (edgeStyle.includes('.')) {
-        if (edgeStyle.includes('|')) relationType = 'realization';
-        else relationType = 'dependency';
-      } else {
-        if (edgeStyle.includes('|')) relationType = 'inheritance';
-        else if (edgeStyle.includes('*')) relationType = 'composition';
-        else if (edgeStyle.includes('o')) relationType = 'aggregation';
-        else relationType = 'association';
-      }
+        const getRelationType = (style) => {
+          if (style.includes('.')) return style.includes('|') ? 'realization' : 'dependency';
+          if (style.includes('|')) return 'inheritance';
+          if (style.includes('*')) return 'composition';
+          if (style.includes('o')) return 'aggregation';
+          return 'association';
+        };
 
-      const newMarkerEndType = (relationType === 'inheritance' || relationType === 'realization') ? `inheritance-end-${isDarkMode ? 'dark' : 'light'}` : 
-                           (relationType !== 'composition' && relationType !== 'aggregation' ? { type: MarkerType.ArrowClosed } : undefined);
-      
-      const newMarkerStart = relationType === 'composition' ? `composition-start-${isDarkMode ? 'dark' : 'light'}` :
-                             relationType === 'aggregation' ? `aggregation-start-${isDarkMode ? 'dark' : 'light'}` : undefined;
+        const relationType = getRelationType(edgeStyle);
 
-      parsedEdges.push({
-        id: `e${edgeId++}-${source}-${target}`,
-        source,
-        target,
-        type: 'umlEdge',
+        const buildMarkerEnd = (relType, dark) => {
+           if (relType === 'inheritance' || relType === 'realization') {
+             return `inheritance-end-${dark ? 'dark' : 'light'}`;
+           }
+           if (relType !== 'composition' && relType !== 'aggregation') {
+             return { type: MarkerType.ArrowClosed };
+           }
+           return undefined;
+        };
+
+        const buildMarkerStart = (relType, dark) => {
+           if (relType === 'composition') return `composition-start-${dark ? 'dark' : 'light'}`;
+           if (relType === 'aggregation') return `aggregation-start-${dark ? 'dark' : 'light'}`;
+           return undefined;
+        };
+
+        const newMarkerEndType = buildMarkerEnd(relationType, isDarkMode);
+        const newMarkerStart = buildMarkerStart(relationType, isDarkMode);
+        
+        parsedEdges.push({
+          id: `e${edgeId++}-${source}-${target}`,
+          source,
+          target,
+          type: 'umlEdge',
         data: { label, sourceMultiplicity, targetMultiplicity, relationType },
         style: (relationType === 'dependency' || relationType === 'realization') ? { strokeDasharray: '5 5' } : {},
         markerEnd: newMarkerEndType,
@@ -232,19 +244,23 @@ const parsePlantUML = (code, isDarkMode = false) => {
 function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, setEdges, onEdgesChange, setCode, setActiveTab, code }) {
 
   const [edgeMenu, setEdgeMenu] = useState(null);
-  const [past, setPast] = useState([]);
-  const [future, setFuture] = useState([]);
-  const isUndoRedoAction = React.useRef(false);
-
-  // Actualizar marcadores si cambia el tema oscuro/claro
-  useEffect(() => {
+    const [, setPast] = useState([]);
+    const [, setFuture] = useState([]);    const isUndoRedoAction = React.useRef(false);  useEffect(() => {
     setEdges(eds => eds.map(edge => {
       const relType = edge.data?.relationType;
       if (!relType || relType === 'association' || relType === 'dependency') return edge;
 
-      const newMarkerEndObj = (relType === 'inheritance' || relType === 'realization') ? `inheritance-end-${isDarkMode ? 'dark' : 'light'}` : undefined;
-      const newMarkerStart = relType === 'composition' ? `composition-start-${isDarkMode ? 'dark' : 'light'}` :
-                             relType === 'aggregation' ? `aggregation-start-${isDarkMode ? 'dark' : 'light'}` : undefined;
+      let newMarkerEndObj;
+      if (relType === 'inheritance' || relType === 'realization') {
+        newMarkerEndObj = `inheritance-end-${isDarkMode ? 'dark' : 'light'}`;
+      }
+      
+      let newMarkerStart;
+      if (relType === 'composition') {
+        newMarkerStart = `composition-start-${isDarkMode ? 'dark' : 'light'}`;
+      } else if (relType === 'aggregation') {
+        newMarkerStart = `aggregation-start-${isDarkMode ? 'dark' : 'light'}`;
+      }
       
       return {
         ...edge,
@@ -263,7 +279,7 @@ function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, se
 
     const timeout = setTimeout(() => {
       setPast((p) => {
-        const pLast = p.length > 0 ? p[p.length - 1] : null;
+        const pLast = p.length > 0 ? p.at(-1) : null;
         const currentNodesStr = JSON.stringify(nodes);
         const currentEdgesStr = JSON.stringify(edges);
         
@@ -283,9 +299,9 @@ function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, se
     setPast((p) => {
       if (p.length <= 1) return p;
       
-      const current = p[p.length - 1]; 
-      const prev = p[p.length - 2];   
-      const newPast = p.slice(0, p.length - 1);
+      const current = p.at(-1); 
+      const prev = p.at(-2);   
+      const newPast = p.slice(0, -1);
       
       isUndoRedoAction.current = true;
       setFuture((f) => [current, ...f]);
@@ -316,7 +332,7 @@ function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, se
       // Ignorar si estamos escribiendo en un input o textarea
       if (['INPUT', 'TEXTAREA'].includes(event.target.tagName)) return;
 
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const isMac = navigator.userAgent.toUpperCase().includes('MAC');
       const cmdOrCtrl = isMac ? event.metaKey : event.ctrlKey;
       
       if (cmdOrCtrl && event.key.toLowerCase() === 'z') {
@@ -455,7 +471,7 @@ const generatePlantUMLFromGraph = () => {
     const renderNode = (node, indentLevel) => {
       let code = '';
       const indent = '  '.repeat(indentLevel);
-      const cleanId = node.id.replaceAll(/[^a-zA-Z0-9_]/g, '');
+      const cleanId = node.id.replaceAll(/\W/g, '');
       
       if (node.type === 'umlPackage') {
         code += `${indent}package "${node.data.label}" as ${cleanId} {\n`;
@@ -464,14 +480,12 @@ const generatePlantUMLFromGraph = () => {
           code += renderNode(child, indentLevel + 1);
         });
         code += `${indent}}\n\n`;
+      } else if (node.data.attributes && node.data.attributes.length > 0) {
+        code += `${indent}class "${node.data.label}" as ${cleanId} {\n`;
+        node.data.attributes.forEach(attr => code += `${indent}  ${attr}\n`);
+        code += `${indent}}\n`;
       } else {
-        if (node.data.attributes && node.data.attributes.length > 0) {
-          code += `${indent}class "${node.data.label}" as ${cleanId} {\n`;
-          node.data.attributes.forEach(attr => code += `${indent}  ${attr}\n`);
-          code += `${indent}}\n`;
-        } else {
-          code += `${indent}class "${node.data.label}" as ${cleanId}\n`;
-        }
+        code += `${indent}class "${node.data.label}" as ${cleanId}\n`;
       }
       return code;
     };
@@ -493,7 +507,7 @@ const generatePlantUMLFromGraph = () => {
       const sMult = edge.data?.sourceMultiplicity ? ` "${edge.data.sourceMultiplicity}" ` : ' ';
       const tMult = edge.data?.targetMultiplicity ? ` "${edge.data.targetMultiplicity}" ` : ' ';
 
-      let pArrow = '-->';
+      let pArrow;
       switch (edge.data?.relationType) {
         case 'inheritance': pArrow = '--|>'; break;
         case 'composition': pArrow = '*--'; break;
@@ -504,35 +518,42 @@ const generatePlantUMLFromGraph = () => {
         default: pArrow = '-->'; break;
       }
 
-      newCode += `${edge.source.replaceAll(/[^a-zA-Z0-9_]/g, '')}${sMult}${pArrow}${tMult}${edge.target.replaceAll(/[^a-zA-Z0-9_]/g, '')}${lStr}\n`;
+      newCode += `${edge.source.replaceAll(/\W/g, '')}${sMult}${pArrow}${tMult}${edge.target.replaceAll(/\W/g, '')}${lStr}\n`;
     });
     
     newCode += '\n@enduml';
     setCode(newCode);
   };
 
+// Función auxiliar para obtener la posición absoluta de un nodo 
+const getAbsNodePos = (n, allNodes) => {
+  let { x, y } = n.position;
+  let currId = n.parentId;
+  while (currId) {
+    const p = allNodes.find(parent => parent.id === currId);
+    if (!p) break;
+    x += p.position.x;
+    y += p.position.y;
+    currId = p.parentId;
+  }
+  return { x, y };
+};
+
+// Evitar anidaciones cíclicas
+const isDescendantOf = (childNode, targetId, allNodes) => {
+  let currId = childNode.parentId;
+  while (currId) {
+    if (currId === targetId) return true;
+    const p = allNodes.find(parent => parent.id === currId);
+    currId = p ? p.parentId : null;
+  }
+  return false;
+};
+
 const onNodeDragStop = (event, node, nodes) => {
     if (node.type === 'umlNode' || node.type === 'umlPackage') {
-      // Función auxiliar para obtener la posición absoluta de un nodo sumando las coordenadas de sus padres
-      const getAbsNodePos = (n) => {
-        let x = n.position.x;
-        let y = n.position.y;
-        let currId = n.parentId;
-        while (currId) {
-          const p = nodes.find(parent => parent.id === currId);
-          if (p) {
-            x += p.position.x;
-            y += p.position.y;
-            currId = p.parentId;
-          } else {
-            currId = null;
-          }
-        }
-        return { x, y };
-      };
-
-      const absX = node.positionAbsolute ? node.positionAbsolute.x : getAbsNodePos(node).x;
-      const absY = node.positionAbsolute ? node.positionAbsolute.y : getAbsNodePos(node).y;
+      const absX = node.positionAbsolute ? node.positionAbsolute.x : getAbsNodePos(node, nodes).x;
+      const absY = node.positionAbsolute ? node.positionAbsolute.y : getAbsNodePos(node, nodes).y;
 
       const nodeWidth = node.style?.width || (node.type === 'umlPackage' ? 350 : 160);
       const nodeHeight = node.style?.height || (node.type === 'umlPackage' ? 350 : 100);
@@ -542,18 +563,9 @@ const onNodeDragStop = (event, node, nodes) => {
 
       const pkgs = nodes.filter(n => {
         if (n.type !== 'umlPackage' || n.id === node.id) return false;
-        
-        // Evitar anidaciones cíclicas (padre metido dentro de su hijo)
-        let isDescendant = false;
-        let currId = n.parentId;
-        while (currId) {
-          if (currId === node.id) { isDescendant = true; break; }
-          const p = nodes.find(parent => parent.id === currId);
-          currId = p ? p.parentId : null;
-        }
-        if (isDescendant) return false;
+        if (isDescendantOf(n, node.id, nodes)) return false;
 
-        const pkgAbs = getAbsNodePos(n);
+        const pkgAbs = getAbsNodePos(n, nodes);
         const w = n.style?.width || 350;
         const h = n.style?.height || 350;
 
@@ -570,7 +582,7 @@ const onNodeDragStop = (event, node, nodes) => {
       const pkg = pkgs.length > 0 ? pkgs[0] : null;
 
       if (pkg && node.parentId !== pkg.id) {
-        const pkgAbs = getAbsNodePos(pkg);
+        const pkgAbs = getAbsNodePos(pkg, nodes);
         setNodes(nds => nds.map(n => {
           if (n.id === node.id) {
             return {
@@ -595,6 +607,38 @@ const onNodeDragStop = (event, node, nodes) => {
       }
     }
   };
+
+  const handleRelationChange = useCallback((relType, edgeId) => {
+    setEdges(eds => eds.map(edge => {
+      if (edge.id !== edgeId) return edge;
+      
+      const isDashed = relType === 'dependency' || relType === 'realization';
+      
+      let newMarkerEndObj;
+      if (relType === 'inheritance' || relType === 'realization') {
+        newMarkerEndObj = `inheritance-end-${isDarkMode ? 'dark' : 'light'}`;
+      } else if (relType !== 'composition' && relType !== 'aggregation') {
+        newMarkerEndObj = { type: MarkerType.ArrowClosed };
+      }
+
+      let newMarkerStartObj;
+      if (relType === 'composition') {
+        newMarkerStartObj = `composition-start-${isDarkMode ? 'dark' : 'light'}`;
+      } else if (relType === 'aggregation') {
+        newMarkerStartObj = `aggregation-start-${isDarkMode ? 'dark' : 'light'}`;
+      }
+
+      return {
+        ...edge,
+        data: { ...edge.data, relationType: relType },
+        style: isDashed ? { strokeDasharray: '5 5' } : {},
+        markerEnd: newMarkerEndObj,
+        markerStart: newMarkerStartObj
+      };
+    }));
+    setEdgeMenu(null);
+    isUndoRedoAction.current = false;
+  }, [isDarkMode, setEdges]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -662,7 +706,7 @@ const onNodeDragStop = (event, node, nodes) => {
             minWidth: '160px'
           }}
           onContextMenu={(e) => e.preventDefault()}
-          role="presentation"
+          role="menu"
         >
           <div style={{ padding: '4px 8px', fontSize: '12px', fontWeight: 'bold', color: isDarkMode ? '#bbb' : '#666', borderBottom: '1px solid #ccc', marginBottom: '4px' }}>
             Tipo de Relación
@@ -679,30 +723,7 @@ const onNodeDragStop = (event, node, nodes) => {
               key={rel.type}
               onPointerDown={(e) => {
                 e.stopPropagation();
-                setEdges(eds => eds.map(edge => {
-                  if (edge.id === edgeMenu.id) {
-                    const isDashed = rel.type === 'dependency' || rel.type === 'realization';
-                    const newMarkerEndType = (rel.type === 'inheritance' || rel.type === 'realization') ? `inheritance-end-${isDarkMode ? 'dark' : 'light'}` : 
-                                         (rel.type !== 'composition' && rel.type !== 'aggregation' ? MarkerType.ArrowClosed : undefined);
-                    
-                    let newMarkerEndObj = newMarkerEndType;
-                    if (newMarkerEndType === MarkerType.ArrowClosed) newMarkerEndObj = { type: MarkerType.ArrowClosed };
-                    
-                    const newMarkerStart = rel.type === 'composition' ? `composition-start-${isDarkMode ? 'dark' : 'light'}` :
-                                           rel.type === 'aggregation' ? `aggregation-start-${isDarkMode ? 'dark' : 'light'}` : undefined;
-                     
-                    return {
-                      ...edge,
-                      data: { ...edge.data, relationType: rel.type },
-                      style: isDashed ? { strokeDasharray: '5 5' } : {},
-                      markerEnd: newMarkerEndObj,
-                      markerStart: newMarkerStart
-                    };
-                  }
-                  return edge;
-                }));
-                setEdgeMenu(null);
-                isUndoRedoAction.current = false;
+                handleRelationChange(rel.type, edgeMenu.id);
               }}
               style={{
                 background: 'transparent',

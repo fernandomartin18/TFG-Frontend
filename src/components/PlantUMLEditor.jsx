@@ -51,20 +51,20 @@ function PlantUMLEditor() {
     if (savedTheme) {
       return savedTheme === 'dark'
     }
-    if (document.documentElement.hasAttribute('data-theme')) {
-      return document.documentElement.getAttribute('data-theme') === 'dark'
+    if ('theme' in document.documentElement.dataset) {
+      return document.documentElement.dataset.theme === 'dark'
     }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
+    return globalThis.matchMedia('(prefers-color-scheme: dark)').matches
   })
 
   // Escuchar y aplicar cambios de tema
   useEffect(() => {
     // ... theme logic
     // Asegurarse de que el atributo existe si se recarga la página
-    document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light')
+    document.documentElement.dataset.theme = isDarkMode ? 'dark' : 'light'
     
     const observer = new MutationObserver(() => {
-      setIsDarkMode(document.documentElement.getAttribute('data-theme') === 'dark')
+      setIsDarkMode(document.documentElement.dataset.theme === 'dark')
     })
 
     observer.observe(document.documentElement, {
@@ -79,8 +79,8 @@ function PlantUMLEditor() {
     const handleGlobalClick = () => {
       if (contextMenu.isVisible) setContextMenu(prev => ({ ...prev, isVisible: false }))
     }
-    window.addEventListener('click', handleGlobalClick)
-    return () => window.removeEventListener('click', handleGlobalClick)
+    globalThis.addEventListener('click', handleGlobalClick)
+    return () => globalThis.removeEventListener('click', handleGlobalClick)
   }, [contextMenu.isVisible])
 
   // Fetch templates when tab is 'templates'
@@ -114,7 +114,7 @@ function PlantUMLEditor() {
 
   const handleMouseMove = (e) => {
     if (!isDragging) return
-    const containerWidth = window.innerWidth
+    const containerWidth = globalThis.innerWidth
     const newWidthPercentage = (e.clientX / containerWidth) * 100
     
     // Limits
@@ -152,7 +152,7 @@ function PlantUMLEditor() {
 
   const handleCancel = () => {
     if (code !== initialCode) {
-      if (window.confirm('¿Estás seguro de que quieres cancelar? Se perderán los cambios en el código PlantUML.')) {
+      if (globalThis.confirm('¿Estás seguro de que quieres cancelar? Se perderán los cambios en el código PlantUML.')) {
         navigate('/', { state: { returnToChatId: sourceChatId } })
       }
     } else {
@@ -204,7 +204,7 @@ function PlantUMLEditor() {
   };
 
   const handleDeleteTemplate = async (templateId) => {
-    if (!window.confirm('¿Seguro que quieres borrar esta plantilla?')) return;
+    if (!globalThis.confirm('¿Seguro que quieres borrar esta plantilla?')) return;
     try {
       const res = await plantUmlService.deleteTemplate(templateId);
       if (res.success) {
@@ -314,7 +314,7 @@ function PlantUMLEditor() {
                 style={{ top: contextMenu.y, left: contextMenu.x, position: 'absolute', zIndex: 100000, background: isDarkMode ? '#1e1e1e' : '#ffffff', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', minWidth: '120px' }}
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => e.stopPropagation()}
-                role="presentation"
+                  role="menu"
               >
                 <button 
                   style={{ background: 'transparent', border: 'none', color: 'var(--text-color)', textAlign: 'left', padding: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '4px' }}

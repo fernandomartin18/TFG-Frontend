@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('node:fs');
 
 const content = fs.readFileSync('/Users/fer/Desktop/Uni/4 Curso/x TFG/app/backend/src/db/schema.sql', 'utf-8');
 const searchBlock = `-- =====================================================\n-- DATOS POR DEFECTO (SEMILLAS PLANTUML)\n-- =====================================================`;
@@ -273,7 +273,7 @@ package "Shared / Message Broker" #F8F9FA {
 const lines = ['INSERT INTO plantuml_templates (user_id, title, code) VALUES'];
 for (let i = 0; i < templates.length; i++) {
   const t = templates[i];
-  const stringified = t.code.replaceAll(/'/g, "''").replaceAll(/\n/g, '\\n');
+  const stringified = t.code.replaceAll('\'', "''").replaceAll('\n', String.raw`\n`);
   const line = `(NULL, '${t.title}', E'${stringified}')${i === templates.length - 1 ? ';' : ','}`;
   lines.push(line);
 }

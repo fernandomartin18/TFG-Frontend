@@ -307,8 +307,13 @@ describe('UserProfileModal Component', () => {
     render(<UserProfileModal onClose={mockOnClose} isDarkTheme={false} />);
     const buttons = screen.getAllByRole('button');
     const editAvatarBtn = buttons.find(b => b.className === 'avatar-edit-btn');
+    
+    expect(editAvatarBtn).toBeDefined();
     if (editAvatarBtn) {
        fireEvent.click(editAvatarBtn);
+       await waitFor(() => {
+         expect(screen.getByText('Cambiar foto')).toBeInTheDocument();
+       });
     }
   });
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { BsInfoCircle, BsGear } from 'react-icons/bs'
 import { MdClose } from 'react-icons/md'
@@ -63,6 +63,28 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
     }
   }
 
+  const setInitialModel = async (isAutoAvailable) => {
+    if (selectedModel) return
+
+    try {
+      const modelsResponse = await fetchWithAuth('http://localhost:3000/api/models')
+      if (modelsResponse.ok) {
+        const modelsData = await modelsResponse.json()
+        const modelList = modelsData.models || []
+        
+        if (modelList.length === 0) {
+          onModelChange('No hay LLMs')
+        } else if (isAutoAvailable) {
+          onModelChange('Auto')
+        } else {
+          onModelChange(modelList[0].name)
+        }
+      }
+    } catch {
+      onModelChange('No hay LLMs')
+    }
+  }
+
   const checkAutoMode = async () => {
     try {
       const response = await fetchWithAuth('http://localhost:3000/api/models/auto-select')
@@ -76,41 +98,12 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
             coding: data.coding_model || ''
           })
         }
-        
-        // Solo configurar modelo inicial si selectedModel está vacío
-        if (!selectedModel) {
-          const modelsResponse = await fetchWithAuth('http://localhost:3000/api/models')
-          if (modelsResponse.ok) {
-            const modelsData = await modelsResponse.json()
-            const modelList = modelsData.models || []
-            
-            if (modelList.length === 0) {
-              onModelChange('No hay LLMs')
-            } else if (isAutoAvailable) {
-              onModelChange('Auto')
-            } else {
-              onModelChange(modelList[0].name)
-            }
-          }
-        }
+        await setInitialModel(isAutoAvailable)
       }
     } catch (error) {
       console.error('Error checking auto mode:', error)
       setAutoAvailable(false)
-      
-      // Si hay error y no hay modelo seleccionado, intentar seleccionar el primero
-      if (!selectedModel) {
-        const modelsResponse = await fetchWithAuth('http://localhost:3000/api/models')
-        if (modelsResponse.ok) {
-          const modelsData = await modelsResponse.json()
-          const modelList = modelsData.models || []
-          if (modelList.length > 0) {
-            onModelChange(modelList[0].name)
-          } else {
-            onModelChange('No hay LLMs')
-          }
-        }
-      }
+      await setInitialModel(false)
     }
   }
 
@@ -144,9 +137,41 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
     }
   }
 
-  const handleSaveAutoConfig = () => {
-    // If it's custom but missing a model, maybe fallback or show error. For now we just close.
-    setShowAutoConfigModal(false)
+  const renderModelOptions = () => {
+    if (loading) return <div className="model-option loading">Cargando...</div>
+    if (models.length === 0) return <div className="model-option disabled">No hay LLMs</div>
+
+    return (
+      <>
+        <button 
+          className={`model-option ${selectedModel === 'Auto' ? 'selected' : ''} ${autoAvailable ? '' : 'disabled'}`}
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+          onClick={autoAvailable ? () => handleSelectModel('Auto') : undefined}
+          disabled={!autoAvailable}
+        >
+          <span>Auto</span>
+          {autoAvailable && (
+            <button 
+              type="button"
+              className="auto-config-btn"
+              onClick={handleAutoConfigClick}
+              title="Configurar modo Auto"
+            >
+              <BsGear size={16} />
+            </button>
+          )}
+        </button>
+        {models.map((model) => (
+          <button 
+            key={model.name}
+            className={`model-option ${selectedModel === model.name ? 'selected' : ''}`}
+            onClick={() => handleSelectModel(model.name)}
+          >
+            {model.name}
+          </button>
+        ))}
+      </>
+    )
   }
 
   return (
@@ -173,57 +198,7 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
             <BsInfoCircle size={18} />
           </button>
           
-          {loading ? (
-            <div className="model-option loading">Cargando...</div>
-          ) : models.length === 0 ? (
-            <div className="model-option disabled">No hay LLMs</div>
-          ) : (
-            <>
-              <div 
-                className={`model-option ${selectedModel === 'Auto' ? 'selected' : ''} ${!autoAvailable ? 'disabled' : ''}`}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                onClick={autoAvailable ? () => handleSelectModel('Auto') : undefined}
-                onKeyDown={autoAvailable ? (e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    handleSelectModel('Auto')
-                  }
-                } : undefined}
-                role="button"
-                tabIndex={autoAvailable ? 0 : -1}
-                aria-disabled={!autoAvailable}
-              >
-                <span>Auto</span>
-                {autoAvailable && (
-                  <button 
-                    type="button"
-                    className="auto-config-btn"
-                    onClick={handleAutoConfigClick}
-                    title="Configurar modo Auto"
-                  >
-                    <BsGear size={16} />
-                  </button>
-                )}
-              </div>
-              {models.map((model) => (
-                <div 
-                  key={model.name}
-                  className={`model-option ${selectedModel === model.name ? 'selected' : ''}`}
-                  onClick={() => handleSelectModel(model.name)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      handleSelectModel(model.name)
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  {model.name}
-                </div>
-              ))}
-            </>
-          )}
+          {renderModelOptions()}
         </div>
       )}
 
@@ -236,7 +211,8 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
               handleCloseModal()
             }
           }}
-          role="presentation"
+          role="dialog"
+          aria-modal="true"
         >
           <div className="info-modal">
             <button 
@@ -276,7 +252,8 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
               handleCloseModal()
             }
           }}
-          role="presentation"
+          role="dialog"
+          aria-modal="true"
         >
           <div className="info-modal">
             <button 

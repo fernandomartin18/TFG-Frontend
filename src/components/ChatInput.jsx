@@ -31,8 +31,8 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
     const handleGlobalClick = () => {
       if (contextMenu.isVisible) setContextMenu(prev => ({ ...prev, isVisible: false }))
     }
-    window.addEventListener('click', handleGlobalClick)
-    return () => window.removeEventListener('click', handleGlobalClick)
+    globalThis.addEventListener('click', handleGlobalClick)
+    return () => globalThis.removeEventListener('click', handleGlobalClick)
   }, [contextMenu.isVisible])
 
   useEffect(() => {
@@ -78,7 +78,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
         regex.lastIndex = 0;
         while ((match = regex.exec(initialInput)) !== null) {
           if (match.index > lastIndex) {
-            parts.push({ type: 'text', content: initialInput.substring(lastIndex, match.index) });
+            parts.push({ type: 'text', content: initialInput.substring(lastIndex, match.index), id: `text-${lastIndex}` });
           }
           const varId = match[0] + match.index;
           parts.push({ type: 'var', label: match[1], id: varId });
@@ -87,7 +87,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
         }
         
         if (lastIndex < initialInput.length) {
-          parts.push({ type: 'text', content: initialInput.substring(lastIndex) });
+          parts.push({ type: 'text', content: initialInput.substring(lastIndex), id: `text-${lastIndex}` });
         }
         
         setActiveTemplateConfig({ parts, values, original: initialInput });
@@ -196,7 +196,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
   };
 
   const deleteTemplate = async (templateId) => {
-    if (!window.confirm('¿Seguro que quieres borrar esta plantilla?')) return;
+    if (!globalThis.confirm('¿Seguro que quieres borrar esta plantilla?')) return;
     try {
       const response = await fetchWithAuth(`http://localhost:3000/api/templates/${encodeURIComponent(Number(templateId))}`, {
         method: 'DELETE'
@@ -287,7 +287,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
                       
                       while ((match = regex.exec(t.prompt)) !== null) {
                         if (match.index > lastIndex) {
-                          parts.push({ type: 'text', content: t.prompt.substring(lastIndex, match.index) });
+                          parts.push({ type: 'text', content: t.prompt.substring(lastIndex, match.index), id: `text-${lastIndex}` });
                         }
                         const varId = match[0] + match.index;
                         parts.push({ type: 'var', id: varId, label: match[1] });
@@ -295,7 +295,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
                         lastIndex = regex.lastIndex;
                       }
                       if (lastIndex < t.prompt.length) {
-                        parts.push({ type: 'text', content: t.prompt.substring(lastIndex) });
+                        parts.push({ type: 'text', content: t.prompt.substring(lastIndex), id: `text-${lastIndex}` });
                       }
 
                       if (parts.some(p => p.type === 'var')) {
@@ -320,17 +320,16 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
           
           {activeTemplateConfig ? (
             <div className="chat-input template-active-box">
-              {activeTemplateConfig.parts.map((p, i) => (
+              {activeTemplateConfig.parts.map((p) => (
                 p.type === 'text' ? (
-                  <span key={i}>{p.content}</span>
+                  <span key={p.id}>{p.content}</span>
                 ) : (
                   <span
-                    key={i}
+                    key={p.id}
                     className="template-var-input"
                     contentEditable
                     suppressContentEditableWarning
                     data-placeholder={p.label}
-                    role="textbox"
                     tabIndex={0}
                     aria-label={p.label}
                     onInput={(e) => {
@@ -415,7 +414,6 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
-          role="presentation"
         >
           <button onClick={() => {
             editTemplate(contextMenu.template);
@@ -440,14 +438,14 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === 'Escape') setIsCreateTemplateModalOpen(false)
           }}
-          role="button"
-          tabIndex={0}
+          aria-hidden="true"
         >
           <div 
             className="template-modal" 
             onClick={e => e.stopPropagation()}
             onKeyDown={e => e.stopPropagation()}
-            role="presentation"
+            role="dialog"
+            aria-modal="true"
           >
             <button className="template-modal-close" onClick={() => setIsCreateTemplateModalOpen(false)}>
               <HiX size={20} />
