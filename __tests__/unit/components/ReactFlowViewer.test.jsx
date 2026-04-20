@@ -27,6 +27,11 @@ vi.mock('@xyflow/react', async () => {
           const mockNode = { id: 'n2', type: 'umlNode', position: { x: 100, y: 100 }, positionAbsolute: { x: 100, y: 100 }, parentId: undefined };
           onNodeDragStop({}, mockNode, [packageNode, mockNode]);
         }}>Drag Stop into Package</button>
+        <button data-testid="mock-drag-stop-3" onClick={() => {
+          const mockNode = { id: 'n2', type: 'umlNode', position: { x: 500, y: 500 }, positionAbsolute: { x: 500, y: 500 }, parentId: 'pkg-1' };
+          const mockPkg = { id: 'pkg-1', type: 'umlPackage', position: { x: 0, y: 0 }, style: { width: 100, height: 100 } };
+          onNodeDragStop({}, mockNode, [mockPkg, mockNode]);
+        }}>Drag Stop out of Package</button>
         React Flow
       </div>
     ),
@@ -314,4 +319,68 @@ Account *-- Transaction
       }
     }
   });
+
+
+  test('cubre interacción con los menús emergentes del edge (mouse enter/leave)', async () => {
+    let mockEdges = [{ id: 'ClassA-ClassB', source: 'ClassA', target: 'ClassB', type: 'umlEdge' }];
+    render(<ReactFlowViewer
+      code={'@startuml\nclass ClassA\nclass ClassB\nClassA -- ClassB\n@enduml'}
+      setCode={vi.fn()}
+      isDarkMode={true}
+      nodes={[{ id: 'ClassA', type: 'umlNode', position: { x: 0, y: 0 } }, { id: 'ClassB', type: 'umlNode', position: { x: 100, y: 100 } }]}
+      setNodes={vi.fn()}
+      onNodesChange={vi.fn()}
+      edges={mockEdges}
+      setEdges={vi.fn()}
+      onEdgesChange={vi.fn()}
+    />);
+
+    // Open context menu
+    const contextBtn = screen.getByTestId('mock-context');
+    fireEvent.contextMenu(contextBtn, { clientX: 100, clientY: 100 });
+
+    const changeRelationBtns = screen.getAllByText(/Asociación|Herencia|Composición|Agregación/); // there are many relationships, just get one
+    if (changeRelationBtns.length > 0) {
+       fireEvent.mouseEnter(changeRelationBtns[0]);
+       expect(changeRelationBtns[0].style.background).toBe('rgb(68, 68, 68)'); // '#444'
+       fireEvent.mouseLeave(changeRelationBtns[0]);
+       expect(changeRelationBtns[0].style.background).toBe('transparent');
+    }
+
+    const deleteBtn = screen.getByText('Eliminar relación');
+    fireEvent.mouseEnter(deleteBtn);
+    expect(deleteBtn.style.background).toBe('rgba(255, 68, 68, 0.1)');
+    fireEvent.mouseLeave(deleteBtn);
+    fireEvent.mouseLeave(deleteBtn);
+    expect(deleteBtn.style.background).toBe('transparent');
+  });
+
+  test('onNodeDragStop remueve el parentId si sale del paquete', async () => {
+    let mockNodes = [
+      { id: 'pkg-1', type: 'umlPackage', position: { x: 0, y: 0 }, style: { width: 100, height: 100 } },
+      { id: 'n2', type: 'umlNode', position: { x: 50, y: 50 }, positionAbsolute: { x: 50, y: 50 }, parentId: 'pkg-1' }
+    ];
+    let setter = vi.fn();
+    render(<ReactFlowViewer
+      code={'@startuml\npackage "pkg-1" {\n  class n2\n}\n@enduml'}
+      setCode={vi.fn()}
+      isDarkMode={false}
+      nodes={mockNodes}
+      setNodes={setter}
+      onNodesChange={vi.fn()}
+      edges={[]}
+      setEdges={vi.fn()}
+      onEdgesChange={vi.fn()}
+    />);
+
+    const btn = screen.getByTestId('mock-drag-stop-3');
+    fireEvent.click(btn);
+
+    expect(setter).toHaveBeenCalled();
+    const updater = setter.mock.calls[0][0];
+    const newNodes = updater(mockNodes);
+
+    expect(newNodes.find(n => n.id === 'n2').parentId).toBeUndefined();
+  });
+
 });
