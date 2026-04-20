@@ -310,11 +310,11 @@ function PlantUMLEditor() {
           <div className="plantuml-templates-view" style={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden', position: 'relative' }}>
             {contextMenu.isVisible && createPortal(
               <div 
+                role="presentation"
                 className="template-context-menu"
                 style={{ top: contextMenu.y, left: contextMenu.x, position: 'absolute', zIndex: 100000, background: isDarkMode ? '#1e1e1e' : '#ffffff', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', minWidth: '120px' }}
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => e.stopPropagation()}
-                  role="menu"
               >
                 <button 
                   style={{ background: 'transparent', border: 'none', color: 'var(--text-color)', textAlign: 'left', padding: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '4px' }}

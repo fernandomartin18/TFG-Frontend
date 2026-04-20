@@ -127,7 +127,8 @@ const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete, onAddToProject, 
   if (isEditing) {
     return (
       <div 
-        className="chat-edit-container" 
+          role="presentation"
+          className="chat-edit-container" 
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {

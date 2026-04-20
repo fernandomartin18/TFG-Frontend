@@ -54,6 +54,7 @@ function CodeModal({ code, language, onClose, onDownload }) {
 
   return (
     <div 
+      role="presentation"
       className="code-modal-backdrop" 
       onClick={handleBackdropClick}
       onKeyDown={(e) => {

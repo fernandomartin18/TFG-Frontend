@@ -326,7 +326,8 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
                 ) : (
                   <span
                     key={p.id}
-                    className="template-var-input"
+                    role="textbox"
+                      className="template-var-input"
                     contentEditable
                     suppressContentEditableWarning
                     data-placeholder={p.label}
@@ -410,7 +411,8 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
 
       {contextMenu.isVisible && createPortal(
         <div 
-          className="template-context-menu"
+          role="presentation"
+            className="template-context-menu"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
