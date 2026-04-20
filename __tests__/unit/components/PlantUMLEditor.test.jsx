@@ -349,7 +349,7 @@ describe('PlantUMLEditor Component Tests', () => {
     fireEvent.contextMenu(templateItem, { clientX: 200, clientY: 200 });
 
     // Grab the portal container (.template-context-menu)
-    const contextMenuParent = screen.getByRole('presentation'); // you assigned role='presentation' to it
+    const contextMenuParent = screen.getByRole('menu'); // you assigned role='presentation' to it
     
     // Fire click and keydown to cover stopPropagation
     let stopPropCalledClick = false;

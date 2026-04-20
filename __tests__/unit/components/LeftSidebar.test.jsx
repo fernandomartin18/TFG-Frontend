@@ -453,6 +453,7 @@ describe('LeftSidebar Component', () => {
     const btn = screen.getByText('Iniciar sesión');
     fireEvent.click(btn);
     // Since handleLogin navigates to /login it should not crash
+    expect(btn).toBeInTheDocument();
   });
 
   it('handles chat keyboard events when inside a project', async () => {
