@@ -273,7 +273,7 @@ package "Shared / Message Broker" #F8F9FA {
 const lines = ['INSERT INTO plantuml_templates (user_id, title, code) VALUES'];
 for (let i = 0; i < templates.length; i++) {
   const t = templates[i];
-  const stringified = t.code.replace(/'/g, "''").replace(/\n/g, '\\n');
+  const stringified = t.code.replaceAll(/'/g, "''").replaceAll(/\n/g, '\\n');
   const line = `(NULL, '${t.title}', E'${stringified}')${i === templates.length - 1 ? ';' : ','}`;
   lines.push(line);
 }

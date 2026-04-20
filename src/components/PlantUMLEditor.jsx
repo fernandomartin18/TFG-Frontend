@@ -193,7 +193,7 @@ function PlantUMLEditor() {
   
   const handleContextMenu = (e, template) => {
     if (template.userId) {
-      e.preventDefault();
+      e.preventDefault(); 
       setContextMenu({
         isVisible: true,
         x: e.pageX,
@@ -313,6 +313,8 @@ function PlantUMLEditor() {
                 className="template-context-menu"
                 style={{ top: contextMenu.y, left: contextMenu.x, position: 'absolute', zIndex: 100000, background: isDarkMode ? '#1e1e1e' : '#ffffff', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', minWidth: '120px' }}
                 onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+                role="presentation"
               >
                 <button 
                   style={{ background: 'transparent', border: 'none', color: 'var(--text-color)', textAlign: 'left', padding: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '4px' }}
@@ -384,6 +386,14 @@ function PlantUMLEditor() {
                   className={`template-item ${selectedTemplate?.id === tpl.id && !isEditingThis ? 'selected' : ''}`}
                   onClick={() => !isEditingThis && setSelectedTemplate(tpl)}
                   onContextMenu={(e) => !isEditingThis && handleContextMenu(e, tpl)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault(); 
+                      if (!isEditingThis) setSelectedTemplate(tpl);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={isEditingThis ? -1 : 0}
                   style={{
                     padding: '0.8rem',
                     borderRadius: '8px',

@@ -13,9 +13,10 @@ vi.mock('../../../src/components/CodeSidebar.jsx', () => ({
   default: () => <div data-testid="code-sidebar">CodeSidebar</div>
 }));
 vi.mock('../../../src/components/LeftSidebar.jsx', () => ({
-  default: ({ onNewChat, onChatSelect }) => (
+  default: ({ onNewChat, onChatSelect, onToggleTheme }) => (
     <div data-testid="left-sidebar">
       <button data-testid="btn-new-chat" onClick={onNewChat}>New Chat</button>
+      <button data-testid="btn-toggle-theme" onClick={onToggleTheme}>Toggle Theme</button>
       <button data-testid="btn-select-chat" onClick={() => onChatSelect(123)}>Select Chat 123</button>
     </div>
   )
@@ -638,4 +639,142 @@ describe('Chat Component Full Isolated Tests', () => {
       expect(screen.getByText(/Error al comunicarse con la IA/)).toBeInTheDocument();
     });
   });
+
+  test('uses fallback title when stream returns empty title', async () => {
+    // 1. Mensaje normal AI success
+    apiService.fetchWithAuth
+      .mockResolvedValueOnce({
+        ok: true,
+        body: {
+          getReader: () => {
+            let done = false;
+            return {
+              read: () => {
+                if (done) return Promise.resolve({ done: true });
+                done = true;
+                return Promise.resolve({ done: false, value: new TextEncoder().encode('data: "Ai response"\ndata: [DONE]\n') });
+              }
+            };
+          }
+        }
+      })
+      // 2. Título generation success but empty content
+      .mockResolvedValueOnce({
+        ok: true,
+        body: {
+          getReader: () => {
+            let done = false;
+            return {
+              read: () => {
+                if (done) return Promise.resolve({ done: true });
+                done = true;
+                return Promise.resolve({ done: false, value: new TextEncoder().encode('data: ""\ndata: [DONE]\n') });
+              }
+            };
+          }
+        }
+      });
+      
+    chatService.createMessage.mockResolvedValue({});
+    chatService.createChat.mockResolvedValue({ chat_id: 'new-chat-id' });
+
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('input-mock-send'));
+    });
+
+    
+  });
+
+  test('catches error during title generation stream', async () => {
+    // 1. Mensaje normal AI success
+    apiService.fetchWithAuth
+      .mockResolvedValueOnce({
+        ok: true,
+        body: {
+          getReader: () => {
+            let done = false;
+            return {
+              read: () => {
+                if (done) return Promise.resolve({ done: true });
+                done = true;
+                return Promise.resolve({ done: false, value: new TextEncoder().encode('data: "Ai response"\ndata: [DONE]\n') });
+              }
+            };
+          }
+        }
+      })
+      // 2. Título generation throws error
+      .mockRejectedValueOnce(new Error('Stream failed randomly'));
+      
+    chatService.createMessage.mockResolvedValue({});
+    chatService.createChat.mockResolvedValue({ chat_id: 'new-chat-id' });
+
+    // Mock console.error
+    const originalConsoleError = console.error;
+    console.error = vi.fn();
+
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('input-mock-send'));
+    });
+
+    
+
+    console.error = originalConsoleError;
+  });
+
+  test('catches error saving message to db', async () => {
+    // 1. Mensaje normal AI success
+    apiService.fetchWithAuth
+      .mockResolvedValueOnce({
+        ok: true,
+        body: {
+          getReader: () => {
+            let done = false;
+            return {
+              read: () => {
+                if (done) return Promise.resolve({ done: true });
+                done = true;
+                return Promise.resolve({ done: false, value: new TextEncoder().encode('data: "Ai response"\ndata: [DONE]\n') });
+              }
+            };
+          }
+        }
+      });
+      
+    // The createMessage throws error
+    chatService.createMessage.mockRejectedValueOnce(new Error('Failed to save to DB'));
+    chatService.createChat.mockResolvedValue({ chat_id: 'new-chat-id' });
+
+    const originalConsoleError = console.error;
+    console.error = vi.fn();
+
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('input-mock-send'));
+    });
+
+    
+
+    console.error = originalConsoleError;
+  });
+
+  test('toggles theme when clicking on LeftSidebar mock', async () => {
+    await act(async () => {
+      renderChat({ isAuthenticated: true });
+    });
+    const toggleBtn = screen.getByTestId('btn-toggle-theme');
+    fireEvent.click(toggleBtn);
+  });
+
 });

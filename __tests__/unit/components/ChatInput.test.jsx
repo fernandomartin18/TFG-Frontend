@@ -233,4 +233,218 @@ describe('ChatInput Component - Templates', () => {
     
     expect(textarea.style.overflowY).toBe('scroll');
   });
+
+  test('crear nueva plantilla', async () => {
+    // Setup fetch to succeed for POST
+    global.fetch.mockImplementationOnce((url) => {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve([{ id: 1, title: 'old' }]) }); // GET
+    }).mockImplementationOnce((url, options) => {
+      // POST
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ id: 3, title: 'Nueva', prompt: 'Nuevo prompt' }) });
+    });
+
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+
+    // Abre el menú
+    fireEvent.click(screen.getByTitle('Ver plantillas'));
+
+    // Clic en "Crear plantilla"
+    const createBtn = screen.getByText('Crear plantilla');
+    fireEvent.click(createBtn);
+
+    // Debe abrirse el modal
+    expect(screen.getByText('Crear plantilla')).toBeInTheDocument();
+
+    // Rellenamos inputs
+    const titleInput = screen.getByPlaceholderText('Título de la plantilla');
+    const promptInput = screen.getByPlaceholderText('Escribe tu prompt con las [variables]...');
+    
+    fireEvent.change(titleInput, { target: { value: 'Mi nueva plantilla' } });
+    fireEvent.change(promptInput, { target: { value: 'Este es el [texto] de prueba' } });
+
+    // Click Guardar
+    const saveBtn = screen.getByText('Crear');
+    fireEvent.click(saveBtn);
+
+    // Verifica que se llamó
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('http://localhost:3000/api/templates', expect.objectContaining({ method: 'POST' }));
+    });
+  });
+
+  test('context menu: eliminar plantilla', async () => {
+    global.fetch.mockImplementationOnce(() => Promise.resolve({ ok: true, json: () => Promise.resolve([{ id: 5, title: 'Borrable', prompt: 'Borrable', user_id: 1 }]) }))
+                .mockImplementationOnce(() => Promise.resolve({ ok: true })); // DELETE
+
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByTitle('Ver plantillas'));
+    const templateBtns = await screen.findAllByText('Borrable');
+    const templateBtn = templateBtns[templateBtns.length - 1];
+    
+    // Dispara el contextMenu sobre la plantilla
+    fireEvent.contextMenu(templateBtn);
+    
+    const deleteBtn = await screen.findByText('Eliminar');
+    window.confirm = vi.fn(() => true);
+    fireEvent.click(deleteBtn);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/templates/5'), expect.objectContaining({ method: 'DELETE' }));
+    });
+  });
+
+  test('context menu: editar plantilla', async () => {
+    global.fetch.mockImplementationOnce(() => Promise.resolve({ ok: true, json: () => Promise.resolve([{ id: 5, title: 'Editable', prompt: 'Editable', user_id: 1 }]) }))
+                .mockImplementationOnce(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ id: 5 }) })); // PUT
+
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByTitle('Ver plantillas'));
+    const templateBtns = await screen.findAllByText('Editable');
+    const templateBtn = templateBtns[templateBtns.length - 1];
+    
+    fireEvent.contextMenu(templateBtn);
+    
+    const editBtn = await screen.findByText('Editar');
+    fireEvent.click(editBtn);
+
+    // El modal debería abrirse
+    expect(screen.getByText('Editar plantilla')).toBeInTheDocument();
+
+    const saveBtn = screen.getByText('Guardar Cambios');
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/templates/5'), expect.objectContaining({ method: 'PUT' }));
+    });
+  });
+
+  test('flujo completo de rellenar formulario de variables e insertar como texto', async () => {
+    global.fetch.mockImplementationOnce(() => Promise.resolve({ ok: true, json: () => Promise.resolve([{ id: 10, title: 'Var', prompt: 'Hola [nombre], soy [soy].' }]) }));
+
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByTitle('Ver plantillas'));
+    fireEvent.click(screen.getByText('Var'));
+
+    // Nos ha de salir los inputs de variables
+    const nameInput = screen.getByRole('textbox', { name: 'nombre' });
+    const soyInput = screen.getByRole('textbox', { name: 'soy' });
+    
+    expect(nameInput).toBeInTheDocument();
+    
+    fireEvent.input(nameInput, { target: { innerText: 'Fer' }, currentTarget: { innerText: 'Fer' } });
+    fireEvent.input(soyInput, { target: { innerText: 'AI' }, currentTarget: { innerText: 'AI' } });
+    
+    // Hacemos click en el boton de envío
+    const sendButton = document.querySelector('.send-button');
+    fireEvent.click(sendButton);
+    
+    expect(defaultProps.onSendMessage).toHaveBeenCalledWith('Hola Fer, soy AI.');
+  });
+
+  test('editar plantilla como texto libre', async () => {
+     global.fetch.mockImplementationOnce(() => Promise.resolve({ ok: true, json: () => Promise.resolve([{ id: 10, title: 'Var', prompt: 'Hola [nombre]' }]) }));
+
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByTitle('Ver plantillas'));
+    fireEvent.click(screen.getByText('Var'));
+    
+    const editTextBtn = screen.getByTitle('Editar como texto libre');
+    fireEvent.click(editTextBtn);
+
+    // Debe colocarse en el textarea y quitar la configuración activa
+    const textarea = screen.getByRole('textbox');
+    expect(textarea.value).toBe('Hola [nombre]');
+    // Comprobar que no existe el boton de editar texto
+    expect(screen.queryByTitle('Editar como texto libre')).not.toBeInTheDocument();
+  });
+
+
+  test('cerrar modal de crear plantilla', async () => {
+    global.fetch.mockImplementationOnce(() => Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
+
+    render(
+      <MemoryRouter>
+        <ChatInput {...defaultProps} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+
+    // Abre el menú
+    fireEvent.click(screen.getByTitle('Ver plantillas'));
+
+    // Abre el modal
+    fireEvent.click(screen.getByText('Crear plantilla'));
+    expect(screen.getByText('Crear plantilla')).toBeInTheDocument();
+
+    // 1. Cerrar a través del backdrop
+    // actually, let's close via button first
+    
+    const closeBtn = document.querySelector('.template-modal-close');
+    fireEvent.click(closeBtn);
+    expect(screen.queryByText('Crear plantilla')).not.toBeInTheDocument();
+
+    // Abrir de nuevo
+    fireEvent.click(screen.getByTitle('Ver plantillas'));
+    fireEvent.click(screen.getByText('Crear plantilla'));
+
+    // 2. Click backdrop
+    const backdropDiv = document.querySelector('.template-modal-backdrop');
+    fireEvent.click(backdropDiv);
+    expect(screen.queryByText('Crear plantilla')).not.toBeInTheDocument();
+
+    // Abrir de nuevo
+    fireEvent.click(screen.getByTitle('Ver plantillas'));
+    fireEvent.click(screen.getByText('Crear plantilla'));
+
+    // 3. onKeyDown backdrop (Escape)
+    const backdropDiv2 = document.querySelector('.template-modal-backdrop');
+    fireEvent.keyDown(backdropDiv2, { key: 'Escape' });
+    expect(screen.queryByText('Crear plantilla')).not.toBeInTheDocument();
+
+    // Abrir de nuevo
+    fireEvent.click(screen.getByTitle('Ver plantillas'));
+    fireEvent.click(screen.getByText('Crear plantilla'));
+
+    // 4. stopPropagation
+    const modalDiv = document.querySelector('.template-modal');
+    fireEvent.click(modalDiv);
+    fireEvent.keyDown(modalDiv, { key: 'Enter' });
+    expect(screen.getByText('Crear plantilla')).toBeInTheDocument();
+  });
+
 });

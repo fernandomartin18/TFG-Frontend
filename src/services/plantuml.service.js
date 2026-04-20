@@ -38,7 +38,7 @@ export const plantUmlService = {
   
   async updateTemplate(id, templateData) {
     try {
-      const response = await fetchWithAuth(`${API_URL}/plantuml-templates/${id}`, {
+      const response = await fetchWithAuth(`${API_URL}/plantuml-templates/${encodeURIComponent(Number(id))}`, {
         method: 'PUT',
         body: JSON.stringify(templateData)
       });
@@ -56,7 +56,7 @@ export const plantUmlService = {
   
   async deleteTemplate(id) {
     try {
-      const response = await fetchWithAuth(`${API_URL}/plantuml-templates/${id}`, {
+      const response = await fetchWithAuth(`${API_URL}/plantuml-templates/${encodeURIComponent(Number(id))}`, {
         method: 'DELETE'
       });
       

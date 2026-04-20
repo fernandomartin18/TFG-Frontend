@@ -569,8 +569,6 @@ function Chat({ isAuthenticated }) {
         )
         userMessageId = savedUserMessage.id
         
-        console.log('Mensaje guardado con ID:', userMessageId)
-        
         // Generar título del chat solo si es el primer mensaje del usuario en un chat nuevo
         // (no si el chat fue cargado desde localStorage o de la BD)
         const isFirstMessageInNewChat = messages.length === 0 && !localStorage.getItem('pendingMessages')
