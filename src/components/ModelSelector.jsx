@@ -204,6 +204,7 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
 
       {showInfoModal && (
         <div 
+          role="presentation"
           className="info-modal-backdrop" 
           onClick={handleBackdropClick}
           onKeyDown={(e) => {
@@ -211,10 +212,8 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
               handleCloseModal()
             }
           }}
-          role="dialog"
-          aria-modal="true"
         >
-          <div className="info-modal">
+          <div className="info-modal" role="dialog" aria-modal="true">
             <button 
               className="info-modal-close"
               onClick={handleCloseModal}
@@ -245,6 +244,7 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
       )}
       {showAutoConfigModal && (
         <div 
+          role="presentation"
           className="info-modal-backdrop" 
           onClick={handleBackdropClick}
           onKeyDown={(e) => {
@@ -252,10 +252,8 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
               handleCloseModal()
             }
           }}
-          role="dialog"
-          aria-modal="true"
         >
-          <div className="info-modal">
+          <div className="info-modal" role="dialog" aria-modal="true">
             <button 
               className="info-modal-close"
               onClick={handleCloseModal}

@@ -706,7 +706,7 @@ const onNodeDragStop = (event, node, nodes) => {
             minWidth: '160px'
           }}
           onContextMenu={(e) => e.preventDefault()}
-          role="menu"
+          role="presentation"
         >
           <div style={{ padding: '4px 8px', fontSize: '12px', fontWeight: 'bold', color: isDarkMode ? '#bbb' : '#666', borderBottom: '1px solid #ccc', marginBottom: '4px' }}>
             Tipo de Relación
