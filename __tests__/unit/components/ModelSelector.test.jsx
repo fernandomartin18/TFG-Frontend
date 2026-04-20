@@ -205,4 +205,33 @@ describe('ModelSelector Component', () => {
     expect(screen.queryByText(/Aquí/i)).not.toBeInTheDocument();
   });
 
+
+  test('Abre modal de configuración modo automático y permite testarlo y cambiar opciones', async () => {
+    fetchWithAuth.mockImplementation(async (url) => {
+      if (url.includes('/auto-select')) {
+        return { ok: true, json: () => Promise.resolve({ auto_available: true, visionModels: [], codingModels: [] }) };
+      }
+      return { ok: true, json: () => Promise.resolve({ models: [{ name: 'Model1' }] }) };
+    });
+
+    const onAutoModeConfigChangeMock = vi.fn();
+    
+    render(<ModelSelector {...defaultProps} selectedModel="Auto" autoModeConfig={{ automaticOllamaVisionModel: 'vision-model', automaticOllamaCodingModel: 'coding-model' }} onAutoModeConfigChange={onAutoModeConfigChangeMock} />);
+
+    // Abrir dropdown
+    const button = screen.getByRole('button', { name: /Modelo/i });
+    fireEvent.click(button);
+
+    // Open cog icon
+    const configBtn = await screen.findByTitle('Configurar modo Auto');
+    fireEvent.click(configBtn);
+
+    // Modal is opened
+    expect(screen.getByText('Configuración Modo Auto')).toBeInTheDocument();
+
+    const customRadio = screen.getByLabelText('Personalizado');
+    fireEvent.click(customRadio);
+
+    expect(onAutoModeConfigChangeMock).toHaveBeenCalled();
+  });
 });

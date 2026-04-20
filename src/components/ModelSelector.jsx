@@ -271,6 +271,12 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
         <div 
           className="info-modal-backdrop" 
           onClick={handleBackdropClick}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              handleCloseModal()
+            }
+          }}
+          role="presentation"
         >
           <div className="info-modal">
             <button 
@@ -291,7 +297,7 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
                     checked={autoModeConfig?.type === 'default'}
                     onChange={() => onAutoModeConfigChange({ ...autoModeConfig, type: 'default' })}
                   />
-                  Por defecto
+                  <span>Por defecto</span>
                 </label>
                 <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', opacity: 0.8, paddingLeft: '24px' }}>
                   Selecciona automáticamente el mejor modelo disponible equipado con visión (para leer imágenes y PlantUML) y luego el modelo de lenguaje más potente para generar el código.
@@ -310,15 +316,16 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
                       codingModel: autoModeConfig?.codingModel || defaultAutoModels.coding || (models.length > 1 ? models[1]?.name : models[0]?.name) || '' 
                     })}
                   />
-                  Personalizado
+                  <span>Personalizado</span>
                 </label>
                 
                 {autoModeConfig?.type === 'custom' && (
                   <div style={{ marginTop: '1rem', paddingLeft: '24px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>Modelo Multimodal (Visión)</label>
+                      <label htmlFor="vision-model-select" style={{ fontSize: '0.9rem', fontWeight: 600 }}>Modelo Multimodal (Visión)</label>
                       <select 
+                        id="vision-model-select"
                         value={autoModeConfig.visionModel} 
                         onChange={(e) => {
                           const newVisionModel = e.target.value;
@@ -339,8 +346,9 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>Modelo Generador de Código</label>
+                      <label htmlFor="coding-model-select" style={{ fontSize: '0.9rem', fontWeight: 600 }}>Modelo Generador de Código</label>
                       <select 
+                        id="coding-model-select"
                         value={autoModeConfig.codingModel} 
                         onChange={(e) => {
                           const newCodingModel = e.target.value;

@@ -103,9 +103,22 @@ class AuthService {
 
   // Guardar tokens
   setTokens(accessToken, refreshToken) {
-    localStorage.setItem('accessToken', accessToken)
-    localStorage.setItem('refreshToken', refreshToken)
-    localStorage.setItem('isAuthenticated', 'true')
+    // Expresión regular para validar formato seguro (Base64Url o string alfanumérico). Previene jssecurity:S8475
+    const secureTokenRegex = /^[A-Za-z0-9-_=.]+$/;
+
+    if (accessToken && !secureTokenRegex.test(accessToken)) {
+      throw new Error('Formato de Access Token inválido.');
+    }
+    
+    if (refreshToken && !secureTokenRegex.test(refreshToken)) {
+      throw new Error('Formato de Refresh Token inválido.');
+    }
+
+    localStorage.setItem('accessToken', String(accessToken));
+    if (refreshToken) {
+      localStorage.setItem('refreshToken', String(refreshToken));
+    }
+    localStorage.setItem('isAuthenticated', 'true');
   }
 
   // Guardar datos del usuario

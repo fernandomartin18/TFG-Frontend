@@ -144,7 +144,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
     try {
       const isEditing = editingTemplateId !== null;
       const url = isEditing 
-        ? `http://localhost:3000/api/templates/${editingTemplateId}`
+        ? `http://localhost:3000/api/templates/${encodeURIComponent(Number(editingTemplateId))}`
         : 'http://localhost:3000/api/templates';
       const method = isEditing ? 'PUT' : 'POST';
 
@@ -167,10 +167,10 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
         setNewTemplateTitle('');
         setNewTemplatePrompt('');
       } else {
-        console.error('Error guardando plantilla', await response.text());
+        console.error('Error guardando plantilla: la respuesta del servidor no fue exitosa');
       }
-    } catch (e) {
-      console.error('Error guardando plantilla', e);
+    } catch (error) {
+      console.error('Error procesando la plantilla', error);
     }
   }
 
@@ -198,7 +198,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
   const deleteTemplate = async (templateId) => {
     if (!window.confirm('¿Seguro que quieres borrar esta plantilla?')) return;
     try {
-      const response = await fetchWithAuth(`http://localhost:3000/api/templates/${templateId}`, {
+      const response = await fetchWithAuth(`http://localhost:3000/api/templates/${encodeURIComponent(Number(templateId))}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -330,6 +330,9 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
                     contentEditable
                     suppressContentEditableWarning
                     data-placeholder={p.label}
+                    role="textbox"
+                    tabIndex={0}
+                    aria-label={p.label}
                     onInput={(e) => {
                       const val = e.currentTarget.innerText;
                       setActiveTemplateConfig(prev => ({
@@ -411,6 +414,8 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
           className="template-context-menu"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          role="presentation"
         >
           <button onClick={() => {
             editTemplate(contextMenu.template);
@@ -429,8 +434,21 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
       )}
       
       {isCreateTemplateModalOpen && createPortal(
-        <div className="template-modal-backdrop" onClick={() => setIsCreateTemplateModalOpen(false)}>
-          <div className="template-modal" onClick={e => e.stopPropagation()}>
+        <div 
+          className="template-modal-backdrop" 
+          onClick={() => setIsCreateTemplateModalOpen(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === 'Escape') setIsCreateTemplateModalOpen(false)
+          }}
+          role="button"
+          tabIndex={0}
+        >
+          <div 
+            className="template-modal" 
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => e.stopPropagation()}
+            role="presentation"
+          >
             <button className="template-modal-close" onClick={() => setIsCreateTemplateModalOpen(false)}>
               <HiX size={20} />
             </button>
@@ -480,6 +498,8 @@ ChatInput.propTypes = {
   isLoading: PropTypes.bool,
   selectedModel: PropTypes.string.isRequired,
   onModelChange: PropTypes.func.isRequired,
+  autoModeConfig: PropTypes.object,
+  onAutoModeConfigChange: PropTypes.func,
   images: PropTypes.array.isRequired,
   onImagesChange: PropTypes.func.isRequired,
   initialInput: PropTypes.string,
