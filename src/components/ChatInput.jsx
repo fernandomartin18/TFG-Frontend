@@ -435,17 +435,17 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
       
       {isCreateTemplateModalOpen && createPortal(
         <div 
+          role="presentation"
           className="template-modal-backdrop" 
-          onClick={() => setIsCreateTemplateModalOpen(false)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === 'Escape') setIsCreateTemplateModalOpen(false)
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsCreateTemplateModalOpen(false)
           }}
-          aria-hidden="true"
+          onKeyDown={(e) => {
+            if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === 'Escape')) setIsCreateTemplateModalOpen(false)
+          }}
         >
           <div 
             className="template-modal" 
-            onClick={e => e.stopPropagation()}
-            onKeyDown={e => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
           >
