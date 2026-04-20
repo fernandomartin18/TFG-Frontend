@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
-import { BsInfoCircle } from 'react-icons/bs'
+import { BsInfoCircle, BsGear } from 'react-icons/bs'
 import { MdClose } from 'react-icons/md'
 import { fetchWithAuth } from '../services/api.service'
 import '../css/ModelSelector.css'
 
-function ModelSelector({ selectedModel, onModelChange }) {
+function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoModeConfigChange }) {
   const [isOpen, setIsOpen] = useState(false)
   const [showInfoModal, setShowInfoModal] = useState(false)
+  const [showAutoConfigModal, setShowAutoConfigModal] = useState(false)
   const [models, setModels] = useState([])
   const [loading, setLoading] = useState(false)
   const [autoAvailable, setAutoAvailable] = useState(false)
+  const [defaultAutoModels, setDefaultAutoModels] = useState({ vision: '', coding: '' })
   const dropdownRef = useRef(null)
 
   useEffect(() => {
@@ -68,6 +70,12 @@ function ModelSelector({ selectedModel, onModelChange }) {
         const data = await response.json()
         const isAutoAvailable = data.auto_available || false
         setAutoAvailable(isAutoAvailable)
+        if (isAutoAvailable) {
+          setDefaultAutoModels({
+            vision: data.vision_model || '',
+            coding: data.coding_model || ''
+          })
+        }
         
         // Solo configurar modelo inicial si selectedModel está vacío
         if (!selectedModel) {
@@ -120,14 +128,25 @@ function ModelSelector({ selectedModel, onModelChange }) {
     setShowInfoModal(true)
   }
 
+  const handleAutoConfigClick = (e) => {
+    e.stopPropagation()
+    setShowAutoConfigModal(true)
+  }
+
   const handleCloseModal = () => {
     setShowInfoModal(false)
+    setShowAutoConfigModal(false)
   }
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       handleCloseModal()
     }
+  }
+
+  const handleSaveAutoConfig = () => {
+    // If it's custom but missing a model, maybe fallback or show error. For now we just close.
+    setShowAutoConfigModal(false)
   }
 
   return (
@@ -162,6 +181,7 @@ function ModelSelector({ selectedModel, onModelChange }) {
             <>
               <div 
                 className={`model-option ${selectedModel === 'Auto' ? 'selected' : ''} ${!autoAvailable ? 'disabled' : ''}`}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 onClick={autoAvailable ? () => handleSelectModel('Auto') : undefined}
                 onKeyDown={autoAvailable ? (e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -173,7 +193,17 @@ function ModelSelector({ selectedModel, onModelChange }) {
                 tabIndex={autoAvailable ? 0 : -1}
                 aria-disabled={!autoAvailable}
               >
-                Auto
+                <span>Auto</span>
+                {autoAvailable && (
+                  <button 
+                    type="button"
+                    className="auto-config-btn"
+                    onClick={handleAutoConfigClick}
+                    title="Configurar modo Auto"
+                  >
+                    <BsGear size={16} />
+                  </button>
+                )}
               </div>
               {models.map((model) => (
                 <div 
@@ -237,13 +267,124 @@ function ModelSelector({ selectedModel, onModelChange }) {
           </div>
         </div>
       )}
+      {showAutoConfigModal && (
+        <div 
+          className="info-modal-backdrop" 
+          onClick={handleBackdropClick}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              handleCloseModal()
+            }
+          }}
+          role="presentation"
+        >
+          <div className="info-modal">
+            <button 
+              className="info-modal-close"
+              onClick={handleCloseModal}
+              title="Cerrar"
+            >
+              <MdClose size={24} />
+            </button>
+            <div className="info-modal-content">
+              <h3>Configuración Modo Auto</h3>
+              
+              <div className="auto-config-option" style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600 }}>
+                  <input 
+                    type="radio" 
+                    name="autoConfigType" 
+                    checked={autoModeConfig?.type === 'default'}
+                    onChange={() => onAutoModeConfigChange({ ...autoModeConfig, type: 'default' })}
+                  />
+                  <span>Por defecto</span>
+                </label>
+                <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', opacity: 0.8, paddingLeft: '24px' }}>
+                  Selecciona automáticamente el mejor modelo disponible equipado con visión (para leer imágenes y PlantUML) y luego el modelo de lenguaje más potente para generar el código.
+                </p>
+              </div>
+
+              <div className="auto-config-option" style={{ marginTop: '1rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600 }}>
+                  <input 
+                    type="radio" 
+                    name="autoConfigType" 
+                    checked={autoModeConfig?.type === 'custom'}
+                    onChange={() => onAutoModeConfigChange({ 
+                      type: 'custom', 
+                      visionModel: autoModeConfig?.visionModel || defaultAutoModels.vision || models[0]?.name || '', 
+                      codingModel: autoModeConfig?.codingModel || defaultAutoModels.coding || (models.length > 1 ? models[1]?.name : models[0]?.name) || '' 
+                    })}
+                  />
+                  <span>Personalizado</span>
+                </label>
+                
+                {autoModeConfig?.type === 'custom' && (
+                  <div style={{ marginTop: '1rem', paddingLeft: '24px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label htmlFor="vision-model-select" style={{ fontSize: '0.9rem', fontWeight: 600 }}>Modelo Multimodal (Visión)</label>
+                      <select 
+                        id="vision-model-select"
+                        value={autoModeConfig.visionModel} 
+                        onChange={(e) => {
+                          const newVisionModel = e.target.value;
+                          const newConfig = { ...autoModeConfig, visionModel: newVisionModel };
+                          if (models.length === 2 && newVisionModel === autoModeConfig.codingModel) {
+                             newConfig.codingModel = models.find(m => m.name !== newVisionModel)?.name || newVisionModel;
+                          }
+                          onAutoModeConfigChange(newConfig);
+                        }}
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--input-bg)', color: 'var(--text-color)' }}
+                      >
+                        {models.map(m => (
+                          <option key={m.name} value={m.name} disabled={models.length > 2 && m.name === autoModeConfig.codingModel}>
+                            {m.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label htmlFor="coding-model-select" style={{ fontSize: '0.9rem', fontWeight: 600 }}>Modelo Generador de Código</label>
+                      <select 
+                        id="coding-model-select"
+                        value={autoModeConfig.codingModel} 
+                        onChange={(e) => {
+                          const newCodingModel = e.target.value;
+                          const newConfig = { ...autoModeConfig, codingModel: newCodingModel };
+                          if (models.length === 2 && newCodingModel === autoModeConfig.visionModel) {
+                             newConfig.visionModel = models.find(m => m.name !== newCodingModel)?.name || newCodingModel;
+                          }
+                          onAutoModeConfigChange(newConfig);
+                        }}
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--input-bg)', color: 'var(--text-color)' }}
+                      >
+                        {models.map(m => (
+                          <option key={m.name} value={m.name} disabled={models.length > 2 && m.name === autoModeConfig.visionModel}>
+                            {m.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 ModelSelector.propTypes = {
   selectedModel: PropTypes.string.isRequired,
-  onModelChange: PropTypes.func.isRequired
+  onModelChange: PropTypes.func.isRequired,
+  autoModeConfig: PropTypes.object,
+  onAutoModeConfigChange: PropTypes.func
 }
 
 export default ModelSelector

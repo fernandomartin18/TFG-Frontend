@@ -302,4 +302,61 @@ describe('Auth Service', () => {
       ).rejects.toThrow('Usuario ya existe');
     });
   });
+
+  describe('RefreshToken', () => {
+    it('debería lanzar error si no hay refresh token', async () => {
+      localStorage.removeItem('refreshToken');
+      await expect(authService.refreshToken()).rejects.toThrow('No hay refresh token');
+    });
+
+    it('debería refrescar los tokens correctamente', async () => {
+      localStorage.setItem('refreshToken', 'old-refresh');
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ accessToken: 'new-acs', refreshToken: 'new-ref' })
+      });
+      const token = await authService.refreshToken();
+      expect(token).toBe('new-acs');
+      expect(localStorage.getItem('accessToken')).toBe('new-acs');
+      expect(localStorage.getItem('refreshToken')).toBe('new-ref');
+    });
+
+    it('debería limpiar tokens y lanzar error si fetch falla', async () => {
+      localStorage.setItem('refreshToken', 'old-refresh');
+      global.fetch.mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ error: 'Invalid refresh token' })
+      });
+      await expect(authService.refreshToken()).rejects.toThrow('Invalid refresh token');
+      expect(localStorage.getItem('refreshToken')).toBeNull();
+    });
+  });
+
+  describe('UpdateUserProfile', () => {
+    it('debería lanzar error si no hay access token', async () => {
+      localStorage.removeItem('accessToken');
+      await expect(authService.updateUserProfile('newUser', 'url')).rejects.toThrow('No hay token de autenticación');
+    });
+
+    it('debería actualizar el usuario', async () => {
+      localStorage.setItem('accessToken', 'token');
+      const mockUser = { username: 'newUser', email: 'test@test.com' };
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ user: mockUser })
+      });
+      const data = await authService.updateUserProfile('newUser', 'url');
+      expect(data.user.username).toBe('newUser');
+      expect(JSON.parse(localStorage.getItem('user')).username).toBe('newUser');
+    });
+
+    it('debería lanzar error si falla el update', async () => {
+      localStorage.setItem('accessToken', 'token');
+      global.fetch.mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ error: 'Update failed' })
+      });
+      await expect(authService.updateUserProfile('newUser', 'url')).rejects.toThrow('Update failed');
+    });
+  });
 });

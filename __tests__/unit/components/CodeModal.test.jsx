@@ -115,4 +115,47 @@ describe('CodeModal Component', () => {
 
       expect(mockOnClose).not.toHaveBeenCalled();
   });
+
+  it('closes on Escape key press', () => {
+      const { container } = render(
+          <CodeModal
+              code={mockCode}
+              language={mockLanguage}
+              onClose={mockOnClose}
+              onDownload={mockOnDownload}
+          />
+      );
+      
+      const backdrop = container.querySelector('.code-modal-backdrop');
+      fireEvent.keyDown(backdrop, { key: 'Escape' });
+      
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      
+      // Otra tecla no cierra
+      fireEvent.keyDown(backdrop, { key: 'Enter' });
+      expect(mockOnClose).toHaveBeenCalledTimes(1); // No sube a 2
+  });
+
+  it('handles copy error gracefully', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    navigator.clipboard.writeText.mockRejectedValue(new Error('Async error clipboard'));
+
+    render(
+      <CodeModal
+        code={mockCode}
+        language={mockLanguage}
+        onClose={mockOnClose}
+        onDownload={mockOnDownload}
+      />
+    );
+
+    const copyButton = screen.getByTitle('Copiar código');
+    fireEvent.click(copyButton);
+
+    await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith('Error al copiar:', expect.any(Error));
+    });
+
+    consoleSpy.mockRestore();
+  });
 });

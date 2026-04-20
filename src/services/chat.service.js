@@ -21,7 +21,7 @@ class ChatService {
    * Obtener un chat específico con todos sus mensajes
    */
   async getChatById(chatId) {
-    const response = await fetchWithAuth(`${API_URL}/chats/${chatId}`)
+    const response = await fetchWithAuth(`${API_URL}/chats/${encodeURIComponent(Number(chatId))}`)
     const data = await response.json()
 
     if (!response.ok) {
@@ -53,7 +53,7 @@ class ChatService {
    * Actualizar el título de un chat
    */
   async updateChatTitle(chatId, title) {
-    const response = await fetchWithAuth(`${API_URL}/chats/${chatId}`, {
+    const response = await fetchWithAuth(`${API_URL}/chats/${encodeURIComponent(Number(chatId))}`, {
       method: 'PUT',
       body: JSON.stringify({ title }),
     })
@@ -71,7 +71,7 @@ class ChatService {
    * Eliminar un chat
    */
   async deleteChat(chatId) {
-    const response = await fetchWithAuth(`${API_URL}/chats/${chatId}`, {
+    const response = await fetchWithAuth(`${API_URL}/chats/${encodeURIComponent(Number(chatId))}`, {
       method: 'DELETE',
     })
 
@@ -88,7 +88,7 @@ class ChatService {
    * Fijar o desfijar un chat
    */
   async togglePinChat(chatId, pinned) {
-    const response = await fetchWithAuth(`${API_URL}/chats/${chatId}/pin`, {
+    const response = await fetchWithAuth(`${API_URL}/chats/${encodeURIComponent(Number(chatId))}/pin`, {
       method: 'PATCH',
       body: JSON.stringify({ pinned }),
     })
@@ -106,7 +106,7 @@ class ChatService {
    * Crear un mensaje en un chat
    */
   async createMessage(chatId, role, content, isError = false, isCollapsible = false, images = []) {
-    const response = await fetchWithAuth(`${API_URL}/chats/${chatId}/messages`, {
+    const response = await fetchWithAuth(`${API_URL}/chats/${encodeURIComponent(Number(chatId))}/messages`, {
       method: 'POST',
       body: JSON.stringify({ role, content, isError, isCollapsible, images }),
     })
@@ -114,7 +114,6 @@ class ChatService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('Error en respuesta:', data)
       throw new Error(data.error || data.message || 'Error al crear mensaje')
     }
 
@@ -125,7 +124,7 @@ class ChatService {
    * Obtener mensajes de un chat
    */
   async getMessages(chatId) {
-    const response = await fetchWithAuth(`${API_URL}/chats/${chatId}/messages`)
+    const response = await fetchWithAuth(`${API_URL}/chats/${encodeURIComponent(Number(chatId))}/messages`)
     const data = await response.json()
 
     if (!response.ok) {
@@ -139,7 +138,7 @@ class ChatService {
    * Crear código generado
    */
   async createCode(messageId, codeData) {
-    const response = await fetchWithAuth(`${API_URL}/messages/${messageId}/codes`, {
+    const response = await fetchWithAuth(`${API_URL}/messages/${encodeURIComponent(Number(messageId))}/codes`, {
       method: 'POST',
       body: JSON.stringify(codeData),
     })
@@ -193,7 +192,7 @@ class ChatService {
    * Actualizar nombre de un proyecto
    */
   async updateProjectName(projectId, name) {
-    const response = await fetchWithAuth(`${API_URL}/projects/${projectId}`, {
+    const response = await fetchWithAuth(`${API_URL}/projects/${encodeURIComponent(Number(projectId))}`, {
       method: 'PUT',
       body: JSON.stringify({ name }),
     })
@@ -211,7 +210,7 @@ class ChatService {
    * Alternar estado expandido/colapsado del proyecto
    */
   async toggleProjectExpanded(projectId, isExpanded) {
-    const response = await fetchWithAuth(`${API_URL}/projects/${projectId}/toggle-expand`, {
+    const response = await fetchWithAuth(`${API_URL}/projects/${encodeURIComponent(Number(projectId))}/toggle-expand`, {
       method: 'PATCH',
       body: JSON.stringify({ isExpanded }),
     })
@@ -229,7 +228,7 @@ class ChatService {
    * Eliminar un proyecto
    */
   async deleteProject(projectId) {
-    const response = await fetchWithAuth(`${API_URL}/projects/${projectId}`, {
+    const response = await fetchWithAuth(`${API_URL}/projects/${encodeURIComponent(Number(projectId))}`, {
       method: 'DELETE',
     })
 
@@ -264,7 +263,7 @@ class ChatService {
    * Quitar un chat de un proyecto
    */
   async removeChatFromProject(chatId) {
-    const response = await fetchWithAuth(`${API_URL}/projects/remove-chat/${chatId}`, {
+    const response = await fetchWithAuth(`${API_URL}/projects/remove-chat/${encodeURIComponent(Number(chatId))}`, {
       method: 'DELETE',
     })
 

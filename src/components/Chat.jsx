@@ -15,6 +15,7 @@ function Chat({ isAuthenticated }) {
   const [initialInputText, setInitialInputText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [selectedModel, setSelectedModel] = useState('')
+  const [autoModeConfig, setAutoModeConfig] = useState({ type: 'default', visionModel: '', codingModel: '' })
   const [images, setImages] = useState([])
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
     // Priorizar localStorage
@@ -23,11 +24,11 @@ function Chat({ isAuthenticated }) {
       return savedTheme === 'dark'
     }
     // Si hay un atributo en el html, usar ese
-    if (document.documentElement.hasAttribute('data-theme')) {
-      return document.documentElement.getAttribute('data-theme') === 'dark'
+    if (document.documentElement.dataset.theme) {
+      return document.documentElement.dataset.theme === 'dark'
     }
     // Detectar preferencia del sistema
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
+    return globalThis.matchMedia('(prefers-color-scheme: dark)').matches
   })
   const [codeRequests, setCodeRequests] = useState([])
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true)
@@ -50,19 +51,23 @@ function Chat({ isAuthenticated }) {
       }
     }
 
-    if (location.state?.plantumlEdited) {
+    if (location.state?.plantumlCreated) {
+      const code = location.state.editedCode
+      setInitialInputText(`\`\`\`plantuml\n${code}\n\`\`\`\n\nDado este código plantuml, genera los códigos necesarios en [INDICAR LENGUAJE]. Implementa correctamente las clases, métodos, y las relaciones orientadas a objetos (herencia, composición, etc.) que se aprecien visualmente y, antes de enviar cada código, indica en texto el paquete al que pertenece si es que los hay.`)
+      globalThis.history.replaceState({}, document.title)
+    } else if (location.state?.plantumlEdited) {
       const code = location.state.editedCode
       setInitialInputText(`He modificado el código PlantUML anterior. Aquí está la nueva versión:\n${code}\nPor favor, devuélveme los códigos para implementar el nuevo PlantUML.`)
       // Limpiar el state para que no se vuelva a ejecutar si recarga
-      window.history.replaceState({}, document.title)
+      globalThis.history.replaceState({}, document.title)
     } else if (location.state?.returnToChatId) {
-      window.history.replaceState({}, document.title)
+      globalThis.history.replaceState({}, document.title)
     }
   }, [location.state, isAuthenticated])
 
   // Aplicar tema
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light')
+    document.documentElement.dataset.theme = isDarkTheme ? 'dark' : 'light'
     localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light')
   }, [isDarkTheme])
 
@@ -89,98 +94,81 @@ function Chat({ isAuthenticated }) {
 
   // Recuperar y guardar mensajes cuando el usuario inicia sesión
   useEffect(() => {
-    const saveMessagesAfterAuth = async () => {
-      // Verificar que no hayan sido procesados los mensajes pendientes
-      if (isAuthenticated && !hasProcessedPendingMessages.current) {
-        const pendingMessagesStr = localStorage.getItem('pendingMessages')
-        
-        if (pendingMessagesStr) {
-          try {
-            const pendingMessages = JSON.parse(pendingMessagesStr)
-            
-            // Solo procesar si hay mensajes válidos
-            if (pendingMessages.length > 0) {
-              // Marcar como procesado inmediatamente para evitar ejecuciones duplicadas
-              hasProcessedPendingMessages.current = true
-              
-              // Crear un nuevo chat para guardar los mensajes existentes
-              const firstUserMessage = pendingMessages.find(msg => msg.isUser)?.text || 'Chat sin título'
-              const wordCount = firstUserMessage.trim().split(/\s+/).length
-              const chatTitle = wordCount <= 4 ? firstUserMessage.trim() : 'Nuevo Chat'
-              
-              const newChat = await chatService.createChat(chatTitle)
-              const chatId = newChat.id
-              
-              // Guardar todos los mensajes en orden
-              for (const msg of pendingMessages) {
-                if (!msg.isError && !msg.isLoading) {
-                  const role = msg.isUser ? 'user' : 'assistant'
-                  await chatService.createMessage(
-                    chatId, 
-                    role, 
-                    msg.text, 
-                    msg.isError || false, 
-                    msg.isTwoStep || false
-                  )
-                }
-              }
-              
-              // Si el título es genérico y hay más de un mensaje, generar uno automático
-              if (chatTitle === 'Nuevo Chat' && pendingMessages.length > 1) {
-                try {
-                  const titleResponse = await fetchWithAuth('http://localhost:3000/api/generate/title', {
-                    method: 'POST',
-                    body: JSON.stringify({ 
-                      conversation: pendingMessages.slice(0, 6).map(msg => ({
-                        role: msg.isUser ? 'user' : 'assistant',
-                        content: msg.text
-                      }))
-                    })
-                  })
-                  
-                  if (titleResponse.ok) {
-                    const data = await titleResponse.json()
-                    await chatService.updateChatTitle(chatId, data.title)
-                  }
-                } catch (error) {
-                  console.error('Error al generar título:', error)
-                }
-              }
-              
-              // Cargar los mensajes del chat recién creado
-              setMessages(pendingMessages)
-              setCurrentChatId(chatId)
-              
-              // Actualizar la lista de chats en el sidebar
-              setTimeout(() => {
-                if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
-                  leftSidebarRef.current.refreshChats()
-                }
-              }, 100)
-              
-              console.log('Mensajes guardados exitosamente al iniciar sesión')
-            } else {
-              // Si no hay mensajes, solo marcar como procesado y mantener el chat vacío
-              hasProcessedPendingMessages.current = true
-              setMessages([])
-              setCurrentChatId(null)
-              setImages([])
-            }
-            
-            // Limpiar los mensajes pendientes INMEDIATAMENTE
-            localStorage.removeItem('pendingMessages')
-          } catch (error) {
-            console.error('Error al guardar mensajes existentes:', error)
-            localStorage.removeItem('pendingMessages')
-            hasProcessedPendingMessages.current = false // Resetear en caso de error
-          }
-        } else {
-          // Si no hay mensajes pendientes, marcar como procesado y mantener el chat vacío
-          hasProcessedPendingMessages.current = true
-          setMessages([])
-          setCurrentChatId(null)
-          setImages([])
+    const handlePendingMessages = async (pendingMessages) => {
+      hasProcessedPendingMessages.current = true
+      
+      if (pendingMessages.length === 0) {
+        setMessages([])
+        setCurrentChatId(null)
+        setImages([])
+        return
+      }
+
+      const firstUserMessage = pendingMessages.find(msg => msg.isUser)?.text || 'Chat sin título'
+      const wordCount = firstUserMessage.trim().split(/\\s+/).length
+      const chatTitle = wordCount <= 4 ? firstUserMessage.trim() : 'Nuevo Chat'
+      
+      const newChat = await chatService.createChat(chatTitle)
+      const chatId = newChat.id
+      
+      for (const msg of pendingMessages) {
+        if (!msg.isError && !msg.isLoading) {
+          await chatService.createMessage(
+            chatId, 
+            msg.isUser ? 'user' : 'assistant', 
+            msg.text, 
+            msg.isError || false, 
+            msg.isTwoStep || false
+          )
         }
+      }
+      
+      if (chatTitle === 'Nuevo Chat' && pendingMessages.length > 1) {
+        try {
+          const titleResponse = await fetchWithAuth('http://localhost:3000/api/generate/title', {
+            method: 'POST',
+            body: JSON.stringify({ 
+              conversation: pendingMessages.slice(0, 6).map(msg => ({
+                role: msg.isUser ? 'user' : 'assistant',
+                content: msg.text
+              }))
+            })
+          })
+          
+          if (titleResponse.ok) {
+            const data = await titleResponse.json()
+            await chatService.updateChatTitle(chatId, data.title)
+          }
+        } catch (error) {
+          console.error('Error al generar título:', error)
+        }
+      }
+      
+      setMessages(pendingMessages)
+      setCurrentChatId(chatId)
+      setTimeout(() => leftSidebarRef.current?.refreshChats?.(), 100)
+    }
+
+    const saveMessagesAfterAuth = async () => {
+      if (!isAuthenticated || hasProcessedPendingMessages.current) return
+      
+      const pendingMessagesStr = localStorage.getItem('pendingMessages')
+      if (!pendingMessagesStr) {
+        hasProcessedPendingMessages.current = true
+        setMessages([])
+        setCurrentChatId(null)
+        setImages([])
+        return
+      }
+
+      try {
+        const pendingMessages = JSON.parse(pendingMessagesStr)
+        await handlePendingMessages(pendingMessages)
+        localStorage.removeItem('pendingMessages')
+      } catch (error) {
+        console.error('Error al guardar mensajes existentes:', error)
+        localStorage.removeItem('pendingMessages')
+        hasProcessedPendingMessages.current = false
       }
     }
 
@@ -189,6 +177,44 @@ function Chat({ isAuthenticated }) {
 
   // Extraer bloques de código de los mensajes de la IA
   useEffect(() => {
+    const processAssistantMessage = (text, currentRequestCodes) => {
+      const packagePattern = /(?:^|\n)(#{1,6})\s*(?:Package|package|Paquete|paquete|PACKAGE|PAQUETE)\s*:?\s*`?([a-zA-Z][a-zA-Z0-9_.-]*)`?/g
+      const codeBlockPattern = /```(\w+)?\n([\s\S]*?)```/g
+      const allMatches = []
+      
+      let packageMatch
+      while ((packageMatch = packagePattern.exec(text)) !== null) {
+        const headerLevel = packageMatch[1].length
+        const packageName = packageMatch[2].trim()
+        if (packageName) {
+          allMatches.push({ type: 'package', index: packageMatch.index, name: packageName, level: headerLevel })
+        }
+      }
+      
+      let codeMatch
+      while ((codeMatch = codeBlockPattern.exec(text)) !== null) {
+        const content = codeMatch[2].trim()
+        if (content) {
+          allMatches.push({ type: 'code', index: codeMatch.index, language: codeMatch[1] || 'text', content: content })
+        }
+      }
+      
+      allMatches.sort((a, b) => a.index - b.index)
+      
+      const packageStack = []
+      for (const match of allMatches) {
+        if (match.type === 'package') {
+          while (packageStack.length > 0 && packageStack.at(-1).level >= match.level) {
+            packageStack.pop()
+          }
+          packageStack.push({ name: match.name, level: match.level })
+        } else if (match.type === 'code' && match.content) {
+          const currentPackage = packageStack.length > 0 ? packageStack.map(p => p.name).join('/') : null
+          currentRequestCodes.push({ content: match.content, language: match.language, package: currentPackage })
+        }
+      }
+    }
+
     const extractCodeBlocks = () => {
       const requests = []
       let currentRequestCodes = []
@@ -196,94 +222,15 @@ function Chat({ isAuthenticated }) {
       let isCollectingCodes = false
 
       messages.forEach((msg) => {
-        // Detectar inicio de una nueva petición (mensaje del usuario)
         if (msg.isUser) {
-          // Si había códigos de la petición anterior, guardarlos
           if (currentRequestCodes.length > 0) {
-            requests.push({ 
-              codes: currentRequestCodes,
-              userMessage: currentUserMessage
-            })
-            currentRequestCodes = [] // Resetear para la nueva petición
+            requests.push({ codes: currentRequestCodes, userMessage: currentUserMessage })
+            currentRequestCodes = [] 
           }
           isCollectingCodes = true
           currentUserMessage = msg.text
-        } 
-        // Extraer códigos de respuestas de la IA
-        else if (isCollectingCodes && !msg.isUser && !msg.isError) {
-          // Detectar paquetes y códigos
-          const text = msg.text
-          
-          // Buscar paquetes y códigos en el texto
-          const packagePattern = /(?:^|\n)(#{1,6})\s*(?:Package|package|Paquete|paquete|PACKAGE|PAQUETE)\s*:?\s*`?([a-zA-Z][a-zA-Z0-9_.-]*)`?/g
-          const codeBlockPattern = /```(\w+)?\n([\s\S]*?)```/g
-          
-          // Crear un array con todas las coincidencias (paquetes y códigos)
-          const allMatches = []
-          
-          let packageMatch
-          while ((packageMatch = packagePattern.exec(text)) !== null) {
-            const headerLevel = packageMatch[1].length // Número de #
-            const packageName = packageMatch[2].trim()
-            if (packageName) {
-              allMatches.push({
-                type: 'package',
-                index: packageMatch.index,
-                name: packageName,
-                level: headerLevel
-              })
-              console.log('Paquete detectado:', packageName, 'nivel:', headerLevel, 'en posición:', packageMatch.index)
-            }
-          }
-          
-          let codeMatch
-          while ((codeMatch = codeBlockPattern.exec(text)) !== null) {
-            const content = codeMatch[2].trim()
-            if (content) {
-              allMatches.push({
-                type: 'code',
-                index: codeMatch.index,
-                language: codeMatch[1] || 'text',
-                content: content
-              })
-              console.log('💻 Código detectado:', codeMatch[1] || 'text', 'en posición:', codeMatch.index)
-            }
-          }
-          
-          // Ordenar por índice de aparición
-          allMatches.sort((a, b) => a.index - b.index)
-          
-          console.log('Todas las coincidencias ordenadas:', allMatches.map(m => 
-            m.type === 'package' ? `${m.type}: ${m.name} (nivel ${m.level})` : `${m.type}: ${m.language}`
-          ))
-          
-          // Procesar las coincidencias en orden manteniendo la jerarquía de paquetes
-          const packageStack = []
-          
-          allMatches.forEach((match) => {
-            if (match.type === 'package') {
-              // Limpiar paquetes de la pila que estén al mismo nivel o más profundos
-              while (packageStack.length > 0 && packageStack[packageStack.length - 1].level >= match.level) {
-                packageStack.pop()
-              }
-              
-              // Agregar el paquete actual a la pila
-              packageStack.push({ name: match.name, level: match.level })
-              
-            } else if (match.type === 'code' && match.content) {
-              // Obtener el path completo del paquete actual
-              const currentPackage = packageStack.length > 0 
-                ? packageStack.map(p => p.name).join('/')
-                : null
-              
-              console.log('Agregando código al paquete:', currentPackage || 'sin paquete')
-              currentRequestCodes.push({
-                content: match.content,
-                language: match.language,
-                package: currentPackage
-              })
-            }
-          })
+        } else if (isCollectingCodes && !msg.isUser && !msg.isError) {
+          processAssistantMessage(msg.text, currentRequestCodes)
         }
       })
 
@@ -329,12 +276,7 @@ function Chat({ isAuthenticated }) {
 
       scrollTimeout = setTimeout(() => {
         const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 10
-        
-        if (!isAtBottom) {
-          autoScrollEnabled.current = false
-        } else {
-          autoScrollEnabled.current = true
-        }
+        autoScrollEnabled.current = isAtBottom
       }, 50)
     }
 
@@ -457,7 +399,7 @@ function Chat({ isAuthenticated }) {
       // Encontrar el proyecto actual
       const currentProject = projects.find(p => p.id === projectId)
       
-      if (!currentProject || !currentProject.chats || currentProject.chats.length === 0) {
+      if (!currentProject?.chats?.length) {
         return []
       }
       
@@ -490,6 +432,75 @@ function Chat({ isAuthenticated }) {
     }
   }
 
+  // Helper function to generate and set chat title
+  const generateAndSetChatTitle = async (chatId, userMessage) => {
+    try {
+      const formDataTitle = new FormData()
+      formDataTitle.append('model', selectedModel === 'Auto' ? 'qwen2.5-coder:14b' : selectedModel)
+      formDataTitle.append('prompt', `A continuación te presento el comienzo de una conversación que acaba de tener lugar. Por favor, devuélveme como respuesta única y exclusivamente un título de como máximo 4 PALABRAS que defina y resuma la conversación. NO PONGAS COMILLAS:\n${userMessage}`)
+      formDataTitle.append('messages', JSON.stringify([]))
+      formDataTitle.append('autoMode', 'false')
+      
+      const titleResponse = await fetchWithAuth('http://localhost:3000/api/generate/stream', {
+        method: 'POST',
+        body: formDataTitle
+      })
+      
+      const fallbackTitle = userMessage.trim().split(/\s+/).slice(0, 4).join(' ')
+
+      if (titleResponse.ok) {
+        const reader = titleResponse.body.getReader()
+        const decoder = new TextDecoder()
+        let generatedTitle = ''
+        
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          
+          const chunk = decoder.decode(value, { stream: true })
+          const lines = chunk.split('\n')
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ') && !line.includes('[DONE]')) {
+              const data = line.slice(6)
+              if (!data.startsWith('[ERROR]')) {
+                try {
+                  const decodedChunk = JSON.parse(data)
+                  if (typeof decodedChunk === 'string') {
+                    generatedTitle += decodedChunk
+                  }
+                } catch (e) {
+                  console.warn('Fallback: Error al decodificar texto JSON', e)
+                  generatedTitle += data
+                }
+              }
+            }
+          }
+        }
+        
+        // Limpiar y limitar el título generado
+        const cleanTitle = generatedTitle.trim().replaceAll(/["']/g, '')
+        const titleWords = cleanTitle.split(/\s+/).slice(0, 4).join(' ')
+        
+        if (titleWords) {
+          await chatService.updateChatTitle(chatId, titleWords)
+        } else {
+          await chatService.updateChatTitle(chatId, fallbackTitle)
+        }
+      } else {
+        await chatService.updateChatTitle(chatId, fallbackTitle)
+      }
+      
+      // Actualizar la lista de chats
+      leftSidebarRef.current?.refreshChats?.()
+    } catch (error) {
+      console.error('Error al generar título con IA:', error)
+      const fallbackTitle = userMessage.trim().split(/\s+/).slice(0, 4).join(' ')
+      await chatService.updateChatTitle(chatId, fallbackTitle)
+      leftSidebarRef.current?.refreshChats?.()
+    }
+  }
+
   const handleSendMessage = async (userMessage) => {
     autoScrollEnabled.current = true
     
@@ -501,9 +512,7 @@ function Chat({ isAuthenticated }) {
         chatId = newChat.id
         setCurrentChatId(chatId)
         // Actualizar la lista de chats en el sidebar
-        if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
-          leftSidebarRef.current.refreshChats()
-        }
+        leftSidebarRef.current?.refreshChats?.()
       } catch (error) {
         console.error('Error al crear chat:', error)
       }
@@ -530,7 +539,6 @@ function Chat({ isAuthenticated }) {
     setImages([])
     
     // Guardar mensaje del usuario inmediatamente en la BD si hay chat activo
-    let userMessageId = null
     let shouldGenerateTitle = false
     if (chatId && isAuthenticated) {
       try {
@@ -554,7 +562,7 @@ function Chat({ isAuthenticated }) {
 
         console.log('Imágenes a guardar:', imagesToSave.length, imagesToSave.map(i => ({ name: i.name, size: i.size })))
 
-        const savedUserMessage = await chatService.createMessage(
+        await chatService.createMessage(
           chatId, 
           'user', 
           userMessage, 
@@ -562,9 +570,6 @@ function Chat({ isAuthenticated }) {
           false,  // isCollapsible
           imagesToSave
         )
-        userMessageId = savedUserMessage.id
-        
-        console.log('Mensaje guardado con ID:', userMessageId)
         
         // Generar título del chat solo si es el primer mensaje del usuario en un chat nuevo
         // (no si el chat fue cargado desde localStorage o de la BD)
@@ -630,6 +635,11 @@ function Chat({ isAuthenticated }) {
       formData.append('messages', JSON.stringify(messageHistory))
       formData.append('autoMode', isAutoMode ? 'true' : 'false')
       
+      if (isAutoMode && autoModeConfig.type === 'custom') {
+        if (autoModeConfig.visionModel) formData.append('visionModel', autoModeConfig.visionModel)
+        if (autoModeConfig.codingModel) formData.append('codingModel', autoModeConfig.codingModel)
+      }
+
       if (imagesToSend.length > 0) {
         imagesToSend.forEach((img) => {
           formData.append('images', img.file)
@@ -667,14 +677,7 @@ function Chat({ isAuthenticated }) {
             }
             if (data.startsWith('[ERROR]')) {
               const errorMessage = data.slice(8)
-              // Si es un error de diagrama no detectado, mostrar fuera del desplegable
               if (errorMessage.includes('No se ha detectado ningún diagrama UML')) {
-                // Resetear el estado antes de mostrar el error
-                currentStep = 0
-                accumulatedText = ''
-                step1Text = ''
-                step2Text = ''
-                
                 setMessages(prev => {
                   const newMessages = [...prev]
                   newMessages[aiMessageIndex] = {
@@ -788,84 +791,8 @@ function Chat({ isAuthenticated }) {
           // Generar título usando IA si es el primer mensaje y tiene más de 4 palabras
           if (shouldGenerateTitle) {
             const wordCount = userMessage.trim().split(/\s+/).length
-            
             if (wordCount > 4) {
-              try {
-                // Llamar a la IA para generar un título resumido
-                const titlePrompt = `Resume la siguiente petición en máximo 4 palabras para usar como título. Solo responde con el título, sin explicaciones adicionales:\n\n"${userMessage}"`
-                
-                const formDataTitle = new FormData()
-                formDataTitle.append('model', modelToUse)
-                formDataTitle.append('prompt', titlePrompt)
-                formDataTitle.append('messages', JSON.stringify([]))
-                formDataTitle.append('autoMode', 'false')
-                
-                const titleResponse = await fetchWithAuth('http://localhost:3000/api/generate/stream', {
-                  method: 'POST',
-                  body: formDataTitle
-                })
-                
-                if (titleResponse.ok) {
-                  const reader = titleResponse.body.getReader()
-                  const decoder = new TextDecoder()
-                  let generatedTitle = ''
-                  
-                  while (true) {
-                    const { done, value } = await reader.read()
-                    if (done) break
-                    
-                    const chunk = decoder.decode(value, { stream: true })
-                    const lines = chunk.split('\n')
-                    
-                    for (const line of lines) {
-                      if (line.startsWith('data: ')) {
-                        const data = line.slice(6)
-                        if (data === '[DONE]') break
-                        if (!data.startsWith('[ERROR]')) {
-                          try {
-                            const decodedChunk = JSON.parse(data)
-                            if (typeof decodedChunk === 'string') {
-                              generatedTitle += decodedChunk
-                            }
-                          } catch (e) {
-                            generatedTitle += data
-                          }
-                        }
-                      }
-                    }
-                  }
-                  
-                  // Limpiar y limitar el título generado
-                  const cleanTitle = generatedTitle.trim().replaceAll(/["']/g, '')
-                  const titleWords = cleanTitle.split(/\s+/).slice(0, 4).join(' ')
-                  
-                  if (titleWords) {
-                    await chatService.updateChatTitle(chatId, titleWords)
-                  } else {
-                    // Si falla, usar las primeras 4 palabras del mensaje original
-                    const fallbackTitle = userMessage.trim().split(/\s+/).slice(0, 4).join(' ')
-                    await chatService.updateChatTitle(chatId, fallbackTitle)
-                  }
-                } else {
-                  // Si falla, usar las primeras 4 palabras del mensaje original
-                  const fallbackTitle = userMessage.trim().split(/\s+/).slice(0, 4).join(' ')
-                  await chatService.updateChatTitle(chatId, fallbackTitle)
-                }
-                
-                // Actualizar la lista de chats
-                if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
-                  leftSidebarRef.current.refreshChats()
-                }
-              } catch (error) {
-                console.error('Error al generar título con IA:', error)
-                // Fallback: usar las primeras 4 palabras del mensaje original
-                const fallbackTitle = userMessage.trim().split(/\s+/).slice(0, 4).join(' ')
-                await chatService.updateChatTitle(chatId, fallbackTitle)
-                
-                if (leftSidebarRef.current && leftSidebarRef.current.refreshChats) {
-                  leftSidebarRef.current.refreshChats()
-                }
-              }
+               generateAndSetChatTitle(chatId, userMessage)
             }
           }
         } catch (error) {
@@ -919,7 +846,7 @@ function Chat({ isAuthenticated }) {
         ) : (
           messages.map((msg, index) => (
             <ChatMessage 
-              key={index} 
+              key={msg.id || index} 
               message={msg.text} 
               isUser={msg.isUser}
               isError={msg.isError}
@@ -942,10 +869,13 @@ function Chat({ isAuthenticated }) {
         isLoading={isLoading}
         selectedModel={selectedModel}
         onModelChange={setSelectedModel}
+        autoModeConfig={autoModeConfig}
+        onAutoModeConfigChange={setAutoModeConfig}
         images={images}
         onImagesChange={setImages}
         initialInput={initialInputText}
         onInputClear={() => setInitialInputText('')}
+        currentChatId={currentChatId}
       />
     </div>
   )

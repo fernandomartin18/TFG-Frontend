@@ -19,10 +19,10 @@ function App() {
       setIsAuthenticated(authService.isAuthenticated())
     }
 
-    window.addEventListener('authChange', handleAuthChange)
+    globalThis.addEventListener('authChange', handleAuthChange)
 
     return () => {
-      window.removeEventListener('authChange', handleAuthChange)
+      globalThis.removeEventListener('authChange', handleAuthChange)
     }
   }, [])
 

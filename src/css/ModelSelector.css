@@ -156,6 +156,25 @@
   opacity: 1;
 }
 
+.auto-config-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  padding-bottom: 0.3rem;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.auto-config-btn:hover {
+  opacity: 1;
+}
+
 /* Modal de información */
 .info-modal-backdrop {
   position: fixed;

@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import ProjectModal from '../../../src/components/ProjectModal.jsx';
 
 describe('ProjectModal Component', () => {
@@ -91,6 +91,32 @@ describe('ProjectModal Component', () => {
     render(<ProjectModal {...defaultProps} />);
     const cancelButton = screen.getByText('Cancelar');
     fireEvent.click(cancelButton);
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  test('maneja focus y setTimeout al montarse', () => {
+    vi.useFakeTimers();
+    render(<ProjectModal {...defaultProps} isOpen={true} />);
+    
+    // Avanzar el timer
+    act(() => {
+      vi.runAllTimers();
+    });
+    
+    const input = screen.getByPlaceholderText('Nombre del proyecto');
+    expect(document.activeElement).toBe(input);
+    
+    vi.useRealTimers();
+  });
+
+  test('maneja eventos de teclado en el overlay', () => {
+    const { container } = render(<ProjectModal {...defaultProps} />);
+    const overlay = container.querySelector('.project-modal-overlay');
+    
+    fireEvent.keyDown(overlay, { key: 'Escape' });
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyDown(overlay, { key: 'Enter' });
     expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });
 });

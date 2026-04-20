@@ -127,14 +127,14 @@ const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete, onAddToProject, 
   if (isEditing) {
     return (
       <div 
-        className="chat-edit-container" 
+          role="presentation"
+          className="chat-edit-container" 
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.stopPropagation()
           }
         }}
-        role="presentation"
       >
         <input
           ref={inputRef}
@@ -163,7 +163,19 @@ const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete, onAddToProject, 
 
       {isMenuOpen && (
         <div ref={menuRef} className="chat-options-menu">
-          {!showDeleteConfirm ? (
+          {showDeleteConfirm ? (
+            <div className="delete-confirm">
+              <p className="delete-confirm-text">¿Eliminar este chat?</p>
+              <div className="delete-confirm-buttons">
+                <button className="delete-confirm-button cancel" onClick={handleDeleteCancel}>
+                  Cancelar
+                </button>
+                <button className="delete-confirm-button confirm" onClick={handleDeleteConfirm}>
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          ) : (
             <>
               {/* Solo mostrar opción de fijar si no está en un proyecto */}
               {!chat.project_id && (
@@ -205,18 +217,6 @@ const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete, onAddToProject, 
                 <span>Eliminar</span>
               </button>
             </>
-          ) : (
-            <div className="delete-confirm">
-              <p className="delete-confirm-text">¿Eliminar este chat?</p>
-              <div className="delete-confirm-buttons">
-                <button className="delete-confirm-button cancel" onClick={handleDeleteCancel}>
-                  Cancelar
-                </button>
-                <button className="delete-confirm-button confirm" onClick={handleDeleteConfirm}>
-                  Eliminar
-                </button>
-              </div>
-            </div>
           )}
         </div>
       )}
