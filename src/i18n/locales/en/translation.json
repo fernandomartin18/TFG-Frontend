@@ -1,0 +1,66 @@
+{
+  "profile": {
+    "unsavedChanges": "Do you want to save changes before closing?",
+    "changePhoto": "Change photo",
+    "removePhoto": "Remove photo",
+    "name": "NAME",
+    "usernamePlaceholder": "Username",
+    "changePassword": "CHANGE PASSWORD",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmNewPassword": "Confirm new password",
+    "others": "OTHERS",
+    "darkMode": "Dark mode",
+    "language": "Language",
+    "languageOptions": {
+      "es": "Spanish",
+      "en": "English",
+      "default": "Default"
+    },
+    "logout": "Log out",
+    "saveChanges": "Save changes",
+    "errors": {
+      "minUsername": "Minimum 3 characters",
+      "passwordFieldsRequired": "You must fill in all password fields",
+      "passwordMinLength": "New password must be at least 6 characters long",
+      "passwordRequirements": "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "changePasswordError": "Error changing password",
+      "saveError": "Error saving changes"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Log In",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@email.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "submitButton": "Log In",
+      "submittingButton": "Logging in...",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Sign Up"
+    },
+    "register": {
+      "title": "Create Account",
+      "nameLabel": "Name",
+      "namePlaceholder": "Name",
+      "confirmPasswordLabel": "Repeat Password",
+      "submitButton": "Sign Up",
+      "submittingButton": "Signing up...",
+      "alreadyHaveAccount": "Already have an account?",
+      "loginLink": "Log In"
+    },
+    "errors": {
+      "invalidEmail": "Invalid email format",
+      "minPassword": "Minimum 6 characters",
+      "passwordRequirements": "Must include uppercase, lowercase, and a number",
+      "loginError": "Error logging in",
+      "minUsername": "Minimum 3 characters",
+      "maxUsername": "Maximum 50 characters",
+      "invalidUsername": "Letters, numbers, hyphens only",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "registerError": "Error registering user"
+    }
+  }
+}

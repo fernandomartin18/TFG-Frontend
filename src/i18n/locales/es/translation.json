@@ -1,0 +1,66 @@
+{
+  "profile": {
+    "unsavedChanges": "¿Quieres guardar los cambios antes de cerrar?",
+    "changePhoto": "Cambiar foto",
+    "removePhoto": "Eliminar foto",
+    "name": "NOMBRE",
+    "usernamePlaceholder": "Nombre de usuario",
+    "changePassword": "CAMBIAR CONTRASEÑA",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "confirmNewPassword": "Confirmar nueva contraseña",
+    "others": "OTROS",
+    "darkMode": "Modo oscuro",
+    "language": "Idioma",
+    "languageOptions": {
+      "es": "Español",
+      "en": "Inglés",
+      "default": "Por defecto"
+    },
+    "logout": "Cerrar sesión",
+    "saveChanges": "Guardar cambios",
+    "errors": {
+      "minUsername": "Mínimo 3 caracteres",
+      "passwordFieldsRequired": "Debes completar todos los campos de contraseña",
+      "passwordMinLength": "La nueva contraseña debe tener al menos 6 caracteres",
+      "passwordRequirements": "La contraseña debe contener al menos una mayúscula, una minúscula y un número",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden",
+      "changePasswordError": "Error al cambiar contraseña",
+      "saveError": "Error al guardar los cambios"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Iniciar Sesión",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "tu@email.com",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "••••••••",
+      "submitButton": "Iniciar Sesión",
+      "submittingButton": "Iniciando sesión...",
+      "noAccount": "¿No tienes cuenta?",
+      "registerLink": "Regístrate"
+    },
+    "register": {
+      "title": "Crear Cuenta",
+      "nameLabel": "Nombre",
+      "namePlaceholder": "Nombre",
+      "confirmPasswordLabel": "Repetir Contraseña",
+      "submitButton": "Registrarse",
+      "submittingButton": "Registrando...",
+      "alreadyHaveAccount": "¿Ya tienes cuenta?",
+      "loginLink": "Inicia sesión"
+    },
+    "errors": {
+      "invalidEmail": "Formato de email inválido",
+      "minPassword": "Mínimo 6 caracteres",
+      "passwordRequirements": "Debe incluir mayúscula, minúscula y número",
+      "loginError": "Error al iniciar sesión",
+      "minUsername": "Mínimo 3 caracteres",
+      "maxUsername": "Máximo 50 caracteres",
+      "invalidUsername": "Solo letras, números, guiones",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden",
+      "registerError": "Error al registrar usuario"
+    }
+  }
+}

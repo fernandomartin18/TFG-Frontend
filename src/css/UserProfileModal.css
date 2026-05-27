@@ -560,3 +560,42 @@ input:checked + .switch-slider:before {
 [data-theme="light"] .section-title {
   color: #666666;
 }
+
+/* Select de idioma */
+.language-option {
+  justify-content: space-between;
+}
+
+.language-option .option-label {
+  flex: 1;
+}
+
+.language-select {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background-color: transparent;
+  color: inherit;
+  border: 1px solid #444444;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+[data-theme="light"] .language-select {
+  border-color: #d4d4d4;
+}
+
+.language-select:focus {
+  border-color: #646cff;
+}
+
+.language-select option {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+[data-theme="light"] .language-select option {
+  background-color: #ffffff;
+  color: #1a1a1a;
+}

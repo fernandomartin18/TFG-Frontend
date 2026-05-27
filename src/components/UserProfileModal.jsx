@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
-import { IoLogOutOutline, IoClose } from 'react-icons/io5'
+import { useTranslation } from 'react-i18next'
+import { IoLogOutOutline, IoClose, IoLanguageOutline } from 'react-icons/io5'
 import { MdEdit } from 'react-icons/md'
 import { CgDarkMode } from 'react-icons/cg'
 import { RiEye2Line, RiEyeCloseLine } from 'react-icons/ri'
@@ -8,7 +9,13 @@ import authService from '../services/auth.service'
 import '../css/UserProfileModal.css'
 
 function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
+  const { t, i18n } = useTranslation()
   const [user, setUser] = useState(null)
+  
+  // Preferencia de idioma (es, en, default)
+  const [languagePreference, setLanguagePreference] = useState(
+    localStorage.getItem('appLanguagePreference') || 'default'
+  )
   const [editedUsername, setEditedUsername] = useState('')
   const [newAvatar, setNewAvatar] = useState(null)
   const [avatarPreview, setAvatarPreview] = useState(null)
@@ -69,7 +76,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
     setEditedUsername(value)
     
     if (value.length < 3 && value.length > 0) {
-      setUsernameError('Mínimo 3 caracteres')
+      setUsernameError(t('profile.errors.minUsername'))
     } else {
       setUsernameError('')
     }
@@ -150,18 +157,18 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
     setPasswordError('')
 
     if (editedUsername.length < 3) {
-      setUsernameError('Mínimo 3 caracteres')
+      setUsernameError(t('profile.errors.minUsername'))
       return
     }
 
     // Validar contraseñas si se están cambiando
     if (currentPassword || newPassword || confirmPassword) {
       if (!currentPassword || !newPassword || !confirmPassword) {
-        setPasswordError('Debes completar todos los campos de contraseña')
+        setPasswordError(t('profile.errors.passwordFieldsRequired'))
         return
       }
       if (newPassword.length < 6) {
-        setPasswordError('La nueva contraseña debe tener al menos 6 caracteres')
+        setPasswordError(t('profile.errors.passwordMinLength'))
         return
       }
       // Validar que tenga mayúscula, minúscula y número
@@ -170,11 +177,11 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
       const hasNumber = /\d/.test(newPassword)
       
       if (!hasUpperCase || !hasLowerCase || !hasNumber) {
-        setPasswordError('La contraseña debe contener al menos una mayúscula, una minúscula y un número')
+        setPasswordError(t('profile.errors.passwordRequirements'))
         return
       }
       if (newPassword !== confirmPassword) {
-        setPasswordError('Las contraseñas no coinciden')
+        setPasswordError(t('profile.errors.passwordsDoNotMatch'))
         return
       }
     }
@@ -200,7 +207,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
 
         if (!response.ok) {
           const data = await response.json()
-          throw new Error(data.error || 'Error al cambiar contraseña')
+          throw new Error(data.error || t('profile.errors.changePasswordError'))
         }
       }
 
@@ -225,7 +232,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
       onClose()
     } catch (error) {
       console.error('Error al guardar cambios:', error)
-      alert(error.message || 'Error al guardar los cambios')
+      alert(error.message || t('profile.errors.saveError'))
     }
   }
 
@@ -235,9 +242,23 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
     onClose()
   }
 
+  const handleLanguageChange = (e) => {
+    const value = e.target.value
+    setLanguagePreference(value)
+    localStorage.setItem('appLanguagePreference', value)
+
+    if (value === 'default') {
+      const browserLang = navigator.language || navigator.userLanguage
+      const sysLang = browserLang.toLowerCase().includes('es') ? 'es' : 'en'
+      i18n.changeLanguage(sysLang)
+    } else {
+      i18n.changeLanguage(value)
+    }
+  }
+
   const handleClose = () => {
     if (hasChanges) {
-      const confirmClose = window.confirm('¿Quieres guardar los cambios antes de cerrar?')
+      const confirmClose = window.confirm(t('profile.unsavedChanges'))
       if (confirmClose) {
         handleSaveChanges()
         return
@@ -312,13 +333,13 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
                       setIsEditingAvatar(false)
                     }}
                   >
-                    Cambiar foto
+                    {t('profile.changePhoto')}
                   </button>
                   <button 
                     className="popup-option delete"
                     onClick={handleRemoveAvatar}
                   >
-                    Eliminar foto
+                    {t('profile.removePhoto')}
                   </button>
                 </div>
               )}
@@ -327,14 +348,14 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
 
           {/* Sección Nombre */}
           <div className="modal-section">
-            <h3 className="section-title">NOMBRE</h3>
+            <h3 className="section-title">{t('profile.name')}</h3>
             <div className="modal-username-section">
               <input
                 type="text"
                 className={`username-input ${usernameError ? 'error' : ''}`}
                 value={editedUsername}
                 onChange={handleUsernameChange}
-                placeholder="Nombre de usuario"
+                placeholder={t('profile.usernamePlaceholder')}
               />
               {usernameError && <span className="username-error">{usernameError}</span>}
             </div>
@@ -342,7 +363,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
 
           {/* Sección Cambiar Contraseña */}
           <div className="modal-section">
-            <h3 className="section-title">CAMBIAR CONTRASEÑA</h3>
+            <h3 className="section-title">{t('profile.changePassword')}</h3>
             <div className="password-fields">
               <div className="password-input-wrapper">
                 <input
@@ -350,7 +371,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
                   className="password-input"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Contraseña actual"
+                  placeholder={t('profile.currentPassword')}
                 />
                 <button
                   type="button"
@@ -366,7 +387,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
                   className="password-input"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Nueva contraseña"
+                  placeholder={t('profile.newPassword')}
                 />
                 <button
                   type="button"
@@ -382,7 +403,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
                   className="password-input"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirmar nueva contraseña"
+                  placeholder={t('profile.confirmNewPassword')}
                 />
                 <button
                   type="button"
@@ -398,13 +419,13 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
 
           {/* Sección Otros */}
           <div className="modal-section">
-            <h3 className="section-title">OTROS</h3>
+            <h3 className="section-title">{t('profile.others')}</h3>
             
             {/* Switch tema */}
             <div className="modal-option theme-option">
               <CgDarkMode className="option-icon" />
-              <span className="option-label">Modo oscuro</span>
-              <label className="theme-switch" aria-label="Alternar modo oscuro">
+              <span className="option-label">{t('profile.darkMode')}</span>
+              <label className="theme-switch" aria-label={t('profile.darkMode')}>
                 <input
                   type="checkbox"
                   checked={isDarkTheme}
@@ -414,10 +435,25 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
               </label>
             </div>
 
+            {/* Select idioma */}
+            <div className="modal-option language-option">
+              <IoLanguageOutline className="option-icon" />
+              <span className="option-label">{t('profile.language')}</span>
+              <select 
+                className="language-select" 
+                value={languagePreference} 
+                onChange={handleLanguageChange}
+              >
+                <option value="es">{t('profile.languageOptions.es')}</option>
+                <option value="en">{t('profile.languageOptions.en')}</option>
+                <option value="default">{t('profile.languageOptions.default')}</option>
+              </select>
+            </div>
+
             {/* Cerrar sesión */}
             <button className="modal-option logout-option" onClick={handleLogout}>
               <IoLogOutOutline className="option-icon" />
-              <span>Cerrar sesión</span>
+              <span>{t('profile.logout')}</span>
             </button>
           </div>
         </div>
@@ -425,7 +461,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
         {/* Botón guardar cambios - fijo al final */}
         {hasChanges && (
           <button className="save-changes-btn-fixed" onClick={handleSaveChanges}>
-            Guardar cambios
+            {t('profile.saveChanges')}
           </button>
         )}
       </div>
