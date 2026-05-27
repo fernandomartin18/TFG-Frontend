@@ -132,6 +132,28 @@
       "delete": "Error borrando plantilla: {{error}}",
       "saveValidation": "Por favor, pon un título y un código a tu plantilla.",
       "save": "Error al guardar la plantilla: {{error}}"
+    },
+    "tabs": {
+      "templates": "Plantillas",
+      "code": "Código",
+      "diagram": "Diagrama"
+    },
+    "actions": {
+      "cancel": "Cancelar",
+      "accept": "Aceptar",
+      "save": "Guardar"
+    },
+    "templates": {
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "defaultName": "Mi nueva plantilla",
+      "selectToViewCode": "Selecciona una plantilla para ver su código",
+      "diagramHere": "El diagrama aparecerá aquí"
     }
+  },
+  "kroki": {
+    "syntaxError": "Error de sintaxis: No se pudo renderizar el diagrama PlantUML de forma válida.",
+    "emptyMessage": "El código está vacío. Escribe PlantUML para ver el diagrama.",
+    "rendering": "Renderizando..."
   }
 }

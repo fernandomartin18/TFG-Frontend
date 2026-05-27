@@ -132,6 +132,28 @@
       "delete": "Error deleting template: {{error}}",
       "saveValidation": "Please provide a title and code for your template.",
       "save": "Error saving template: {{error}}"
+    },
+    "tabs": {
+      "templates": "Templates",
+      "code": "Code",
+      "diagram": "Diagram"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "accept": "Accept",
+      "save": "Save"
+    },
+    "templates": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "defaultName": "My new template",
+      "selectToViewCode": "Select a template to view its code",
+      "diagramHere": "The diagram will appear here"
     }
+  },
+  "kroki": {
+    "syntaxError": "Syntax error: Could not render a valid PlantUML diagram.",
+    "emptyMessage": "The code is empty. Write PlantUML to see the diagram.",
+    "rendering": "Rendering..."
   }
 }
