@@ -240,5 +240,23 @@
     "templatePromptPlaceholder": "Escribe tu prompt con las [variables]...",
     "saveChanges": "Guardar Cambios",
     "create": "Crear"
+  },
+  "chatView": {
+    "plantumlPrompt": "Dado este código plantuml, genera los códigos necesarios en [INDICAR LENGUAJE]. Implementa correctamente las clases, métodos, y las relaciones orientadas a objetos (herencia, composición, etc.) que se aprecien visualmente y, antes de enviar cada código, indica en texto el paquete al que pertenece si es que los hay.",
+    "untitledChat": "Chat sin título",
+    "newChat": "Nuevo Chat",
+    "loadError": "Error al cargar el chat. Por favor, intenta de nuevo.",
+    "emptyState": "¿En qué puedo ayudarte hoy?",
+    "message": {
+      "copied": "¡Copiado!",
+      "copyCode": "Copiar código",
+      "generatingPlantUML": "Generando PlantUML",
+      "collapse": "Contraer",
+      "expand": "Expandir",
+      "noDiagramError": "No se ha detectado ningún diagrama UML",
+      "editDiagram": "Editar diagrama",
+      "editPlantUML": "Editar PlantUML"
+    },
+    "aiError": "Error al comunicarse con la IA. Verifica que el backend esté corriendo."
   }
 }
