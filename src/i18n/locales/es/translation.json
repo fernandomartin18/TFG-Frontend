@@ -155,5 +155,28 @@
     "syntaxError": "Error de sintaxis: No se pudo renderizar el diagrama PlantUML de forma válida.",
     "emptyMessage": "El código está vacío. Escribe PlantUML para ver el diagrama.",
     "rendering": "Renderizando..."
+  },
+  "sidebar": {
+    "openPanel": "Abrir panel",
+    "closePanel": "Cerrar panel",
+    "newChat": "Nuevo chat",
+    "searchChats": "Buscar chats",
+    "searchPlaceholder": "Buscar por título o fecha",
+    "closeSearch": "Cerrar búsqueda",
+    "loadingChats": "Cargando chats...",
+    "noChatsFound": "No se encontraron chats",
+    "noSavedChats": "No hay chats guardados",
+    "projects": "Proyectos",
+    "newProject": "Nuevo proyecto",
+    "pinned": "Fijados",
+    "recent": "Recientes",
+    "projectMenu": {
+      "emptyChatExists": "Ya existe un chat vacío en este proyecto",
+      "newChatTooltip": "Crear nuevo chat en este proyecto",
+      "newChat": "Nuevo chat en proyecto",
+      "editTitle": "Editar título",
+      "delete": "Eliminar"
+    },
+    "newChatDefaultName": "Nuevo Chat"
   }
 }

@@ -155,5 +155,28 @@
     "syntaxError": "Syntax error: Could not render a valid PlantUML diagram.",
     "emptyMessage": "The code is empty. Write PlantUML to see the diagram.",
     "rendering": "Rendering..."
+  },
+  "sidebar": {
+    "openPanel": "Open panel",
+    "closePanel": "Close panel",
+    "newChat": "New chat",
+    "searchChats": "Search chats",
+    "searchPlaceholder": "Search by title or date",
+    "closeSearch": "Close search",
+    "loadingChats": "Loading chats...",
+    "noChatsFound": "No chats found",
+    "noSavedChats": "No saved chats",
+    "projects": "Projects",
+    "newProject": "New project",
+    "pinned": "Pinned",
+    "recent": "Recent",
+    "projectMenu": {
+      "emptyChatExists": "An empty chat already exists in this project",
+      "newChatTooltip": "Create new chat in this project",
+      "newChat": "New chat in project",
+      "editTitle": "Edit title",
+      "delete": "Delete"
+    },
+    "newChatDefaultName": "New Chat"
   }
 }
