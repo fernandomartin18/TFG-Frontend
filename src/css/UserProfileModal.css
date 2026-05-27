@@ -564,6 +564,8 @@ input:checked + .switch-slider:before {
 /* Select de idioma */
 .language-option {
   justify-content: space-between;
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
 }
 
 .language-option .option-label {
@@ -571,7 +573,7 @@ input:checked + .switch-slider:before {
 }
 
 .language-select {
-  padding: 0.5rem;
+  padding: 0.2rem;
   border-radius: 0.5rem;
   background-color: transparent;
   color: inherit;
