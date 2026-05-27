@@ -178,5 +178,16 @@
       "delete": "Eliminar"
     },
     "newChatDefaultName": "Nuevo Chat"
+  },
+  "chatMenu": {
+    "optionsLabel": "Opciones del chat",
+    "deleteConfirmText": "¿Eliminar este chat?",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "unpin": "Desfijar",
+    "pin": "Fijar",
+    "removeFromProject": "Retirar de proyecto",
+    "addToProject": "Añadir a proyecto",
+    "editTitle": "Editar título"
   }
 }
