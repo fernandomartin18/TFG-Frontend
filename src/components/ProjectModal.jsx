@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next'
 import '../css/ProjectModal.css'
 
-const ProjectModal = ({ isOpen, onClose, onSave, initialName = '', title = 'Nuevo proyecto' }) => {
+const ProjectModal = ({ isOpen, onClose, onSave, initialName = '', title }) => {
+  const { t } = useTranslation()
+  const displayTitle = title || (initialName ? t('projects.modal.editProject') : t('projects.modal.newProject'))
   const [projectName, setProjectName] = useState(initialName)
   const inputRef = useRef(null)
 
@@ -54,13 +57,13 @@ const ProjectModal = ({ isOpen, onClose, onSave, initialName = '', title = 'Nuev
         }}
         role="presentation"
       >
-        <h3 className="project-modal-title">{title}</h3>
+        <h3 className="project-modal-title">{displayTitle}</h3>
         <form onSubmit={handleSubmit}>
           <input
             ref={inputRef}
             type="text"
             className="project-modal-input"
-            placeholder="Nombre del proyecto"
+            placeholder={t('projects.modal.projectName')}
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -72,14 +75,14 @@ const ProjectModal = ({ isOpen, onClose, onSave, initialName = '', title = 'Nuev
               className="project-modal-button cancel"
               onClick={onClose}
             >
-              Cancelar
+              {t('projects.modal.cancel')}
             </button>
             <button
               type="submit"
               className="project-modal-button save"
               disabled={!projectName.trim()}
             >
-              Guardar
+              {t('projects.modal.save')}
             </button>
           </div>
         </form>

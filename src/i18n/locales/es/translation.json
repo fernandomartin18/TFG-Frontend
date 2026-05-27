@@ -62,5 +62,76 @@
       "passwordsDoNotMatch": "Las contraseñas no coinciden",
       "registerError": "Error al registrar usuario"
     }
+  },
+  "reactFlow": {
+    "classNode": "Clase",
+    "packageNode": "Paquete",
+    "addClass": "+ Clase",
+    "addPackage": "+ Paquete",
+    "syncToCode": "Sincronizar a Código",
+    "relationType": "Tipo de Relación",
+    "relations": {
+      "association": "Asociación (-->)",
+      "inheritance": "Herencia (--|>)",
+      "composition": "Composición (*--)",
+      "aggregation": "Agregación (o--)",
+      "dependency": "Dependencia (..>)",
+      "realization": "Realización (..|>)"
+    },
+    "deleteRelation": "Eliminar relación"
+  },
+  "projects": {
+    "selector": {
+      "newProject": "Nuevo proyecto",
+      "noProjects": "No tienes proyectos aún"
+    },
+    "modal": {
+      "newProject": "Nuevo proyecto",
+      "editProject": "Editar proyecto",
+      "projectName": "Nombre del proyecto",
+      "cancel": "Cancelar",
+      "save": "Guardar"
+    }
+  },
+  "models": {
+    "selector": {
+      "model": "Modelo",
+      "noLLMs": "No hay LLMs",
+      "loading": "Cargando...",
+      "auto": "Auto"
+    },
+    "info": {
+      "title": "Información sobre modelos",
+      "p1": "Aquí se mostrarán los modelos que tengas instalados en Ollama.",
+      "p2_1": "Para buscar modelos disponibles, ",
+      "link": "pulsa aquí",
+      "p2_2": ".",
+      "p3": "Instala el que desees vía terminal usando el comando:",
+      "code": "ollama pull <nombre_del_modelo[:parámetros]>",
+      "p4": "Para que funcione el módo automático, es necesario tener un modelo con reconocimiento de imágenes y otro con capacidades de lenguaje instalados.",
+      "close": "Cerrar"
+    },
+    "config": {
+      "title": "Configuración Modo Auto",
+      "default": "Por defecto",
+      "defaultDesc": "Selecciona automáticamente el mejor modelo disponible equipado con visión (para leer imágenes y PlantUML) y luego el modelo de lenguaje más potente para generar el código.",
+      "custom": "Personalizado",
+      "visionModel": "Modelo Multimodal (Visión)",
+      "codingModel": "Modelo Generador de Código"
+    }
+  },
+  "plantUml": {
+    "title": "Editor PlantUML",
+    "loading": "Cargando...",
+    "noTemplates": "No hay plantillas disponibles.",
+    "newTemplate": "Nueva plantilla",
+    "useTemplate": "Usar",
+    "titlePlaceholder": "Escribe el título...",
+    "codePlaceholder": "Escribe aquí tu código PlantUML...",
+    "errors": {
+      "delete": "Error borrando plantilla: {{error}}",
+      "saveValidation": "Por favor, pon un título y un código a tu plantilla.",
+      "save": "Error al guardar la plantilla: {{error}}"
+    }
   }
 }

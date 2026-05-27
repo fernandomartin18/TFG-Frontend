@@ -656,7 +656,6 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
         onClose={() => setShowProjectModal(false)}
         onSave={handleSaveProject}
         initialName={editingProject?.name || ''}
-        title={projectModalMode === 'create' ? 'Nuevo proyecto' : 'Editar proyecto'}
       />
 
       {/* Menú contextual de proyecto */}

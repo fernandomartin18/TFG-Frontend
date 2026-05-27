@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next'
 import { BsInfoCircle, BsGear } from 'react-icons/bs'
 import { MdClose } from 'react-icons/md'
 import { fetchWithAuth } from '../services/api.service'
@@ -14,6 +15,7 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
   const [autoAvailable, setAutoAvailable] = useState(false)
   const [defaultAutoModels, setDefaultAutoModels] = useState({ vision: '', coding: '' })
   const dropdownRef = useRef(null)
+  const { t } = useTranslation()
 
   useEffect(() => {
     fetchModels()
@@ -156,9 +158,9 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
         className="model-selector-button"
         onClick={handleToggle}
       >
-        <div className="model-selector-label">Modelo</div>
+        <div className="model-selector-label">{t('models.selector.model')}</div>
         <div className="model-selector-value">
-          {selectedModel || 'No hay LLMs'}
+          {!selectedModel || selectedModel === 'No hay LLMs' ? t('models.selector.noLLMs') : (selectedModel === 'Auto' ? t('models.selector.auto') : selectedModel)}
         </div>
       </button>
 
@@ -168,15 +170,15 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
             type="button"
             className="model-info-button"
             onClick={handleInfoClick}
-            title="Información sobre modelos"
+            title={t('models.info.title')}
           >
             <BsInfoCircle size={18} />
           </button>
           
           {loading ? (
-            <div className="model-option loading">Cargando...</div>
+            <div className="model-option loading">{t('models.selector.loading')}</div>
           ) : models.length === 0 ? (
-            <div className="model-option disabled">No hay LLMs</div>
+            <div className="model-option disabled">{t('models.selector.noLLMs')}</div>
           ) : (
             <>
               <div 
@@ -193,13 +195,13 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
                 tabIndex={autoAvailable ? 0 : -1}
                 aria-disabled={!autoAvailable}
               >
-                <span>Auto</span>
+                <span>{t('models.selector.auto')}</span>
                 {autoAvailable && (
                   <button 
                     type="button"
                     className="auto-config-btn"
                     onClick={handleAutoConfigClick}
-                    title="Configurar modo Auto"
+                    title={t('models.config.title')}
                   >
                     <BsGear size={16} />
                   </button>
@@ -242,27 +244,27 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
             <button 
               className="info-modal-close"
               onClick={handleCloseModal}
-              title="Cerrar"
+              title={t('models.info.close')}
             >
               <MdClose size={24} />
             </button>
             <div className="info-modal-content">
-              <p>Aquí se mostrarán los modelos que tengas instalados en Ollama.</p>
+              <p>{t('models.info.p1')}</p>
               <p>
-                Para buscar modelos disponibles,{' '}
+                {t('models.info.p2_1')}{' '}
                 <a 
                   href="https://ollama.com/library" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="info-link"
                 >
-                  pulsa aquí
+                  {t('models.info.link')}
                 </a>
-                {'.'}
+                {t('models.info.p2_2')}
               </p>
-              <p>Instala el que desees vía terminal usando el comando:</p>
-              <code className="info-code">ollama pull &lt;nombre_del_modelo[:parámetros]&gt;</code>
-              <p><br></br>Para que funcione el módo automático, es necesario tener un modelo con reconocimiento de imágenes y otro con capacidades de lenguaje instalados.</p>
+              <p>{t('models.info.p3')}</p>
+              <code className="info-code">{t('models.info.code')}</code>
+              <p><br></br>{t('models.info.p4')}</p>
             </div>
           </div>
         </div>
@@ -282,12 +284,12 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
             <button 
               className="info-modal-close"
               onClick={handleCloseModal}
-              title="Cerrar"
+              title={t('models.info.close')}
             >
               <MdClose size={24} />
             </button>
             <div className="info-modal-content">
-              <h3>Configuración Modo Auto</h3>
+              <h3>{t('models.config.title')}</h3>
               
               <div className="auto-config-option" style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600 }}>
@@ -297,10 +299,10 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
                     checked={autoModeConfig?.type === 'default'}
                     onChange={() => onAutoModeConfigChange({ ...autoModeConfig, type: 'default' })}
                   />
-                  <span>Por defecto</span>
+                  <span>{t('models.config.default')}</span>
                 </label>
                 <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', opacity: 0.8, paddingLeft: '24px' }}>
-                  Selecciona automáticamente el mejor modelo disponible equipado con visión (para leer imágenes y PlantUML) y luego el modelo de lenguaje más potente para generar el código.
+                  {t('models.config.defaultDesc')}
                 </p>
               </div>
 
@@ -316,14 +318,14 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
                       codingModel: autoModeConfig?.codingModel || defaultAutoModels.coding || (models.length > 1 ? models[1]?.name : models[0]?.name) || '' 
                     })}
                   />
-                  <span>Personalizado</span>
+                  <span>{t('models.config.custom')}</span>
                 </label>
                 
                 {autoModeConfig?.type === 'custom' && (
                   <div style={{ marginTop: '1rem', paddingLeft: '24px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label htmlFor="vision-model-select" style={{ fontSize: '0.9rem', fontWeight: 600 }}>Modelo Multimodal (Visión)</label>
+                      <label htmlFor="vision-model-select" style={{ fontSize: '0.9rem', fontWeight: 600 }}>{t('models.config.visionModel')}</label>
                       <select 
                         id="vision-model-select"
                         value={autoModeConfig.visionModel} 
@@ -346,7 +348,7 @@ function ModelSelector({ selectedModel, onModelChange, autoModeConfig, onAutoMod
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label htmlFor="coding-model-select" style={{ fontSize: '0.9rem', fontWeight: 600 }}>Modelo Generador de Código</label>
+                      <label htmlFor="coding-model-select" style={{ fontSize: '0.9rem', fontWeight: 600 }}>{t('models.config.codingModel')}</label>
                       <select 
                         id="coding-model-select"
                         value={autoModeConfig.codingModel} 

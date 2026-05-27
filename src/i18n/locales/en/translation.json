@@ -62,5 +62,76 @@
       "passwordsDoNotMatch": "Passwords do not match",
       "registerError": "Error registering user"
     }
+  },
+  "reactFlow": {
+    "classNode": "Class",
+    "packageNode": "Package",
+    "addClass": "+ Class",
+    "addPackage": "+ Package",
+    "syncToCode": "Sync to Code",
+    "relationType": "Relation Type",
+    "relations": {
+      "association": "Association (-->)",
+      "inheritance": "Inheritance (--|>)",
+      "composition": "Composition (*--)",
+      "aggregation": "Aggregation (o--)",
+      "dependency": "Dependency (..>)",
+      "realization": "Realization (..|>)"
+    },
+    "deleteRelation": "Remove relation"
+  },
+  "projects": {
+    "selector": {
+      "newProject": "New project",
+      "noProjects": "You have no projects yet"
+    },
+    "modal": {
+      "newProject": "New project",
+      "editProject": "Edit project",
+      "projectName": "Project name",
+      "cancel": "Cancel",
+      "save": "Save"
+    }
+  },
+  "models": {
+    "selector": {
+      "model": "Model",
+      "noLLMs": "No LLMs available",
+      "loading": "Loading...",
+      "auto": "Auto"
+    },
+    "info": {
+      "title": "Model information",
+      "p1": "Here you will see the models installed via Ollama.",
+      "p2_1": "To search for available models, ",
+      "link": "click here",
+      "p2_2": ".",
+      "p3": "Install the one you want via terminal using the command:",
+      "code": "ollama pull <model_name[:parameters]>",
+      "p4": "For auto mode to work, you must have an image-recognition model and a language-generation model installed.",
+      "close": "Close"
+    },
+    "config": {
+      "title": "Auto Mode Configuration",
+      "default": "Default",
+      "defaultDesc": "Automatically selects the best model equipped with vision (to read images and PlantUML) and then the most powerful language model to generate code.",
+      "custom": "Custom",
+      "visionModel": "Multimodal Model (Vision)",
+      "codingModel": "Code Generation Model"
+    }
+  },
+  "plantUml": {
+    "title": "PlantUML Editor",
+    "loading": "Loading...",
+    "noTemplates": "No templates available.",
+    "newTemplate": "New template",
+    "useTemplate": "Use",
+    "titlePlaceholder": "Type the title...",
+    "codePlaceholder": "Type your PlantUML code here...",
+    "errors": {
+      "delete": "Error deleting template: {{error}}",
+      "saveValidation": "Please provide a title and code for your template.",
+      "save": "Error saving template: {{error}}"
+    }
   }
 }

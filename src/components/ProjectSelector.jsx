@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next'
 import { FaFolderOpen, FaFolderPlus } from 'react-icons/fa'
 import '../css/ProjectSelector.css'
 
 const ProjectSelector = ({ isOpen, onClose, onSelectProject, projects, position }) => {
+  const { t } = useTranslation()
   const menuRef = useRef(null)
 
   useEffect(() => {
@@ -49,7 +51,7 @@ const ProjectSelector = ({ isOpen, onClose, onSelectProject, projects, position 
         onClick={() => onSelectProject(null)}
       >
         <FaFolderPlus className="project-selector-icon" />
-        <span>Nuevo proyecto</span>
+        <span>{t('projects.selector.newProject')}</span>
       </button>
 
       {/* Lista de proyectos existentes */}
@@ -67,7 +69,7 @@ const ProjectSelector = ({ isOpen, onClose, onSelectProject, projects, position 
       {/* Mensaje si no hay proyectos */}
       {(!projects || projects.length === 0) && (
         <div className="project-selector-empty">
-          No tienes proyectos aún
+          {t('projects.selector.noProjects')}
         </div>
       )}
     </div>
