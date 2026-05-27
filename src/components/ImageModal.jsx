@@ -1,9 +1,11 @@
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { MdClose, MdDelete } from 'react-icons/md'
 import '../css/ImageModal.css'
 
 function ImageModal({ image, onClose, onDelete, showDeleteButton = true }) {
+  const { t } = useTranslation()
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose()
@@ -28,7 +30,7 @@ function ImageModal({ image, onClose, onDelete, showDeleteButton = true }) {
             type="button"
             className="image-modal-close"
             onClick={onClose}
-            aria-label="Cerrar"
+            aria-label={t('images.modal.close')}
           >
             <MdClose size={24} />
           </button>
@@ -45,9 +47,7 @@ function ImageModal({ image, onClose, onDelete, showDeleteButton = true }) {
               className="image-modal-delete"
               onClick={onDelete}
             >
-              <MdDelete size={20} />
-              Eliminar
-            </button>
+              <MdDelete size={20} />{t('images.modal.delete')}</button>
           </div>
         )}
       </div>

@@ -189,5 +189,21 @@
     "removeFromProject": "Remove from project",
     "addToProject": "Add to project",
     "editTitle": "Edit title"
+  },
+  "images": {
+    "uploader": {
+      "add": "Add image",
+      "max": "Max 5 images",
+      "selectVisionModel": "Select a vision model or Auto to add images",
+      "view": "View images",
+      "cannotRead": "Selected model cannot read images"
+    },
+    "modal": {
+      "close": "Close",
+      "delete": "Delete"
+    },
+    "dropdown": {
+      "delete": "Delete"
+    }
   }
 }
