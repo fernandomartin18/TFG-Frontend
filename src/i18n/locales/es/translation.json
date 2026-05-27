@@ -205,5 +205,19 @@
     "dropdown": {
       "delete": "Eliminar"
     }
+  },
+  "codeSidebar": {
+    "closePanel": "Cerrar panel",
+    "openPanel": "Abrir panel",
+    "downloadCode": "Descargar código",
+    "downloadAllCodes": "Descargar todos los códigos",
+    "mixedCode": "Mixed Code ({{count}} archivos)",
+    "modal": {
+      "download": "Descargar código",
+      "close": "Cerrar",
+      "copied": "Copiado!",
+      "copy": "Copiar",
+      "copyCode": "Copiar código"
+    }
   }
 }
