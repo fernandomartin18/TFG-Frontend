@@ -219,5 +219,26 @@
       "copy": "Copiar",
       "copyCode": "Copiar código"
     }
+  },
+  "chatInput": {
+    "deleteTemplateConfirm": "¿Seguro que quieres borrar esta plantilla?",
+    "createDiagramTitle": "Crear diagrama PlantUML",
+    "createTemplate": "Crear plantilla",
+    "promptTemplatesTitle": "Plantillas de Prompt",
+    "inputPlaceholder": "Escribe tu mensaje...",
+    "editAsTextTitle": "Editar como texto libre",
+    "editAsText": "Editar como texto",
+    "viewTemplates": "Ver plantillas",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "editTemplateModalTitle": "Editar plantilla",
+    "createTemplateModalTitle": "Crear plantilla",
+    "templateModalInfo": "Para insertar campos a rellenar cuando uses la plantilla, escribe aquello que debería insertarse en el campo entre corchetes.",
+    "templateModalExample": "Por ejemplo: ",
+    "templateModalExampleSpan": "[Especificar Lenguaje]",
+    "templateTitlePlaceholder": "Título de la plantilla",
+    "templatePromptPlaceholder": "Escribe tu prompt con las [variables]...",
+    "saveChanges": "Guardar Cambios",
+    "create": "Crear"
   }
 }

@@ -219,5 +219,26 @@
       "copy": "Copy",
       "copyCode": "Copy code"
     }
+  },
+  "chatInput": {
+    "deleteTemplateConfirm": "Are you sure you want to delete this template?",
+    "createDiagramTitle": "Create PlantUML diagram",
+    "createTemplate": "Create template",
+    "promptTemplatesTitle": "Prompt Templates",
+    "inputPlaceholder": "Type your message...",
+    "editAsTextTitle": "Edit as free text",
+    "editAsText": "Edit as text",
+    "viewTemplates": "View templates",
+    "edit": "Edit",
+    "delete": "Delete",
+    "editTemplateModalTitle": "Edit template",
+    "createTemplateModalTitle": "Create template",
+    "templateModalInfo": "To insert fields to be filled when using the template, write what should be inserted in the field between brackets.",
+    "templateModalExample": "For example: ",
+    "templateModalExampleSpan": "[Specify Language]",
+    "templateTitlePlaceholder": "Template title",
+    "templatePromptPlaceholder": "Write your prompt with the [variables]...",
+    "saveChanges": "Save Changes",
+    "create": "Create"
   }
 }
