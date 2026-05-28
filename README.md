@@ -39,6 +39,7 @@ Una aplicación web moderna diseñada para la interacción fluida con modelos de
 - **Tema Adaptable:** Soporte nativo para modo claro y oscuro basado en las preferencias del sistema o configuración manual.
 - **Diseño Responsivo:** Interfaz adaptada a dispositivos móviles, tablets y escritorio.
 - **Sidebar Colapsable:** Maximiza tu espacio de lectura y revisión de código ocultando el historial de chats cuando no lo necesites.
+- **Soporte Multilingüe:** Interfaz y aplicación disponibles en Español e Inglés, con cambio de idioma instantáneo.
 
 ---
 
@@ -70,6 +71,7 @@ frontend/
 │   │   ├── UserProfile.jsx           # Perfil de usuario
 │   │   └── UserProfileModal.jsx      # Modal de configuración de perfil
 │   ├── css/            # Estilos CSS modulares (uno por componente)
+│   ├── i18n/           # Configuración de internacionalización y traducciones (ES/EN)
 │   └── services/       # Servicios y lógica de negocio
 │       ├── api.service.js      # Cliente HTTP con autenticación automática
 │       ├── auth.service.js     # Gestión de autenticación JWT

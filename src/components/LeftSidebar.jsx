@@ -1,13 +1,16 @@
 import { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { RiChatNewLine } from 'react-icons/ri'
 import { IoSearch } from "react-icons/io5"
 import { MdKeyboardArrowDown, MdEdit } from 'react-icons/md'
 import { FaFolderPlus, FaTrash } from 'react-icons/fa'
+import { IoSettingsSharp } from 'react-icons/io5'
 import genesisLogo from '../assets/Genesis_Sign_Violet.png'
 import genesisHorizontal from '../assets/Genesis_Horizontal_Violet.png'
 import UserProfile from './UserProfile'
+import UserProfileModal from './UserProfileModal'
 import ChatOptionsMenu from './ChatOptionsMenu'
 import ProjectSelector from './ProjectSelector'
 import ProjectModal from './ProjectModal'
@@ -15,6 +18,7 @@ import chatService from '../services/chat.service'
 import '../css/LeftSidebar.css'
 
 const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkTheme, onToggleTheme, onChatSelect, currentChatId, onNewChat, hasMessages, isLoading }, ref) => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [chats, setChats] = useState([])
   const [projects, setProjects] = useState([])
@@ -29,6 +33,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
   const [projectModalMode, setProjectModalMode] = useState('create') // 'create' | 'edit'
   const [editingProject, setEditingProject] = useState(null)
   const [projectContextMenu, setProjectContextMenu] = useState(null)
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
   const searchInputRef = useRef(null)
   const projectContextMenuRef = useRef(null)
 
@@ -324,7 +329,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
   const handleNewChatInProject = async (project) => {
     try {
       // Crear un nuevo chat con título genérico
-      const newChat = await chatService.createChat('Nuevo Chat')
+      const newChat = await chatService.createChat(t('sidebar.newChatDefaultName'))
       
       // Asignar el chat al proyecto
       await chatService.addChatToProject(newChat.id, project.id)
@@ -351,7 +356,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
       return false
     }
 
-    return project.chats.some(chat => chat.title === 'Nuevo Chat')
+    return project.chats.some(chat => chat.title === t('sidebar.newChatDefaultName'))
   }
 
   // Exponer la función refreshChats al componente padre
@@ -370,7 +375,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
         <button
           className={`left-sidebar-toggle-button ${isOpen ? 'open' : ''}`}
           onClick={toggleSidebar}
-          aria-label={isOpen ? 'Cerrar panel' : 'Abrir panel'}
+          aria-label={isOpen ? t('sidebar.closePanel') : t('sidebar.openPanel')}
         >
           <img 
             src={isOpen ? genesisHorizontal : genesisLogo} 
@@ -385,7 +390,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
             className="new-chat-button-compact"
             onClick={onNewChat}
             disabled={!hasMessages || isLoading}
-            aria-label="Crear nuevo chat"
+            aria-label={t('sidebar.newChat')}
           >
             <RiChatNewLine className="new-chat-icon-compact" />
           </button>
@@ -402,17 +407,17 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                   className="new-chat-button"
                   onClick={onNewChat}
                   disabled={!hasMessages || isLoading}
-                  aria-label="Crear nuevo chat"
+                  aria-label={t('sidebar.newChat')}
                 >
                   <RiChatNewLine className="new-chat-icon" />
-                  <span>Nuevo chat</span>
+                  <span>{t('sidebar.newChat')}</span>
                 </button>
 
                 {/* Botón de búsqueda */}
                 <button 
                   className="search-button"
                   onClick={handleSearchToggle}
-                  aria-label="Buscar chats"
+                  aria-label={t('sidebar.searchChats')}
                 >
                   <IoSearch className="search-icon" />
                 </button>
@@ -425,14 +430,14 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                     ref={searchInputRef}
                     type="text"
                     className="search-input"
-                    placeholder="Buscar por título o fecha"
+                    placeholder={t('sidebar.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                   <button 
                     className="search-close-button"
                     onClick={handleSearchToggle}
-                    aria-label="Cerrar búsqueda"
+                    aria-label={t('sidebar.closeSearch')}
                   >
                     ×
                   </button>
@@ -441,10 +446,10 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
 
               <div className="chats-list">
                 {isLoadingChats ? (
-                  <div className="chats-loading">Cargando chats...</div>
+                  <div className="chats-loading">{t('sidebar.loadingChats')}</div>
                 ) : filteredChats.length === 0 && projects.length === 0 ? (
                   <div className="chats-empty">
-                    {searchQuery ? 'No se encontraron chats' : 'No hay chats guardados'}
+                    {searchQuery ? t('sidebar.noChatsFound') : t('sidebar.noSavedChats')}
                   </div>
                 ) : (
                   <>
@@ -452,7 +457,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                     {projects.length > 0 && (
                       <div className="chats-section">
                         <div className="chats-section-header">
-                          <div className="chats-section-title">Proyectos</div>
+                          <div className="chats-section-title">{t('sidebar.projects')}</div>
                           {!searchQuery && (
                             <button
                               className="new-project-button"
@@ -462,7 +467,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                                 setSelectedChatForProject(null)
                                 setShowProjectModal(true)
                               }}
-                              title="Nuevo proyecto"
+                              title={t('sidebar.newProject')}
                             >
                               <FaFolderPlus />
                             </button>
@@ -541,7 +546,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                     {/* Sección de chats fijados */}
                     {filteredChats.some(chat => chat.pinned && !chat.project_id) && (
                       <div className="chats-section">
-                        <div className="chats-section-title">Fijados</div>
+                        <div className="chats-section-title">{t('sidebar.pinned')}</div>
                         {filteredChats
                           .filter(chat => chat.pinned && !chat.project_id)
                           .map((chat) => (
@@ -577,7 +582,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
                     {filteredChats.some(chat => !chat.pinned && !chat.project_id) && (
                       <div className="chats-section">
                         {(filteredChats.some(chat => chat.pinned && !chat.project_id) || projects.length > 0) && (
-                          <div className="chats-section-title">Recientes</div>
+                          <div className="chats-section-title">{t('sidebar.recent')}</div>
                         )}
                         {filteredChats
                           .filter(chat => !chat.pinned && !chat.project_id)
@@ -632,9 +637,16 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
               )
             ) : (
               isOpen && (
-                <button className="login-button" onClick={handleLogin}>
-                  Iniciar sesión
-                </button>
+                <div className="unauth-footer">
+                  <button className="login-button" onClick={handleLogin}>{t('auth.login.title')}</button>
+                  <button 
+                    className="settings-button unauth-settings" 
+                    onClick={() => setShowSettingsModal(true)}
+                    aria-label={t('settings.title')}
+                  >
+                    <IoSettingsSharp />
+                  </button>
+                </div>
               )
             )}
           </div>
@@ -656,7 +668,6 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
         onClose={() => setShowProjectModal(false)}
         onSave={handleSaveProject}
         initialName={editingProject?.name || ''}
-        title={projectModalMode === 'create' ? 'Nuevo proyecto' : 'Editar proyecto'}
       />
 
       {/* Menú contextual de proyecto */}
@@ -675,26 +686,36 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
             className="project-context-item"
             onClick={() => handleNewChatInProject(projectContextMenu.project)}
             disabled={hasEmptyChats(projectContextMenu.project)}
-            title={hasEmptyChats(projectContextMenu.project) ? 'Ya existe un chat vacío en este proyecto' : 'Crear nuevo chat en este proyecto'}
+            title={hasEmptyChats(projectContextMenu.project) ? t('sidebar.projectMenu.emptyChatExists') : t('sidebar.projectMenu.newChatTooltip')}
           >
             <RiChatNewLine className="context-icon" />
-            <span>Nuevo chat en proyecto</span>
+            <span>{t('sidebar.projectMenu.newChat')}</span>
           </button>
           <button
             className="project-context-item"
             onClick={() => handleEditProject(projectContextMenu.project)}
           >
             <MdEdit className="context-icon" />
-            <span>Editar título</span>
+            <span>{t('sidebar.projectMenu.editTitle')}</span>
           </button>
           <button
             className="project-context-item delete"
             onClick={() => handleDeleteProject(projectContextMenu.project.id)}
           >
             <FaTrash className="context-icon" />
-            <span>Eliminar</span>
+            <span>{t('sidebar.projectMenu.delete')}</span>
           </button>
         </div>
+      )}
+
+      {/* Modal de ajustes (solo tema e idioma para usuarios sin sesión) */}
+      {showSettingsModal && (
+        <UserProfileModal
+          onClose={() => setShowSettingsModal(false)}
+          isDarkTheme={isDarkTheme}
+          onToggleTheme={onToggleTheme}
+          settingsOnly={true}
+        />
       )}
     </>
   )

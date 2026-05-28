@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { RiImageAddFill } from 'react-icons/ri'
 import ImageModal from './ImageModal'
@@ -7,6 +8,7 @@ import { fetchWithAuth } from '../services/api.service'
 import '../css/ImageUploader.css'
 
 function ImageUploader({ images, onImagesChange, selectedModel }) {
+  const { t } = useTranslation()
   const [showModal, setShowModal] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(null)
   const [showDropdown, setShowDropdown] = useState(false)
@@ -132,13 +134,13 @@ function ImageUploader({ images, onImagesChange, selectedModel }) {
     setSelectedImageIndex(null)
   }
 
-  let addImageTitle = 'Añadir imagen'
+  let addImageTitle = t('images.uploader.add')
   if (canAddImages) {
     if (images.length >= 5) {
-      addImageTitle = 'Máximo 5 imágenes'
+      addImageTitle = t('images.uploader.max')
     }
   } else {
-    addImageTitle = 'Selecciona un modelo con visión o Auto para añadir imágenes'
+    addImageTitle = t('images.uploader.selectVisionModel')
   }
 
   return (
@@ -168,7 +170,7 @@ function ImageUploader({ images, onImagesChange, selectedModel }) {
             type="button"
             className={`image-preview-button ${canAddImages ? '' : 'disabled'}`}
             onClick={handlePreviewClick}
-            title={canAddImages ? 'Ver imágenes' : 'El modelo seleccionado no puede leer imágenes'}
+            title={canAddImages ? t('images.uploader.view') : t('images.uploader.cannotRead')}
           >
             <img 
               src={images[0].url} 

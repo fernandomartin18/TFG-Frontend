@@ -1,14 +1,21 @@
 import { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
-import { IoLogOutOutline, IoClose } from 'react-icons/io5'
+import { useTranslation } from 'react-i18next'
+import { IoLogOutOutline, IoClose, IoLanguageOutline } from 'react-icons/io5'
 import { MdEdit } from 'react-icons/md'
 import { CgDarkMode } from 'react-icons/cg'
 import { RiEye2Line, RiEyeCloseLine } from 'react-icons/ri'
 import authService from '../services/auth.service'
 import '../css/UserProfileModal.css'
 
-function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
+function UserProfileModal({ onClose, isDarkTheme, onToggleTheme, settingsOnly = false }) {
+  const { t, i18n } = useTranslation()
   const [user, setUser] = useState(null)
+  
+  // Preferencia de idioma (es, en, default)
+  const [languagePreference, setLanguagePreference] = useState(
+    localStorage.getItem('appLanguagePreference') || 'default'
+  )
   const [editedUsername, setEditedUsername] = useState('')
   const [newAvatar, setNewAvatar] = useState(null)
   const [avatarPreview, setAvatarPreview] = useState(null)
@@ -29,11 +36,12 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   useEffect(() => {
+    if (settingsOnly) return
     const userData = authService.getUser()
     setUser(userData)
     setEditedUsername(userData?.username || '')
     setAvatarPreview(userData?.avatarUrl || null)
-  }, [])
+  }, [settingsOnly])
 
   useEffect(() => {
     // Cerrar bocadillo al hacer clic fuera
@@ -53,6 +61,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
   }, [isEditingAvatar])
 
   useEffect(() => {
+    if (settingsOnly) return
     if (!user) return
     
     const usernameChanged = editedUsername !== user.username
@@ -69,7 +78,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
     setEditedUsername(value)
     
     if (value.length < 3 && value.length > 0) {
-      setUsernameError('Mínimo 3 caracteres')
+      setUsernameError(t('profile.errors.minUsername'))
     } else {
       setUsernameError('')
     }
@@ -150,18 +159,18 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
     setPasswordError('')
 
     if (editedUsername.length < 3) {
-      setUsernameError('Mínimo 3 caracteres')
+      setUsernameError(t('profile.errors.minUsername'))
       return
     }
 
     // Validar contraseñas si se están cambiando
     if (currentPassword || newPassword || confirmPassword) {
       if (!currentPassword || !newPassword || !confirmPassword) {
-        setPasswordError('Debes completar todos los campos de contraseña')
+        setPasswordError(t('profile.errors.passwordFieldsRequired'))
         return
       }
       if (newPassword.length < 6) {
-        setPasswordError('La nueva contraseña debe tener al menos 6 caracteres')
+        setPasswordError(t('profile.errors.passwordMinLength'))
         return
       }
       // Validar que tenga mayúscula, minúscula y número
@@ -170,11 +179,11 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
       const hasNumber = /\d/.test(newPassword)
       
       if (!hasUpperCase || !hasLowerCase || !hasNumber) {
-        setPasswordError('La contraseña debe contener al menos una mayúscula, una minúscula y un número')
+        setPasswordError(t('profile.errors.passwordRequirements'))
         return
       }
       if (newPassword !== confirmPassword) {
-        setPasswordError('Las contraseñas no coinciden')
+        setPasswordError(t('profile.errors.passwordsDoNotMatch'))
         return
       }
     }
@@ -200,7 +209,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
 
         if (!response.ok) {
           const data = await response.json()
-          throw new Error(data.error || 'Error al cambiar contraseña')
+          throw new Error(data.error || t('profile.errors.changePasswordError'))
         }
       }
 
@@ -225,7 +234,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
       onClose()
     } catch (error) {
       console.error('Error al guardar cambios:', error)
-      alert(error.message || 'Error al guardar los cambios')
+      alert(error.message || t('profile.errors.saveError'))
     }
   }
 
@@ -235,9 +244,23 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
     onClose()
   }
 
+  const handleLanguageChange = (e) => {
+    const value = e.target.value
+    setLanguagePreference(value)
+    localStorage.setItem('appLanguagePreference', value)
+
+    if (value === 'default') {
+      const browserLang = navigator.language || navigator.userLanguage
+      const sysLang = browserLang.toLowerCase().includes('es') ? 'es' : 'en'
+      i18n.changeLanguage(sysLang)
+    } else {
+      i18n.changeLanguage(value)
+    }
+  }
+
   const handleClose = () => {
-    if (hasChanges) {
-      const confirmClose = window.confirm('¿Quieres guardar los cambios antes de cerrar?')
+    if (hasChanges && !settingsOnly) {
+      const confirmClose = window.confirm(t('profile.unsavedChanges'))
       if (confirmClose) {
         handleSaveChanges()
         return
@@ -251,7 +274,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
     return username.charAt(0).toUpperCase()
   }
 
-  if (!user) return null
+  if (!user && !settingsOnly) return null
 
   return (
     <div 
@@ -265,7 +288,7 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
       }}
     >
       <div 
-        className="profile-modal" 
+        className={`profile-modal ${settingsOnly ? 'settings-only' : ''}`} 
         onClick={(e) => e.stopPropagation()}
         role="presentation"
         onKeyDown={(e) => e.stopPropagation()}
@@ -276,135 +299,139 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
         </button>
 
         <div className="modal-content-scroll">
-          {/* Avatar y botón editar */}
-          <div className="modal-avatar-section">
-            <div className="modal-avatar-container">
-              <div className="modal-avatar">
-                {avatarPreview ? (
-                  <img src={avatarPreview} alt={user.username} />
-                ) : (
-                  <span className="modal-avatar-initial">{getInitial(user.username)}</span>
-                )}
-              </div>
-              <button 
-                className="avatar-edit-btn"
-                onClick={handleEditAvatarClick}
-              >
-                <MdEdit />
-              </button>
-              
-              {/* Input de archivo oculto */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                style={{ display: 'none' }}
-              />
-              
-              {/* Bocadillo flotante con opciones */}
-              {isEditingAvatar && avatarPreview && (
-                <div className="avatar-options-popup">
+          {!settingsOnly && (
+            <>
+              {/* Avatar y botón editar */}
+              <div className="modal-avatar-section">
+                <div className="modal-avatar-container">
+                  <div className="modal-avatar">
+                    {avatarPreview ? (
+                      <img src={avatarPreview} alt={user?.username} />
+                    ) : (
+                      <span className="modal-avatar-initial">{getInitial(user?.username)}</span>
+                    )}
+                  </div>
                   <button 
-                    className="popup-option"
-                    onClick={() => {
-                      fileInputRef.current?.click()
-                      setIsEditingAvatar(false)
-                    }}
+                    className="avatar-edit-btn"
+                    onClick={handleEditAvatarClick}
                   >
-                    Cambiar foto
+                    <MdEdit />
                   </button>
-                  <button 
-                    className="popup-option delete"
-                    onClick={handleRemoveAvatar}
-                  >
-                    Eliminar foto
-                  </button>
+                  
+                  {/* Input de archivo oculto */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    style={{ display: 'none' }}
+                  />
+                  
+                  {/* Bocadillo flotante con opciones */}
+                  {isEditingAvatar && avatarPreview && (
+                    <div className="avatar-options-popup">
+                      <button 
+                        className="popup-option"
+                        onClick={() => {
+                          fileInputRef.current?.click()
+                          setIsEditingAvatar(false)
+                        }}
+                      >
+                        {t('profile.changePhoto')}
+                      </button>
+                      <button 
+                        className="popup-option delete"
+                        onClick={handleRemoveAvatar}
+                      >
+                        {t('profile.removePhoto')}
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Sección Nombre */}
-          <div className="modal-section">
-            <h3 className="section-title">NOMBRE</h3>
-            <div className="modal-username-section">
-              <input
-                type="text"
-                className={`username-input ${usernameError ? 'error' : ''}`}
-                value={editedUsername}
-                onChange={handleUsernameChange}
-                placeholder="Nombre de usuario"
-              />
-              {usernameError && <span className="username-error">{usernameError}</span>}
-            </div>
-          </div>
-
-          {/* Sección Cambiar Contraseña */}
-          <div className="modal-section">
-            <h3 className="section-title">CAMBIAR CONTRASEÑA</h3>
-            <div className="password-fields">
-              <div className="password-input-wrapper">
-                <input
-                  type={showCurrentPassword ? "text" : "password"}
-                  className="password-input"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Contraseña actual"
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                >
-                  {showCurrentPassword ? <RiEyeCloseLine /> : <RiEye2Line />}
-                </button>
               </div>
-              <div className="password-input-wrapper">
-                <input
-                  type={showNewPassword ? "text" : "password"}
-                  className="password-input"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Nueva contraseña"
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                >
-                  {showNewPassword ? <RiEyeCloseLine /> : <RiEye2Line />}
-                </button>
-              </div>
-              <div className="password-input-wrapper">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  className="password-input"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirmar nueva contraseña"
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? <RiEyeCloseLine /> : <RiEye2Line />}
-                </button>
-              </div>
-              {passwordError && <span className="password-error">{passwordError}</span>}
-            </div>
-          </div>
 
-          {/* Sección Otros */}
+              {/* Sección Nombre */}
+              <div className="modal-section">
+                <h3 className="section-title">{t('profile.name')}</h3>
+                <div className="modal-username-section">
+                  <input
+                    type="text"
+                    className={`username-input ${usernameError ? 'error' : ''}`}
+                    value={editedUsername}
+                    onChange={handleUsernameChange}
+                    placeholder={t('profile.usernamePlaceholder')}
+                  />
+                  {usernameError && <span className="username-error">{usernameError}</span>}
+                </div>
+              </div>
+
+              {/* Sección Cambiar Contraseña */}
+              <div className="modal-section">
+                <h3 className="section-title">{t('profile.changePassword')}</h3>
+                <div className="password-fields">
+                  <div className="password-input-wrapper">
+                    <input
+                      type={showCurrentPassword ? "text" : "password"}
+                      className="password-input"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder={t('profile.currentPassword')}
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    >
+                      {showCurrentPassword ? <RiEyeCloseLine /> : <RiEye2Line />}
+                    </button>
+                  </div>
+                  <div className="password-input-wrapper">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      className="password-input"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder={t('profile.newPassword')}
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? <RiEyeCloseLine /> : <RiEye2Line />}
+                    </button>
+                  </div>
+                  <div className="password-input-wrapper">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      className="password-input"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder={t('profile.confirmNewPassword')}
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <RiEyeCloseLine /> : <RiEye2Line />}
+                    </button>
+                  </div>
+                  {passwordError && <span className="password-error">{passwordError}</span>}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Sección Otros / Ajustes */}
           <div className="modal-section">
-            <h3 className="section-title">OTROS</h3>
+            {!settingsOnly && <h3 className="section-title">{t('profile.others')}</h3>}
             
             {/* Switch tema */}
             <div className="modal-option theme-option">
               <CgDarkMode className="option-icon" />
-              <span className="option-label">Modo oscuro</span>
-              <label className="theme-switch" aria-label="Alternar modo oscuro">
+              <span className="option-label">{t('profile.darkMode')}</span>
+              <label className="theme-switch" aria-label={t('profile.darkMode')}>
                 <input
                   type="checkbox"
                   checked={isDarkTheme}
@@ -414,18 +441,35 @@ function UserProfileModal({ onClose, isDarkTheme, onToggleTheme }) {
               </label>
             </div>
 
-            {/* Cerrar sesión */}
-            <button className="modal-option logout-option" onClick={handleLogout}>
-              <IoLogOutOutline className="option-icon" />
-              <span>Cerrar sesión</span>
-            </button>
+            {/* Select idioma */}
+            <div className="modal-option language-option">
+              <IoLanguageOutline className="option-icon" />
+              <span className="option-label">{t('profile.language')}</span>
+              <select 
+                className="language-select" 
+                value={languagePreference} 
+                onChange={handleLanguageChange}
+              >
+                <option value="es">{t('profile.languageOptions.es')}</option>
+                <option value="en">{t('profile.languageOptions.en')}</option>
+                <option value="default">{t('profile.languageOptions.default')}</option>
+              </select>
+            </div>
+
+            {/* Cerrar sesión solo si NO es settingsOnly */}
+            {!settingsOnly && (
+              <button className="modal-option logout-option" onClick={handleLogout}>
+                <IoLogOutOutline className="option-icon" />
+                <span>{t('profile.logout')}</span>
+              </button>
+            )}
           </div>
         </div>
 
         {/* Botón guardar cambios - fijo al final */}
-        {hasChanges && (
+        {hasChanges && !settingsOnly && (
           <button className="save-changes-btn-fixed" onClick={handleSaveChanges}>
-            Guardar cambios
+            {t('profile.saveChanges')}
           </button>
         )}
       </div>

@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { RiEye2Line, RiEyeCloseLine } from 'react-icons/ri'
 import genesisLogo from '../assets/Genesis_Sign_Violet.png'
 import genesisText from '../assets/Genesis_Horizontal_Violet.png'
@@ -7,6 +8,7 @@ import authService from '../services/auth.service'
 import '../css/Login.css'
 
 function Login() {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -18,6 +20,15 @@ function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
 
+  useEffect(() => {
+    const html = document.documentElement
+    if (!html.dataset.theme) {
+      const savedTheme = localStorage.getItem('theme')
+      html.dataset.theme = savedTheme ||
+        (globalThis.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    }
+  }, [])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setGeneralError('')
@@ -28,16 +39,16 @@ function Login() {
 
     // Validar email
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newFieldErrors.email = 'Formato de email inválido'
+      newFieldErrors.email = t('auth.errors.invalidEmail')
       hasErrors = true
     }
 
     // Validar contraseña
     if (password.length < 6) {
-      newFieldErrors.password = 'Mínimo 6 caracteres'
+      newFieldErrors.password = t('auth.errors.minPassword')
       hasErrors = true
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-      newFieldErrors.password = 'Debe incluir mayúscula, minúscula y número'
+      newFieldErrors.password = t('auth.errors.passwordRequirements')
       hasErrors = true
     }
 
@@ -55,7 +66,7 @@ function Login() {
       navigate('/')
     } catch (err) {
       // Errores del servidor son generales (credenciales inválidas, etc.)
-      setGeneralError(err.message || 'Error al iniciar sesión')
+      setGeneralError(err.message || t('auth.errors.loginError'))
     } finally {
       setIsLoading(false)
     }
@@ -71,20 +82,20 @@ function Login() {
       {/* Mitad izquierda - Formulario */}
       <div className="auth-left">
         <div className="auth-card">
-          <h1 className="auth-title">Iniciar Sesión</h1>
+          <h1 className="auth-title">{t('auth.login.title')}</h1>
 
           {generalError && <div className="error-message">{generalError}</div>}
 
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="email">Correo electrónico</label>
+              <label htmlFor="email">{t('auth.login.emailLabel')}</label>
               <div className="input-with-error">
                 <input
                   type="text"
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@email.com"
+                  placeholder={t('auth.login.emailPlaceholder')}
                   disabled={isLoading}
                   className={fieldErrors.email ? 'input-error' : ''}
                 />
@@ -95,7 +106,7 @@ function Login() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Contraseña</label>
+              <label htmlFor="password">{t('auth.login.passwordLabel')}</label>
               <div className="input-with-error">
                 <div className="password-input-wrapper">
                   <input
@@ -103,7 +114,7 @@ function Login() {
                     id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder={t('auth.login.passwordPlaceholder')}
                     disabled={isLoading}
                     className={fieldErrors.password ? 'input-error' : ''}
                   />
@@ -123,12 +134,12 @@ function Login() {
             </div>
 
             <button type="submit" className="auth-button" disabled={isLoading}>
-              {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+              {isLoading ? t('auth.login.submittingButton') : t('auth.login.submitButton')}
             </button>
           </form>
 
           <p className="auth-footer">
-            ¿No tienes cuenta? <Link to="/register" className="auth-link">Regístrate</Link>
+            {t('auth.login.noAccount')} <Link to="/register" className="auth-link">{t('auth.login.registerLink')}</Link>
           </p>
         </div>
       </div>

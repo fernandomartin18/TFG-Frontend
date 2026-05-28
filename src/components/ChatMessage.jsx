@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { FaCopy, FaChevronUp, FaChevronDown, FaPenToSquare } from 'react-icons/fa6'
 import ReactMarkdown from 'react-markdown'
@@ -10,12 +11,12 @@ import ImageDropdown from './ImageDropdown'
 import LoadingDots from './LoadingDots'
 import '../css/ChatMessage.css'
 
-function ChatMessage({ 
-  message, 
-  isUser, 
-  isError = false, 
-  images = [], 
-  isFirstMessage = false, 
+function ChatMessage({
+  message,
+  isUser,
+  isError = false,
+  images = [],
+  isFirstMessage = false,
   isLoading = false,
   isTwoStep = false,
   step1Text = '',
@@ -23,6 +24,7 @@ function ChatMessage({
   currentStep = 0,
   chatId = null
 }) {
+  const { t } = useTranslation()
   const [copiedIndex, setCopiedIndex] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(null)
@@ -200,9 +202,10 @@ function ChatMessage({
 
   // Validar si el contenido es un error de diagrama no detectado
   const isNoDiagramError = step1Text && step1Text.includes('No se ha detectado ningún diagrama UML')
+  const isNoDiagramErrorI18n = step1Text && (step1Text.includes('No se ha detectado ningún diagrama UML') || step1Text.includes(t('chatView.message.noDiagramError')))
 
   // Si es un mensaje de dos pasos Y NO es el error de diagrama, mostrar interfaz especial
-  if (!isUser && isTwoStep && !isNoDiagramError) {
+  if (!isUser && isTwoStep && !isNoDiagramErrorI18n) {
     const step1Parts = step1Text ? parseMessage(step1Text) : []
     const step2Parts = step2Text ? parseMessage(step2Text) : []
     
@@ -224,8 +227,8 @@ function ChatMessage({
                 role="button"
                 tabIndex={0}
               >
-                <span className="plantuml-title">Generando PlantUML</span>
-                <button className="plantuml-toggle" aria-label={showPlantUML ? "Contraer" : "Expandir"}>
+                <span className="plantuml-title">{t('chatView.message.generatingPlantUML')}</span>
+                <button className="plantuml-toggle" aria-label={showPlantUML ? t('chatView.message.collapse') : t('chatView.message.expand')}>
                   {showPlantUML ? <FaChevronUp size={16} /> : <FaChevronDown size={16} />}
                 </button>
               </div>
@@ -246,7 +249,7 @@ function ChatMessage({
                                   <button 
                                     className="copy-button"
                                     onClick={() => handleEditPlantUML(part.content)}
-                                    title="Editar PlantUML"
+                                    title={t('chatView.message.editPlantUML')}
                                     style={{ marginRight: '8px' }}
                                   >
                                     <FaPenToSquare size={16} />
@@ -254,12 +257,12 @@ function ChatMessage({
                                   <button 
                                     className="copy-button"
                                     onClick={() => handleCopy(part.content, `step1-${index}`)}
-                                    title={copiedIndex === `step1-${index}` ? "¡Copiado!" : "Copiar código"}
+                                    title={copiedIndex === `step1-${index}` ? t('chatView.message.copied') : t('chatView.message.copyCode')}
                                   >
                                     <FaCopy size={16} />
                                   </button>
                                   {copiedIndex === `step1-${index}` && (
-                                    <span className="copy-tooltip">¡Copiado!</span>
+                                    <span className="copy-tooltip">{t('chatView.message.copied')}</span>
                                   )}
                                 </div>
                               )}
@@ -319,12 +322,12 @@ function ChatMessage({
                               <button 
                                 className="copy-button"
                                 onClick={() => handleCopy(part.content, `step2-${index}`)}
-                                title={copiedIndex === `step2-${index}` ? "¡Copiado!" : "Copiar código"}
+                                title={copiedIndex === `step2-${index}` ? t('chatView.message.copied') : t('chatView.message.copyCode')}
                               >
                                 <FaCopy size={16} />
                               </button>
                               {copiedIndex === `step2-${index}` && (
-                                <span className="copy-tooltip">¡Copiado!</span>
+                                <span className="copy-tooltip">{t('chatView.message.copied')}</span>
                               )}
                             </div>
                           )}
@@ -370,7 +373,7 @@ function ChatMessage({
   }
 
   // Si es el error de diagrama no detectado, mostrarlo como mensaje de error simple
-  if (isNoDiagramError) {
+  if (isNoDiagramErrorI18n) {
     return (
       <div className="message-wrapper ai-message">
         <div className="ai-content error-message">
@@ -400,12 +403,12 @@ function ChatMessage({
                       <button 
                         className="copy-button"
                         onClick={() => handleCopy(part.content, index)}
-                        title={copiedIndex === index ? "¡Copiado!" : "Copiar código"}
+                        title={copiedIndex === index ? t('chatView.message.copied') : t('chatView.message.copyCode')}
                       >
                         <FaCopy size={16} />
                       </button>
                       {copiedIndex === index && (
-                        <span className="copy-tooltip">¡Copiado!</span>
+                        <span className="copy-tooltip">{t('chatView.message.copied')}</span>
                       )}
                     </div>
                   )}

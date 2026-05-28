@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { PiDotsThreeVerticalBold } from 'react-icons/pi'
 import { MdEdit, MdFolderOff } from 'react-icons/md'
@@ -8,6 +9,7 @@ import { FaTrash, FaFolderOpen } from 'react-icons/fa'
 import '../css/ChatOptionsMenu.css'
 
 const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete, onAddToProject, onRemoveFromProject }) => {
+  const { t } = useTranslation()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState(chat.title)
@@ -156,7 +158,7 @@ const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete, onAddToProject, 
         ref={buttonRef}
         className="chat-options-button"
         onClick={handleToggleMenu}
-        aria-label="Opciones del chat"
+        aria-label={t('chatMenu.optionsLabel')}
       >
         <PiDotsThreeVerticalBold />
       </button>
@@ -165,14 +167,10 @@ const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete, onAddToProject, 
         <div ref={menuRef} className="chat-options-menu">
           {showDeleteConfirm ? (
             <div className="delete-confirm">
-              <p className="delete-confirm-text">¿Eliminar este chat?</p>
+              <p className="delete-confirm-text">{t('chatMenu.deleteConfirmText')}</p>
               <div className="delete-confirm-buttons">
-                <button className="delete-confirm-button cancel" onClick={handleDeleteCancel}>
-                  Cancelar
-                </button>
-                <button className="delete-confirm-button confirm" onClick={handleDeleteConfirm}>
-                  Eliminar
-                </button>
+                <button className="delete-confirm-button cancel" onClick={handleDeleteCancel}>{t('chatMenu.cancel')}</button>
+                <button className="delete-confirm-button confirm" onClick={handleDeleteConfirm}>{t('chatMenu.delete')}</button>
               </div>
             </div>
           ) : (
@@ -183,12 +181,12 @@ const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete, onAddToProject, 
                   {chat.pinned ? (
                     <>
                       <RiUnpinFill className="option-icon" />
-                      <span>Desfijar</span>
+                      <span>{t('chatMenu.unpin')}</span>
                     </>
                   ) : (
                     <>
                       <BsFillPinAngleFill className="option-icon" />
-                      <span>Fijar</span>
+                      <span>{t('chatMenu.pin')}</span>
                     </>
                   )}
                 </button>
@@ -198,23 +196,23 @@ const ChatOptionsMenu = ({ chat, onEdit, onTogglePin, onDelete, onAddToProject, 
               {chat.project_id ? (
                 <button className="chat-option-item" onClick={handleRemoveFromProject}>
                   <MdFolderOff className="option-icon" />
-                  <span>Retirar de proyecto</span>
+                  <span>{t('chatMenu.removeFromProject')}</span>
                 </button>
               ) : (
                 <button className="chat-option-item" onClick={handleAddToProject}>
                   <FaFolderOpen className="option-icon" />
-                  <span>Añadir a proyecto</span>
+                  <span>{t('chatMenu.addToProject')}</span>
                 </button>
               )}
               
               <button className="chat-option-item" onClick={handleEditClick}>
                 <MdEdit className="option-icon" />
-                <span>Editar título</span>
+                <span>{t('chatMenu.editTitle')}</span>
               </button>
               
               <button className="chat-option-item delete" onClick={handleDeleteClick}>
                 <FaTrash className="option-icon" />
-                <span>Eliminar</span>
+                <span>{t('chatMenu.delete')}</span>
               </button>
             </>
           )}

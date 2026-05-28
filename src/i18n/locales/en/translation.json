@@ -1,0 +1,262 @@
+{
+  "profile": {
+    "unsavedChanges": "Do you want to save changes before closing?",
+    "changePhoto": "Change photo",
+    "removePhoto": "Remove photo",
+    "name": "NAME",
+    "usernamePlaceholder": "Username",
+    "changePassword": "CHANGE PASSWORD",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmNewPassword": "Confirm new password",
+    "others": "OTHERS",
+    "darkMode": "Dark mode",
+    "language": "Language",
+    "languageOptions": {
+      "es": "Spanish",
+      "en": "English",
+      "default": "Default"
+    },
+    "logout": "Log out",
+    "saveChanges": "Save changes",
+    "errors": {
+      "minUsername": "Minimum 3 characters",
+      "passwordFieldsRequired": "You must fill in all password fields",
+      "passwordMinLength": "New password must be at least 6 characters long",
+      "passwordRequirements": "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "changePasswordError": "Error changing password",
+      "saveError": "Error saving changes"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Log In",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@email.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "submitButton": "Log In",
+      "submittingButton": "Logging in...",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Sign Up"
+    },
+    "register": {
+      "title": "Create Account",
+      "nameLabel": "Name",
+      "namePlaceholder": "Name",
+      "confirmPasswordLabel": "Repeat Password",
+      "submitButton": "Sign Up",
+      "submittingButton": "Signing up...",
+      "alreadyHaveAccount": "Already have an account?",
+      "loginLink": "Log In"
+    },
+    "errors": {
+      "invalidEmail": "Invalid email format",
+      "minPassword": "Minimum 6 characters",
+      "passwordRequirements": "Must include uppercase, lowercase, and a number",
+      "loginError": "Error logging in",
+      "minUsername": "Minimum 3 characters",
+      "maxUsername": "Maximum 50 characters",
+      "invalidUsername": "Letters, numbers, hyphens only",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "registerError": "Error registering user"
+    }
+  },
+  "reactFlow": {
+    "classNode": "Class",
+    "packageNode": "Package",
+    "addClass": "+ Class",
+    "addPackage": "+ Package",
+    "syncToCode": "Sync to Code",
+    "relationType": "Relation Type",
+    "relations": {
+      "association": "Association (-->)",
+      "inheritance": "Inheritance (--|>)",
+      "composition": "Composition (*--)",
+      "aggregation": "Aggregation (o--)",
+      "dependency": "Dependency (..>)",
+      "realization": "Realization (..|>)"
+    },
+    "deleteRelation": "Remove relation"
+  },
+  "projects": {
+    "selector": {
+      "newProject": "New project",
+      "noProjects": "You have no projects yet"
+    },
+    "modal": {
+      "newProject": "New project",
+      "editProject": "Edit project",
+      "projectName": "Project name",
+      "cancel": "Cancel",
+      "save": "Save"
+    }
+  },
+  "models": {
+    "selector": {
+      "model": "Model",
+      "noLLMs": "No LLMs available",
+      "loading": "Loading...",
+      "auto": "Auto"
+    },
+    "info": {
+      "title": "Model information",
+      "p1": "Here you will see the models installed via Ollama.",
+      "p2_1": "To search for available models, ",
+      "link": "click here",
+      "p2_2": ".",
+      "p3": "Install the one you want via terminal using the command:",
+      "code": "ollama pull <model_name[:parameters]>",
+      "p4": "For auto mode to work, you must have an image-recognition model and a language-generation model installed.",
+      "close": "Close"
+    },
+    "config": {
+      "title": "Auto Mode Configuration",
+      "default": "Default",
+      "defaultDesc": "Automatically selects the best model equipped with vision (to read images and PlantUML) and then the most powerful language model to generate code.",
+      "custom": "Custom",
+      "visionModel": "Multimodal Model (Vision)",
+      "codingModel": "Code Generation Model"
+    }
+  },
+  "plantUml": {
+    "title": "PlantUML Editor",
+    "loading": "Loading...",
+    "noTemplates": "No templates available.",
+    "newTemplate": "New template",
+    "useTemplate": "Use",
+    "titlePlaceholder": "Type the title...",
+    "codePlaceholder": "Type your PlantUML code here...",
+    "errors": {
+      "delete": "Error deleting template: {{error}}",
+      "saveValidation": "Please provide a title and code for your template.",
+      "save": "Error saving template: {{error}}"
+    },
+    "tabs": {
+      "templates": "Templates",
+      "code": "Code",
+      "diagram": "Diagram"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "accept": "Accept",
+      "save": "Save"
+    },
+    "templates": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "defaultName": "My new template",
+      "selectToViewCode": "Select a template to view its code",
+      "diagramHere": "The diagram will appear here"
+    }
+  },
+  "kroki": {
+    "syntaxError": "Syntax error: Could not render a valid PlantUML diagram.",
+    "emptyMessage": "The code is empty. Write PlantUML to see the diagram.",
+    "rendering": "Rendering..."
+  },
+  "sidebar": {
+    "openPanel": "Open panel",
+    "closePanel": "Close panel",
+    "newChat": "New chat",
+    "searchChats": "Search chats",
+    "searchPlaceholder": "Search by title or date",
+    "closeSearch": "Close search",
+    "loadingChats": "Loading chats...",
+    "noChatsFound": "No chats found",
+    "noSavedChats": "No saved chats",
+    "projects": "Projects",
+    "newProject": "New project",
+    "pinned": "Pinned",
+    "recent": "Recent",
+    "projectMenu": {
+      "emptyChatExists": "An empty chat already exists in this project",
+      "newChatTooltip": "Create new chat in this project",
+      "newChat": "New chat in project",
+      "editTitle": "Edit title",
+      "delete": "Delete"
+    },
+    "newChatDefaultName": "New Chat"
+  },
+  "chatMenu": {
+    "optionsLabel": "Chat options",
+    "deleteConfirmText": "Delete this chat?",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "unpin": "Unpin",
+    "pin": "Pin",
+    "removeFromProject": "Remove from project",
+    "addToProject": "Add to project",
+    "editTitle": "Edit title"
+  },
+  "images": {
+    "uploader": {
+      "add": "Add image",
+      "max": "Max 5 images",
+      "selectVisionModel": "Select a vision model or Auto to add images",
+      "view": "View images",
+      "cannotRead": "Selected model cannot read images"
+    },
+    "modal": {
+      "close": "Close",
+      "delete": "Delete"
+    },
+    "dropdown": {
+      "delete": "Delete"
+    }
+  },
+  "codeSidebar": {
+    "closePanel": "Close panel",
+    "openPanel": "Open panel",
+    "downloadCode": "Download code",
+    "downloadAllCodes": "Download all codes",
+    "mixedCode": "Mixed Code ({{count}} files)",
+    "modal": {
+      "download": "Download code",
+      "close": "Close",
+      "copied": "Copied!",
+      "copy": "Copy",
+      "copyCode": "Copy code"
+    }
+  },
+  "chatInput": {
+    "deleteTemplateConfirm": "Are you sure you want to delete this template?",
+    "createDiagramTitle": "Create PlantUML diagram",
+    "createTemplate": "Create template",
+    "promptTemplatesTitle": "Prompt Templates",
+    "inputPlaceholder": "Type your message...",
+    "editAsTextTitle": "Edit as free text",
+    "editAsText": "Edit as text",
+    "viewTemplates": "View templates",
+    "edit": "Edit",
+    "delete": "Delete",
+    "editTemplateModalTitle": "Edit template",
+    "createTemplateModalTitle": "Create template",
+    "templateModalInfo": "To insert fields to be filled when using the template, write what should be inserted in the field between brackets.",
+    "templateModalExample": "For example: ",
+    "templateModalExampleSpan": "[Specify Language]",
+    "templateTitlePlaceholder": "Template title",
+    "templatePromptPlaceholder": "Write your prompt with the [variables]...",
+    "saveChanges": "Save Changes",
+    "create": "Create"
+  },
+  "chatView": {
+    "plantumlPrompt": "Given this plantuml code, generate the necessary codes in [SPECIFY LANGUAGE]. Correctly implement the classes, methods, and object-oriented relationships (inheritance, composition, etc.) that can be visually appreciated and, before sending each code, textually indicate the package to which it belongs, if any.",
+    "untitledChat": "Untitled Chat",
+    "newChat": "New Chat",
+    "loadError": "Error loading the chat. Please try again.",
+    "emptyState": "How can I help you today?",
+    "message": {
+      "copied": "Copied!",
+      "copyCode": "Copy code",
+      "generatingPlantUML": "Generating PlantUML",
+      "collapse": "Collapse",
+      "expand": "Expand",
+      "noDiagramError": "No UML diagram detected",
+      "editDiagram": "Edit diagram",
+      "editPlantUML": "Edit PlantUML"
+    },
+    "aiError": "Error communicating with the AI. Verify that the backend is running."
+  }
+}

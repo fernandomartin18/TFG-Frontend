@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import '../css/App.css'
 import ChatMessage from './ChatMessage'
@@ -10,6 +11,7 @@ import { fetchWithAuth } from '../services/api.service'
 import chatService from '../services/chat.service'
 
 function Chat({ isAuthenticated }) {
+  const { t } = useTranslation()
   const location = useLocation()
   const [messages, setMessages] = useState([])
   const [initialInputText, setInitialInputText] = useState('')
@@ -104,9 +106,9 @@ function Chat({ isAuthenticated }) {
         return
       }
 
-      const firstUserMessage = pendingMessages.find(msg => msg.isUser)?.text || 'Chat sin título'
+      const firstUserMessage = pendingMessages.find(msg => msg.isUser)?.text || t('chatView.untitledChat')
       const wordCount = firstUserMessage.trim().split(/\\s+/).length
-      const chatTitle = wordCount <= 4 ? firstUserMessage.trim() : 'Nuevo Chat'
+      const chatTitle = wordCount <= 4 ? firstUserMessage.trim() : t('chatView.newChat')
       
       const newChat = await chatService.createChat(chatTitle)
       const chatId = newChat.id
@@ -123,7 +125,7 @@ function Chat({ isAuthenticated }) {
         }
       }
       
-      if (chatTitle === 'Nuevo Chat' && pendingMessages.length > 1) {
+      if (chatTitle === t('chatView.newChat') && pendingMessages.length > 1) {
         try {
           const titleResponse = await fetchWithAuth('http://localhost:3000/api/generate/title', {
             method: 'POST',
@@ -361,7 +363,7 @@ function Chat({ isAuthenticated }) {
       console.error('Error al cargar chat:', error)
       setIsLoading(false)
       setMessages([{
-        text: 'Error al cargar el chat. Por favor, intenta de nuevo.',
+        text: t('chatView.loadError'),
         isUser: false,
         isError: true
       }])
@@ -508,7 +510,7 @@ function Chat({ isAuthenticated }) {
     let chatId = currentChatId
     if (!chatId && isAuthenticated) {
       try {
-        const newChat = await chatService.createChat('Nuevo Chat')
+        const newChat = await chatService.createChat(t('chatView.newChat'))
         chatId = newChat.id
         setCurrentChatId(chatId)
         // Actualizar la lista de chats en el sidebar
@@ -805,7 +807,7 @@ function Chat({ isAuthenticated }) {
       setMessages(prev => {
         const newMessages = [...prev]
         newMessages[aiMessageIndex] = {
-          text: 'Error al comunicarse con la IA. Verifica que el backend esté corriendo.',
+          text: t('chatView.aiError'),
           isUser: false,
           isError: true
         }
@@ -841,7 +843,7 @@ function Chat({ isAuthenticated }) {
       <div className="messages-container" ref={messagesContainerRef}>
         {messages.length === 0 ? (
           <div className="empty-state">
-            <p>¿En qué puedo ayudarte hoy?</p>
+            <p>{t('chatView.emptyState')}</p>
           </div>
         ) : (
           messages.map((msg, index) => (

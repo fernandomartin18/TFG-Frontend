@@ -6,6 +6,7 @@ import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useNodesState, useEdgesState } from '@xyflow/react'
 import { HiPencil } from 'react-icons/hi'
 import { FaTrash } from 'react-icons/fa'
+import { useTranslation } from 'react-i18next'
 import '../css/PlantUMLEditor.css'
 import '../css/ReactFlowStyles.css'
 import KrokiViewer from './KrokiViewer'
@@ -13,6 +14,7 @@ import ReactFlowViewer from './ReactFlowViewer'
 import plantUmlService from '../services/plantuml.service'
 
 function PlantUMLEditor() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const textareaRef = useRef(null)
@@ -214,13 +216,13 @@ function PlantUMLEditor() {
         }
       }
     } catch (e) {
-      alert('Error borrando plantilla: ' + e.message);
+      alert(t('plantUml.errors.delete', { error: e.message }))
     }
   };
   
   const handleSaveTemplate = async () => {
     if (!newTemplateTitle.trim() || !newTemplateCode.trim()) {
-      alert("Por favor, pon un título y un código a tu plantilla.");
+      alert(t("plantUml.errors.saveValidation"));
       return;
     }
     try {
@@ -248,7 +250,7 @@ function PlantUMLEditor() {
         }
       }
     } catch(err) {
-      alert("Error al guardar la plantilla: " + err.message);
+      alert(t("plantUml.errors.save", { error: err.message }));
     } finally {
       setIsLoadingTemplates(false);
     }
@@ -267,7 +269,7 @@ function PlantUMLEditor() {
     <div className="plantuml-editor-container">
       <header className="plantuml-editor-header">
         <div style={{ flex: 1 }}>
-          <h1 className="plantuml-editor-title">Editor PlantUML</h1>
+          <h1 className="plantuml-editor-title">{t("plantUml.title")}</h1>
         </div>
         <div className="view-mode-tabs" style={{ display: 'flex', justifyContent: 'center', flex: 1, margin: 0, gap: '2rem' }}>
           {location.state?.createNew && (
@@ -275,32 +277,32 @@ function PlantUMLEditor() {
               className={`view-mode-tab ${activeTab === 'templates' ? 'active' : ''}`}
               onClick={() => handleTabChange('templates')}
             >
-              Plantillas
+              {t('plantUml.tabs.templates')}
             </button>
           )}
           <button 
             className={`view-mode-tab ${activeTab === 'kroki' ? 'active' : ''}`}
             onClick={() => handleTabChange('kroki')}
           >
-            Código
+            {t('plantUml.tabs.code')}
           </button>
           <button 
             className={`view-mode-tab ${activeTab === 'reactflow' ? 'active' : ''}`}
             onClick={() => handleTabChange('reactflow')}
           >
-            Diagrama
+            {t('plantUml.tabs.diagram')}
           </button>
         </div>
         <div className="plantuml-editor-actions" style={{ flex: 1, justifyContent: 'flex-end' }}>
           <button className="plantuml-btn plantuml-btn-cancel" onClick={handleCancel}>
-            Cancelar
+            {t('plantUml.actions.cancel')}
           </button>
           <button 
             className="plantuml-btn plantuml-btn-save" 
             onClick={handleSave}
             disabled={activeTab === 'templates' || (!hasChanges && !location.state?.createNew)}
           >
-            Aceptar
+            {t('plantUml.actions.accept')}
           </button>
         </div>
       </header>
@@ -328,7 +330,7 @@ function PlantUMLEditor() {
                     setContextMenu(prev => ({ ...prev, isVisible: false }));
                     setSelectedTemplate(null);
                   }}>
-                   <HiPencil size={16} /> Editar
+                   <HiPencil size={16} /> {t('plantUml.templates.edit')}
                 </button>
                 <button 
                   style={{ background: 'transparent', border: 'none', color: '#ef4444', textAlign: 'left', padding: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '4px' }}
@@ -338,7 +340,7 @@ function PlantUMLEditor() {
                     handleDeleteTemplate(contextMenu.template.id);
                     setContextMenu(prev => ({ ...prev, isVisible: false }));
                   }}>
-                  <FaTrash size={14} /> Eliminar
+                  <FaTrash size={14} /> {t('plantUml.templates.delete')}
                 </button>
               </div>,
               document.body
@@ -346,9 +348,9 @@ function PlantUMLEditor() {
             
             {/* Lista de plantillas - 25% width */}
             <div className="templates-list-pane" style={{ width: '25%', height: '100%', borderRight: '1px solid var(--border-color)', overflowY: 'auto', background: 'var(--panel-bg)', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {isLoadingTemplates && <p style={{ color: 'var(--text-color)' }}>Cargando...</p>}
+              {isLoadingTemplates && <p style={{ color: 'var(--text-color)' }}>{t("plantUml.loading")}</p>}
               {errorTemplates && <p style={{ color: 'var(--error-color)' }}>{errorTemplates}</p>}
-              {!isLoadingTemplates && templates.length === 0 && <p style={{ color: 'var(--text-muted)' }}>No hay plantillas disponibles.</p>}
+              {!isLoadingTemplates && templates.length === 0 && <p style={{ color: 'var(--text-muted)' }}>{t("plantUml.noTemplates")}</p>}
               
               {isCreatingTemplate && !editingTemplateId && (
                 <div
@@ -366,7 +368,7 @@ function PlantUMLEditor() {
                     type="text"
                     value={newTemplateTitle}
                     onChange={(e) => setNewTemplateTitle(e.target.value)}
-                    placeholder="Escribe el título..."
+                    placeholder={t("plantUml.titlePlaceholder")}
                     autoFocus
                     style={{
                       width: '100%', border: 'none', background: 'transparent',
@@ -410,7 +412,7 @@ function PlantUMLEditor() {
                       type="text"
                       value={newTemplateTitle}
                       onChange={(e) => setNewTemplateTitle(e.target.value)}
-                      placeholder="Escribe el título..."
+                      placeholder={t("plantUml.titlePlaceholder")}
                       autoFocus
                       style={{
                         width: '100%', border: 'none', background: 'transparent',
@@ -438,14 +440,14 @@ function PlantUMLEditor() {
                     padding: '0.8rem 1.5rem', fontSize: '1.1rem',
                   }}
                 >
-                  Cancelar
+                  {t('plantUml.actions.cancel')}
                 </button>
               ) : (
                 <button 
                   className="plantuml-btn"
                   onClick={() => {
                     setIsCreatingTemplate(true);
-                    setNewTemplateTitle('Mi nueva plantilla');
+                    setNewTemplateTitle(t('plantUml.templates.defaultName'));
                     setNewTemplateCode('@startuml\n\n@enduml');
                     setSelectedTemplate(null);
                   }}
@@ -456,7 +458,7 @@ function PlantUMLEditor() {
                     border: 'none', padding: '0.8rem 1.5rem', fontSize: '1.1rem', borderRadius: '6px', cursor: 'pointer'
                   }}
                 >
-                  <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>+</span> Nueva plantilla
+                  <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>+</span> {t('plantUml.newTemplate')}
                 </button>
               )}
             </div>
@@ -472,7 +474,7 @@ function PlantUMLEditor() {
                       value={newTemplateCode}
                       onChange={(e) => setNewTemplateCode(e.target.value)}
                       onScroll={handleNewTemplateScroll}
-                      placeholder="Escribe aquí tu código PlantUML..."
+                      placeholder={t("plantUml.codePlaceholder")}
                       spellCheck="false"
                       style={{ 
                         color: 'transparent', caretColor: isDarkMode ? '#fff' : '#000',
@@ -535,7 +537,7 @@ function PlantUMLEditor() {
                   </SyntaxHighlighter>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
-                    Selecciona una plantilla para ver su código
+                    {t('plantUml.templates.selectToViewCode')}
                   </div>
                 )}
               </div>
@@ -550,7 +552,7 @@ function PlantUMLEditor() {
                   <KrokiViewer code={selectedTemplate.code} />
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
-                    El diagrama aparecerá aquí
+                    {t('plantUml.templates.diagramHere')}
                   </div>
                 )}
               </div>
@@ -567,7 +569,7 @@ function PlantUMLEditor() {
                     padding: '0.8rem 1.5rem', fontSize: '1.1rem',
                   }}
                 >
-                  Guardar
+                  {t('plantUml.actions.save')}
                 </button>
               ) : selectedTemplate && (
                 <button 
@@ -580,7 +582,7 @@ function PlantUMLEditor() {
                     padding: '0.8rem 1.5rem', fontSize: '1.1rem'
                   }}
                 >
-                  Usar <span>➔</span>
+                  {t('plantUml.useTemplate')} <span>➔</span>
                 </button>
               )}
             </div>
@@ -596,7 +598,7 @@ function PlantUMLEditor() {
                   value={code}
                   onChange={handleCodeChange}
                   onScroll={handleScroll}
-                  placeholder="Escribe aquí tu código PlantUML..."
+                  placeholder={t("plantUml.codePlaceholder")}
                   spellCheck="false"
                   readOnly={activeTab === 'reactflow'}
                   style={{ 

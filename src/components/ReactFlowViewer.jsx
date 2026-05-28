@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useState } from 'react';
 import { ReactFlow, Background, Controls, addEdge, MarkerType } from '@xyflow/react';
+import { useTranslation } from 'react-i18next';
 import dagre from 'dagre';
 import '@xyflow/react/dist/style.css';
 import UmlNode from './UmlNode';
@@ -242,7 +243,7 @@ const parsePlantUML = (code, isDarkMode = false) => {
 };
 
 function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, setEdges, onEdgesChange, setCode, setActiveTab, code }) {
-
+  const { t } = useTranslation();
   const [edgeMenu, setEdgeMenu] = useState(null);
     const [, setPast] = useState([]);
     const [, setFuture] = useState([]);    const isUndoRedoAction = React.useRef(false);  useEffect(() => {
@@ -441,7 +442,7 @@ function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, se
           type: 'umlNode',
           position: getSafePosition(nodes),
           data: { 
-            label: `Nodo ${nextId}`, 
+            label: `${t('reactFlow.classNode')} ${nextId}`, 
             attributes: []
           }
         };
@@ -459,7 +460,7 @@ function ReactFlowViewer({ isDarkMode, nodes, setNodes, onNodesChange, edges, se
             id: `pkg-${nextId}`,
             type: 'umlPackage',
             position: getSafePosition(nodes),
-            data: { label: `Paquete ${nextId}` },
+            data: { label: `${t('reactFlow.packageNode')} ${nextId}` },
             style: { width: 350, height: 350 }
           };
           setNodes((nds) => [...nds, newPkg]);
@@ -665,10 +666,10 @@ const onNodeDragStop = (event, node, nodes) => {
         </defs>
       </svg>
       <div className="react-flow-panel">
-        <button className="react-flow-btn" onClick={addNode}>+ Nodo</button>
-        <button className="react-flow-btn" onClick={addPackage}>+ Paquete</button>
+        <button className="react-flow-btn" onClick={addNode}>{t('reactFlow.addClass')}</button>
+        <button className="react-flow-btn" onClick={addPackage}>{t('reactFlow.addPackage')}</button>
         <button className="react-flow-btn-sync" onClick={generatePlantUMLFromGraph}>
-          Sincronizar a Código
+          {t('reactFlow.syncToCode')}
         </button>
       </div>
       <ReactFlow
@@ -709,15 +710,15 @@ const onNodeDragStop = (event, node, nodes) => {
           role="presentation"
         >
           <div style={{ padding: '4px 8px', fontSize: '12px', fontWeight: 'bold', color: isDarkMode ? '#bbb' : '#666', borderBottom: '1px solid #ccc', marginBottom: '4px' }}>
-            Tipo de Relación
+            {t('reactFlow.relationType')}
           </div>
           {[
-            { type: 'association', label: 'Asociación (-->)' },
-            { type: 'inheritance', label: 'Herencia (--|>)' },
-            { type: 'composition', label: 'Composición (*--)' },
-            { type: 'aggregation', label: 'Agregación (o--)' },
-            { type: 'dependency', label: 'Dependencia (..>)' },
-            { type: 'realization', label: 'Realización (..|>)' }
+            { type: 'association', label: t('reactFlow.relations.association') },
+            { type: 'inheritance', label: t('reactFlow.relations.inheritance') },
+            { type: 'composition', label: t('reactFlow.relations.composition') },
+            { type: 'aggregation', label: t('reactFlow.relations.aggregation') },
+            { type: 'dependency', label: t('reactFlow.relations.dependency') },
+            { type: 'realization', label: t('reactFlow.relations.realization') }
           ].map(rel => (
             <button
               key={rel.type}
@@ -765,7 +766,7 @@ const onNodeDragStop = (event, node, nodes) => {
             onMouseEnter={(e) => e.target.style.background = 'rgba(255, 68, 68, 0.1)'}
             onMouseLeave={(e) => e.target.style.background = 'transparent'}
           >
-            Eliminar relación
+            {t('reactFlow.deleteRelation')}
           </button>
         </div>
       )}

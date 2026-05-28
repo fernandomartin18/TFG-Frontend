@@ -1,0 +1,262 @@
+{
+  "profile": {
+    "unsavedChanges": "¿Quieres guardar los cambios antes de cerrar?",
+    "changePhoto": "Cambiar foto",
+    "removePhoto": "Eliminar foto",
+    "name": "NOMBRE",
+    "usernamePlaceholder": "Nombre de usuario",
+    "changePassword": "CAMBIAR CONTRASEÑA",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "confirmNewPassword": "Confirmar nueva contraseña",
+    "others": "OTROS",
+    "darkMode": "Modo oscuro",
+    "language": "Idioma",
+    "languageOptions": {
+      "es": "Español",
+      "en": "Inglés",
+      "default": "Por defecto"
+    },
+    "logout": "Cerrar sesión",
+    "saveChanges": "Guardar cambios",
+    "errors": {
+      "minUsername": "Mínimo 3 caracteres",
+      "passwordFieldsRequired": "Debes completar todos los campos de contraseña",
+      "passwordMinLength": "La nueva contraseña debe tener al menos 6 caracteres",
+      "passwordRequirements": "La contraseña debe contener al menos una mayúscula, una minúscula y un número",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden",
+      "changePasswordError": "Error al cambiar contraseña",
+      "saveError": "Error al guardar los cambios"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Iniciar Sesión",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "tu@email.com",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "••••••••",
+      "submitButton": "Iniciar Sesión",
+      "submittingButton": "Iniciando sesión...",
+      "noAccount": "¿No tienes cuenta?",
+      "registerLink": "Regístrate"
+    },
+    "register": {
+      "title": "Crear Cuenta",
+      "nameLabel": "Nombre",
+      "namePlaceholder": "Nombre",
+      "confirmPasswordLabel": "Repetir Contraseña",
+      "submitButton": "Registrarse",
+      "submittingButton": "Registrando...",
+      "alreadyHaveAccount": "¿Ya tienes cuenta?",
+      "loginLink": "Inicia sesión"
+    },
+    "errors": {
+      "invalidEmail": "Formato de email inválido",
+      "minPassword": "Mínimo 6 caracteres",
+      "passwordRequirements": "Debe incluir mayúscula, minúscula y número",
+      "loginError": "Error al iniciar sesión",
+      "minUsername": "Mínimo 3 caracteres",
+      "maxUsername": "Máximo 50 caracteres",
+      "invalidUsername": "Solo letras, números, guiones",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden",
+      "registerError": "Error al registrar usuario"
+    }
+  },
+  "reactFlow": {
+    "classNode": "Clase",
+    "packageNode": "Paquete",
+    "addClass": "+ Clase",
+    "addPackage": "+ Paquete",
+    "syncToCode": "Sincronizar a Código",
+    "relationType": "Tipo de Relación",
+    "relations": {
+      "association": "Asociación (-->)",
+      "inheritance": "Herencia (--|>)",
+      "composition": "Composición (*--)",
+      "aggregation": "Agregación (o--)",
+      "dependency": "Dependencia (..>)",
+      "realization": "Realización (..|>)"
+    },
+    "deleteRelation": "Eliminar relación"
+  },
+  "projects": {
+    "selector": {
+      "newProject": "Nuevo proyecto",
+      "noProjects": "No tienes proyectos aún"
+    },
+    "modal": {
+      "newProject": "Nuevo proyecto",
+      "editProject": "Editar proyecto",
+      "projectName": "Nombre del proyecto",
+      "cancel": "Cancelar",
+      "save": "Guardar"
+    }
+  },
+  "models": {
+    "selector": {
+      "model": "Modelo",
+      "noLLMs": "No hay LLMs",
+      "loading": "Cargando...",
+      "auto": "Auto"
+    },
+    "info": {
+      "title": "Información sobre modelos",
+      "p1": "Aquí se mostrarán los modelos que tengas instalados en Ollama.",
+      "p2_1": "Para buscar modelos disponibles, ",
+      "link": "pulsa aquí",
+      "p2_2": ".",
+      "p3": "Instala el que desees vía terminal usando el comando:",
+      "code": "ollama pull <nombre_del_modelo[:parámetros]>",
+      "p4": "Para que funcione el módo automático, es necesario tener un modelo con reconocimiento de imágenes y otro con capacidades de lenguaje instalados.",
+      "close": "Cerrar"
+    },
+    "config": {
+      "title": "Configuración Modo Auto",
+      "default": "Por defecto",
+      "defaultDesc": "Selecciona automáticamente el mejor modelo disponible equipado con visión (para leer imágenes y PlantUML) y luego el modelo de lenguaje más potente para generar el código.",
+      "custom": "Personalizado",
+      "visionModel": "Modelo Multimodal (Visión)",
+      "codingModel": "Modelo Generador de Código"
+    }
+  },
+  "plantUml": {
+    "title": "Editor PlantUML",
+    "loading": "Cargando...",
+    "noTemplates": "No hay plantillas disponibles.",
+    "newTemplate": "Nueva plantilla",
+    "useTemplate": "Usar",
+    "titlePlaceholder": "Escribe el título...",
+    "codePlaceholder": "Escribe aquí tu código PlantUML...",
+    "errors": {
+      "delete": "Error borrando plantilla: {{error}}",
+      "saveValidation": "Por favor, pon un título y un código a tu plantilla.",
+      "save": "Error al guardar la plantilla: {{error}}"
+    },
+    "tabs": {
+      "templates": "Plantillas",
+      "code": "Código",
+      "diagram": "Diagrama"
+    },
+    "actions": {
+      "cancel": "Cancelar",
+      "accept": "Aceptar",
+      "save": "Guardar"
+    },
+    "templates": {
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "defaultName": "Mi nueva plantilla",
+      "selectToViewCode": "Selecciona una plantilla para ver su código",
+      "diagramHere": "El diagrama aparecerá aquí"
+    }
+  },
+  "kroki": {
+    "syntaxError": "Error de sintaxis: No se pudo renderizar el diagrama PlantUML de forma válida.",
+    "emptyMessage": "El código está vacío. Escribe PlantUML para ver el diagrama.",
+    "rendering": "Renderizando..."
+  },
+  "sidebar": {
+    "openPanel": "Abrir panel",
+    "closePanel": "Cerrar panel",
+    "newChat": "Nuevo chat",
+    "searchChats": "Buscar chats",
+    "searchPlaceholder": "Buscar por título o fecha",
+    "closeSearch": "Cerrar búsqueda",
+    "loadingChats": "Cargando chats...",
+    "noChatsFound": "No se encontraron chats",
+    "noSavedChats": "No hay chats guardados",
+    "projects": "Proyectos",
+    "newProject": "Nuevo proyecto",
+    "pinned": "Fijados",
+    "recent": "Recientes",
+    "projectMenu": {
+      "emptyChatExists": "Ya existe un chat vacío en este proyecto",
+      "newChatTooltip": "Crear nuevo chat en este proyecto",
+      "newChat": "Nuevo chat en proyecto",
+      "editTitle": "Editar título",
+      "delete": "Eliminar"
+    },
+    "newChatDefaultName": "Nuevo Chat"
+  },
+  "chatMenu": {
+    "optionsLabel": "Opciones del chat",
+    "deleteConfirmText": "¿Eliminar este chat?",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "unpin": "Desfijar",
+    "pin": "Fijar",
+    "removeFromProject": "Retirar de proyecto",
+    "addToProject": "Añadir a proyecto",
+    "editTitle": "Editar título"
+  },
+  "images": {
+    "uploader": {
+      "add": "Añadir imagen",
+      "max": "Máximo 5 imágenes",
+      "selectVisionModel": "Selecciona un modelo con visión o Auto para añadir imágenes",
+      "view": "Ver imágenes",
+      "cannotRead": "El modelo seleccionado no puede leer imágenes"
+    },
+    "modal": {
+      "close": "Cerrar",
+      "delete": "Eliminar"
+    },
+    "dropdown": {
+      "delete": "Eliminar"
+    }
+  },
+  "codeSidebar": {
+    "closePanel": "Cerrar panel",
+    "openPanel": "Abrir panel",
+    "downloadCode": "Descargar código",
+    "downloadAllCodes": "Descargar todos los códigos",
+    "mixedCode": "Mixed Code ({{count}} archivos)",
+    "modal": {
+      "download": "Descargar código",
+      "close": "Cerrar",
+      "copied": "Copiado!",
+      "copy": "Copiar",
+      "copyCode": "Copiar código"
+    }
+  },
+  "chatInput": {
+    "deleteTemplateConfirm": "¿Seguro que quieres borrar esta plantilla?",
+    "createDiagramTitle": "Crear diagrama PlantUML",
+    "createTemplate": "Crear plantilla",
+    "promptTemplatesTitle": "Plantillas de Prompt",
+    "inputPlaceholder": "Escribe tu mensaje...",
+    "editAsTextTitle": "Editar como texto libre",
+    "editAsText": "Editar como texto",
+    "viewTemplates": "Ver plantillas",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "editTemplateModalTitle": "Editar plantilla",
+    "createTemplateModalTitle": "Crear plantilla",
+    "templateModalInfo": "Para insertar campos a rellenar cuando uses la plantilla, escribe aquello que debería insertarse en el campo entre corchetes.",
+    "templateModalExample": "Por ejemplo: ",
+    "templateModalExampleSpan": "[Especificar Lenguaje]",
+    "templateTitlePlaceholder": "Título de la plantilla",
+    "templatePromptPlaceholder": "Escribe tu prompt con las [variables]...",
+    "saveChanges": "Guardar Cambios",
+    "create": "Crear"
+  },
+  "chatView": {
+    "plantumlPrompt": "Dado este código plantuml, genera los códigos necesarios en [INDICAR LENGUAJE]. Implementa correctamente las clases, métodos, y las relaciones orientadas a objetos (herencia, composición, etc.) que se aprecien visualmente y, antes de enviar cada código, indica en texto el paquete al que pertenece si es que los hay.",
+    "untitledChat": "Chat sin título",
+    "newChat": "Nuevo Chat",
+    "loadError": "Error al cargar el chat. Por favor, intenta de nuevo.",
+    "emptyState": "¿En qué puedo ayudarte hoy?",
+    "message": {
+      "copied": "¡Copiado!",
+      "copyCode": "Copiar código",
+      "generatingPlantUML": "Generando PlantUML",
+      "collapse": "Contraer",
+      "expand": "Expandir",
+      "noDiagramError": "No se ha detectado ningún diagrama UML",
+      "editDiagram": "Editar diagrama",
+      "editPlantUML": "Editar PlantUML"
+    },
+    "aiError": "Error al comunicarse con la IA. Verifica que el backend esté corriendo."
+  }
+}

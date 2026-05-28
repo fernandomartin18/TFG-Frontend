@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { MdDownload, MdClose } from 'react-icons/md'
 import { FaCopy } from 'react-icons/fa6'
@@ -7,6 +8,7 @@ import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import '../css/CodeModal.css'
 
 function CodeModal({ code, language, onClose, onDownload }) {
+  const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(
     document.documentElement.dataset.theme === 'dark'
@@ -71,14 +73,14 @@ function CodeModal({ code, language, onClose, onDownload }) {
             <button
               className="code-modal-button download"
               onClick={onDownload}
-              title="Descargar código"
+              title={t('codeSidebar.modal.download')}
             >
               <MdDownload />
             </button>
             <button
               className="code-modal-button close"
               onClick={onClose}
-              title="Cerrar"
+              title={t('codeSidebar.modal.close')}
             >
               <MdClose />
             </button>
@@ -92,15 +94,15 @@ function CodeModal({ code, language, onClose, onDownload }) {
               <button
                 className={`copy-button ${copied ? 'copied' : ''}`}
                 onClick={handleCopy}
-                title={copied ? 'Copiado!' : 'Copiar código'}
+                title={copied ? t('codeSidebar.modal.copied') : t('codeSidebar.modal.copyCode')}
               >
                 {copied ? (
                   <>
-                    <FaCopy /> Copiado!
+                    <FaCopy /> {t('codeSidebar.modal.copied')}
                   </>
                 ) : (
                   <>
-                    <FaCopy /> Copiar
+                    <FaCopy /> {t('codeSidebar.modal.copy')}
                   </>
                 )}
               </button>

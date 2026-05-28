@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { IoIosArrowBack } from 'react-icons/io'
 import { MdDownload } from 'react-icons/md'
@@ -7,6 +8,7 @@ import CodeModal from './CodeModal'
 import '../css/CodeSidebar.css'
 
 function CodeSidebar({ codeRequests }) {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [selectedCode, setSelectedCode] = useState(null)
 
@@ -285,7 +287,7 @@ function CodeSidebar({ codeRequests }) {
     }
     
     // Por defecto, usar los lenguajes
-    return `Mixed Code (${codes.length} archivos)`
+    return t('codeSidebar.mixedCode', { count: codes.length })
   }
 
   const downloadCode = (code, language, fileName) => {
@@ -411,7 +413,7 @@ function CodeSidebar({ codeRequests }) {
       <button
         className={`sidebar-toggle-button ${isOpen ? 'open' : ''}`}
         onClick={toggleSidebar}
-        aria-label={isOpen ? 'Cerrar panel' : 'Abrir panel'}
+        aria-label={isOpen ? t('codeSidebar.closePanel') : t('codeSidebar.openPanel')}
       >
         <IoIosArrowBack className={`toggle-icon ${isOpen ? 'rotated' : ''}`} />
       </button>
@@ -441,7 +443,7 @@ function CodeSidebar({ codeRequests }) {
                   <button
                     className="download-all-button"
                     onClick={() => downloadAllCodes(requestIndex, request.codes, request.userMessage, sectionTitle)}
-                    title={request.codes.length === 1 ? 'Descargar código' : 'Descargar todos los códigos'}
+                    title={request.codes.length === 1 ? t('codeSidebar.downloadCode') : t('codeSidebar.downloadAllCodes')}
                   >
                     <MdDownload />
                   </button>
@@ -488,7 +490,7 @@ function CodeSidebar({ codeRequests }) {
                                 const fileName = generateDescriptiveName(code.content, code.language, request.userMessage)
                                 downloadCode(code.content, code.language, fileName)
                               }}
-                              title="Descargar código"
+                              title={t('codeSidebar.modal.download')}
                             >
                               <MdDownload />
                             </button>

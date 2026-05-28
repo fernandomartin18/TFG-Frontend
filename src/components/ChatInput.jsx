@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { createPortal } from 'react-dom'
 import PropTypes from 'prop-types'
 import { IoSend } from 'react-icons/io5'
@@ -13,6 +14,7 @@ import { fetchWithAuth } from '../services/api.service'
 import '../css/ChatInput.css'
 
 function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, autoModeConfig, onAutoModeConfigChange, images, onImagesChange, initialInput = '', onInputClear = () => {}, currentChatId }) {
+  const { t } = useTranslation()
   const [input, setInput] = useState(initialInput)
   const [activeTemplateConfig, setActiveTemplateConfig] = useState(null)
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false)
@@ -196,7 +198,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
   };
 
   const deleteTemplate = async (templateId) => {
-    if (!globalThis.confirm('¿Seguro que quieres borrar esta plantilla?')) return;
+    if (!globalThis.confirm(t('chatInput.deleteTemplateConfirm'))) return;
     try {
       const response = await fetchWithAuth(`http://localhost:3000/api/templates/${encodeURIComponent(Number(templateId))}`, {
         method: 'DELETE'
@@ -224,7 +226,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
             type="button"
             className="add-image-button"
             onClick={() => navigate('/editor', { state: { createNew: true, chatId: currentChatId } })}
-            title="Crear diagrama PlantUML"
+            title={t('chatInput.createDiagramTitle')}
             style={{ position: 'relative' }}
           >
             <BsDiagram2 size={24} />
@@ -262,9 +264,9 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
                   }}
                 >
                   <FiPlus size={14} />
-                  <span>Crear plantilla</span>
+                  <span>{t('chatInput.createTemplate')}</span>
                 </button>
-                <span className="prompt-templates-title">Plantillas de Prompt</span>
+                <span className="prompt-templates-title">{t('chatInput.promptTemplatesTitle')}</span>
                 <button type="button" className="close-btn" onClick={() => setIsTemplateMenuOpen(false)}>
                   <HiX />
                 </button>
@@ -356,7 +358,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Escribe tu mensaje..."
+              placeholder={t('chatInput.inputPlaceholder')}
               className="chat-input"
               rows={1}
             />
@@ -367,7 +369,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
               <button 
                 type="button"
                 className="edit-text-btn"
-                title="Editar como texto libre"
+                title={t('chatInput.editAsTextTitle')}
                 onClick={() => {
                   const text = activeTemplateConfig.parts.map(p => p.type === 'var' ? (activeTemplateConfig.values[p.id] || `[${p.label}]`) : p.content).join('');
                   setInput(text);
@@ -376,14 +378,14 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
                 }}
               >
                 <HiPencil size={16} />
-                <span>Editar como texto</span>
+                <span>{t('chatInput.editAsText')}</span>
               </button>
             )}
             <button 
               type="button" 
               className="action-icon-btn" 
               onClick={() => setIsTemplateMenuOpen(prev => !prev)}
-              title="Ver plantillas"
+              title={t('chatInput.viewTemplates')}
             >
               <HiOutlineLightBulb size={22} />
             </button>
@@ -421,13 +423,13 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
             editTemplate(contextMenu.template);
             setContextMenu(prev => ({ ...prev, isVisible: false }));
           }}>
-             <HiPencil size={16} /> Editar
+             <HiPencil size={16} /> {t('chatInput.edit')}
           </button>
           <button className="delete" onClick={() => {
             deleteTemplate(contextMenu.template.id);
             setContextMenu(prev => ({ ...prev, isVisible: false }));
           }}>
-            <FaTrash size={14} /> Eliminar
+            <FaTrash size={14} /> {t('chatInput.delete')}
           </button>
         </div>,
         document.body
@@ -452,26 +454,26 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
             <button className="template-modal-close" onClick={() => setIsCreateTemplateModalOpen(false)}>
               <HiX size={20} />
             </button>
-            <h3 className="template-modal-title">{editingTemplateId ? 'Editar plantilla' : 'Crear plantilla'}</h3>
+            <h3 className="template-modal-title">{editingTemplateId ? t('chatInput.editTemplateModalTitle') : t('chatInput.createTemplateModalTitle')}</h3>
             
             <div className="template-modal-info">
               <HiOutlineInformationCircle size={24} style={{ flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <p>Para insertar campos a rellenar cuando uses la plantilla, escribe aquello que debería insertarse en el campo entre corchetes.</p>
-                <p className="template-modal-example">Por ejemplo: <span>[Especificar Lenguaje]</span></p>
+                <p>{t('chatInput.templateModalInfo')}</p>
+                <p className="template-modal-example">{t('chatInput.templateModalExample')}<span>{t('chatInput.templateModalExampleSpan')}</span></p>
               </div>
             </div>
 
             <div className="template-modal-form">
               <input 
                 type="text" 
-                placeholder="Título de la plantilla" 
+                placeholder={t('chatInput.templateTitlePlaceholder')} 
                 value={newTemplateTitle}
                 onChange={e => setNewTemplateTitle(e.target.value)}
                 className="template-modal-input"
               />
               <textarea 
-                placeholder="Escribe tu prompt con las [variables]..."
+                placeholder={t('chatInput.templatePromptPlaceholder')}
                 value={newTemplatePrompt}
                 onChange={e => setNewTemplatePrompt(e.target.value)}
                 className="template-modal-textarea"
@@ -482,7 +484,7 @@ function ChatInput({ onSendMessage, isLoading, selectedModel, onModelChange, aut
                 disabled={!newTemplateTitle.trim() || !newTemplatePrompt.trim()}
                 onClick={handleCreateTemplate}
               >
-                {editingTemplateId ? 'Guardar Cambios' : 'Crear'}
+                {editingTemplateId ? t('chatInput.saveChanges') : t('chatInput.create')}
               </button>
             </div>
           </div>

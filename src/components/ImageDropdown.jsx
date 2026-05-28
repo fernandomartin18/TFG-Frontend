@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { MdDelete } from 'react-icons/md'
 import '../css/ImageDropdown.css'
 
 function ImageDropdown({ images, onImageClick, onDeleteImage, onClose, showDeleteButton = true, showBelow = false }) {
+  const { t } = useTranslation()
   const dropdownRef = useRef(null)
 
   useEffect(() => {
@@ -51,7 +53,7 @@ function ImageDropdown({ images, onImageClick, onDeleteImage, onClose, showDelet
               type="button"
               className="image-dropdown-delete"
               onClick={(e) => handleDelete(e, index)}
-              aria-label="Eliminar"
+              aria-label={t('images.dropdown.delete')}
             >
               <MdDelete size={18} />
             </button>

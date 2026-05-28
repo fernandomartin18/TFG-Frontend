@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
+import { useTranslation } from 'react-i18next'
 
 function KrokiViewer({ code }) {
+  const { t } = useTranslation()
   const [diagramSvg, setDiagramSvg] = useState('')
   const [isRendering, setIsRendering] = useState(false)
   const [renderError, setRenderError] = useState(null)
@@ -37,7 +39,7 @@ function KrokiViewer({ code }) {
         setDiagramSvg(svgContent)
       } catch (err) {
         console.error('Error rendering diagram:', err)
-        setRenderError('Error de sintaxis: No se pudo renderizar el diagrama PlantUML de forma válida.')
+        setRenderError(t('kroki.syntaxError'))
       } finally {
         setIsRendering(false)
       }
@@ -48,7 +50,7 @@ function KrokiViewer({ code }) {
 
   return (
     <>
-      {isRendering && <div className="plantuml-rendering-overlay">Renderizando...</div>}
+      {isRendering && <div className="plantuml-rendering-overlay">{t('kroki.rendering')}</div>}
       
       {renderError ? (
         <div className="plantuml-render-error">
@@ -72,7 +74,7 @@ function KrokiViewer({ code }) {
           </TransformWrapper>
         ) : (
           <div className="plantuml-render-error" style={{ backgroundColor: 'transparent', borderColor: 'transparent', color: 'var(--text-color)' }}>
-            <p>El código está vacío. Escribe PlantUML para ver el diagrama.</p>
+            <p>{t('kroki.emptyMessage')}</p>
           </div>
         )
       )}
