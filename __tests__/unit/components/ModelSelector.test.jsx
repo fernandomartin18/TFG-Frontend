@@ -224,7 +224,7 @@ describe('ModelSelector Component', () => {
     fireEvent.click(button);
 
     // Open cog icon
-    const configBtn = await screen.findByTitle('Configurar modo Auto');
+    const configBtn = await screen.findByTitle('Configuración Modo Auto');
     fireEvent.click(configBtn);
 
     // Modal is opened
@@ -265,8 +265,8 @@ describe('ModelSelector Component', () => {
 
     const dropdownBtn = screen.getByText('Modelo').closest('button');
     fireEvent.click(dropdownBtn);
-    await waitFor(() => expect(screen.getByTitle('Configurar modo Auto')).toBeInTheDocument());
-    const configBtn = screen.getByTitle('Configurar modo Auto');
+    await waitFor(() => expect(screen.getByTitle('Configuración Modo Auto')).toBeInTheDocument());
+    const configBtn = screen.getByTitle('Configuración Modo Auto');
     fireEvent.click(configBtn);
 
     const visionSelect = screen.getByLabelText('Modelo Multimodal (Visión)');
@@ -317,8 +317,8 @@ describe('ModelSelector Component', () => {
 
     const dropdownBtn = screen.getByText('Modelo').closest('button');
     fireEvent.click(dropdownBtn);
-    await waitFor(() => expect(screen.getByTitle('Configurar modo Auto')).toBeInTheDocument());
-    const configBtn = screen.getByTitle('Configurar modo Auto');
+    await waitFor(() => expect(screen.getByTitle('Configuración Modo Auto')).toBeInTheDocument());
+    const configBtn = screen.getByTitle('Configuración Modo Auto');
     fireEvent.click(configBtn);
 
     // Cambiar a personalizado disparando inicializacion de variables con defaults

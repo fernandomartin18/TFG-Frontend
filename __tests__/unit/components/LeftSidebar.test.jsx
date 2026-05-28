@@ -111,7 +111,7 @@ describe('LeftSidebar Component', () => {
     });
     
     // Test the normal new chat button
-    const buttons = screen.getAllByRole('button', { name: /Crear nuevo chat/i });
+    const buttons = screen.getAllByRole('button', { name: /Nuevo chat/i });
     fireEvent.click(buttons[0]);
     expect(props.onNewChat).toHaveBeenCalled();
   });
@@ -380,9 +380,9 @@ describe('LeftSidebar Component', () => {
   it('displays login button when offline', async () => {
     renderComponent({...mockProps, isAuthenticated: false, isOpen: true});
     await waitFor(() => {
-      expect(screen.getByText('Iniciar sesión')).toBeInTheDocument();
+      expect(screen.getByText(/Iniciar sesión/i)).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByText('Iniciar sesión'));
+    fireEvent.click(screen.getByText(/Iniciar sesión/i));
   });
 
   it('disables interactions when isLoading is true', async () => {
@@ -450,7 +450,7 @@ describe('LeftSidebar Component', () => {
       );
     });
 
-    const btn = screen.getByText('Iniciar sesión');
+    const btn = screen.getByText(/Iniciar sesión/i);
     fireEvent.click(btn);
     // Since handleLogin navigates to /login it should not crash
     expect(btn).toBeInTheDocument();

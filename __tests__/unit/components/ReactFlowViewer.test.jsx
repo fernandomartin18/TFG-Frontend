@@ -121,7 +121,7 @@ Account *-- Transaction
     const flow = screen.getByTestId('react-flow');
     
     // Add Node
-    fireEvent.click(screen.getByText('+ Nodo'));
+    fireEvent.click(screen.getByText('+ Clase'));
     await waitFor(() => {
       const nodesData = JSON.parse(flow.getAttribute('data-nodes'));
       expect(nodesData.some(n => n.type === 'umlNode')).toBe(true);
@@ -182,7 +182,7 @@ Account *-- Transaction
     render(<ViewerWrapper code="" />);
     
     // Create node to push history
-    fireEvent.click(screen.getByText('+ Nodo'));
+    fireEvent.click(screen.getByText('+ Clase'));
     
     // Simulate ctrl+Z
     fireEvent.keyDown(document, { key: 'z', ctrlKey: true });
@@ -205,7 +205,7 @@ Account *-- Transaction
     
     // Simula crear un nodo y paquete para tener algo en el flow
     fireEvent.click(screen.getByText('+ Paquete'));
-    fireEvent.click(screen.getByText('+ Nodo'));
+    fireEvent.click(screen.getByText('+ Clase'));
     
     // Esto va a probar la primera rama: arrastrar a nada
     fireEvent.click(screen.getByTestId('mock-drag-stop-1'));
