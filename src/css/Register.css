@@ -195,6 +195,11 @@
   transition: opacity 0.2s ease;
 }
 
+.password-toggle svg,
+.password-toggle svg path {
+  fill: #7D39EB;
+}
+
 .password-toggle:hover {
   opacity: 0.7;
 }
@@ -247,14 +252,12 @@
   text-align: center;
   font-size: 1rem;
   color: var(--text-color);
-  opacity: 0.6;
 }
 
 .auth-link {
-  color: #7d39eb;
+  color: #7D39EB;
   font-weight: 600;
   text-decoration: none;
-  transition: opacity 0.2s ease;
 }
 
 .auth-link:hover {
