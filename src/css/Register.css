@@ -6,6 +6,10 @@
   position: relative;
 }
 
+[data-theme="dark"] .auth-container {
+  background-color: #000000;
+}
+
 /* Logo pequeño arriba a la izquierda */
 .top-logo {
   position: absolute;
