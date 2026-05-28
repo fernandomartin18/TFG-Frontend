@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { RiEye2Line, RiEyeCloseLine } from 'react-icons/ri'
@@ -24,6 +24,15 @@ function Register() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const html = document.documentElement
+    if (!html.dataset.theme) {
+      const savedTheme = localStorage.getItem('theme')
+      html.dataset.theme = savedTheme ||
+        (globalThis.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    }
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
