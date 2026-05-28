@@ -6,9 +6,11 @@ import { RiChatNewLine } from 'react-icons/ri'
 import { IoSearch } from "react-icons/io5"
 import { MdKeyboardArrowDown, MdEdit } from 'react-icons/md'
 import { FaFolderPlus, FaTrash } from 'react-icons/fa'
+import { IoSettingsSharp } from 'react-icons/io5'
 import genesisLogo from '../assets/Genesis_Sign_Violet.png'
 import genesisHorizontal from '../assets/Genesis_Horizontal_Violet.png'
 import UserProfile from './UserProfile'
+import UserProfileModal from './UserProfileModal'
 import ChatOptionsMenu from './ChatOptionsMenu'
 import ProjectSelector from './ProjectSelector'
 import ProjectModal from './ProjectModal'
@@ -31,6 +33,7 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
   const [projectModalMode, setProjectModalMode] = useState('create') // 'create' | 'edit'
   const [editingProject, setEditingProject] = useState(null)
   const [projectContextMenu, setProjectContextMenu] = useState(null)
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
   const searchInputRef = useRef(null)
   const projectContextMenuRef = useRef(null)
 
@@ -634,7 +637,16 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
               )
             ) : (
               isOpen && (
-                <button className="login-button" onClick={handleLogin}>{t('auth.login.title')}</button>
+                <div className="unauth-footer">
+                  <button className="login-button" onClick={handleLogin}>{t('auth.login.title')}</button>
+                  <button 
+                    className="settings-button unauth-settings" 
+                    onClick={() => setShowSettingsModal(true)}
+                    aria-label={t('settings.title')}
+                  >
+                    <IoSettingsSharp />
+                  </button>
+                </div>
               )
             )}
           </div>
@@ -694,6 +706,16 @@ const LeftSidebar = forwardRef(({ isOpen, setIsOpen, isAuthenticated, isDarkThem
             <span>{t('sidebar.projectMenu.delete')}</span>
           </button>
         </div>
+      )}
+
+      {/* Modal de ajustes (solo tema e idioma para usuarios sin sesión) */}
+      {showSettingsModal && (
+        <UserProfileModal
+          onClose={() => setShowSettingsModal(false)}
+          isDarkTheme={isDarkTheme}
+          onToggleTheme={onToggleTheme}
+          settingsOnly={true}
+        />
       )}
     </>
   )
