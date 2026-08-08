@@ -4,6 +4,131 @@
 
 # Genesis Frontend
 
+A modern web application built for seamless interaction with language models (LLMs) and hybrid code generation. Built with **React** and **Vite**, Genesis delivers a rich user experience, multimodal support, and advanced code management tools.
+
+> 🌐 **Learn more:** Visit the [Genesis landing page](https://fernandomartin.tech/genesis) for a full project overview.
+
+> 🛠️ This is the Frontend repository for Genesis. For step-by-step installation instructions for the whole ecosystem, see [INSTALACION.md](./INSTALACION.md).
+
+## 📑 Table of Contents
+
+- [✨ Key Features](#-key-features)
+- [📂 Project Structure](#-project-structure)
+- [🏗️ Architecture & Components](#️-architecture--components)
+- [🐛 Common Frontend Troubleshooting](#-common-frontend-troubleshooting)
+
+## ✨ Key Features
+
+### 💬 Intelligent Chat Experience
+- **Real-Time Streaming:** Instant display of LLM responses token-by-token.
+- **Smart Multimodal Support:** Send up to 5 images per message. The system detects and processes UML diagrams automatically when using compatible vision models.
+- **Markdown Rendering:** Rich syntax highlighting for over 200 languages.
+- **Dedicated Code Manager:** Sidebar to isolate, preview, copy, and export generated code snippets (ZIP support).
+- **Smart Auto-Scroll:** Detects when you're reading older messages and avoids interrupting your view with new incoming content.
+
+### 🔐 Authentication & Security
+- **Full JWT System:** Registration, login, and background refresh of access and refresh tokens.
+- **Persistent Sessions:** Secure state storage. Guest interactions are saved to localStorage and synced upon login.
+
+### 📂 Advanced Conversation Management
+- **Flexible Organization:** Create, edit, delete, and pin important chats.
+- **Powerful Search:** Quickly find conversations by title (partial match) or dates in multiple formats (DD/MM/YYYY, etc.).
+- **Automatic Titles:** The system generates descriptive chat names based on the initial conversation context using AI.
+
+### 🎨 Design & UI
+- **Adaptive Theme:** Native light/dark mode support based on system preference or manual toggle.
+- **Responsive Layout:** Interface adapted for mobile, tablet, and desktop.
+- **Collapsible Sidebar:** Maximize reading space by hiding chat history when not needed.
+- **Multilingual Support:** Interface available in Spanish and English with instant language switching.
+
+---
+
+## 📂 Project Structure
+
+```text
+frontend/
+├── public/              # Static assets
+├── src/
+│   ├── App.jsx         # Root component with routing
+│   ├── main.jsx        # Application entrypoint
+│   ├── assets/         # Images, icons, logos
+│   ├── components/     # React components
+│   │   ├── Chat.jsx                  # Main chat view
+│   │   ├── ChatInput.jsx             # Input with model selector and image support
+│   │   ├── ChatMessage.jsx           # Message rendering with Markdown
+│   │   ├── ChatOptionsMenu.jsx       # Conversation context menu
+│   │   ├── CodeModal.jsx             # Fullscreen code viewer modal
+│   │   ├── CodeSidebar.jsx           # Sidebar with code snippets
+│   │   ├── ImageDropdown.jsx         # Dropdown to manage images
+│   │   ├── ImageModal.jsx            # Full-size image modal
+│   │   ├── ImageUploader.jsx         # Upload and preview images
+│   │   ├── LeftSidebar.jsx           # Sidebar with chat list
+│   │   ├── LoadingDots.jsx           # Loading animation
+│   │   ├── Login.jsx                 # Login form
+│   │   ├── ModelSelector.jsx         # LLM selector
+│   │   ├── Register.jsx              # Registration form
+│   │   ├── ThemeToggle.jsx           # Light/dark theme toggle
+│   │   ├── UserProfile.jsx           # User profile
+│   │   └── UserProfileModal.jsx      # User profile modal
+│   ├── css/            # Modular CSS styles (one per component)
+│   ├── i18n/           # Internationalization and translations (ES/EN)
+│   └── services/       # Services and business logic
+│       ├── api.service.js      # HTTP client with automatic auth
+│       ├── auth.service.js     # JWT authentication management
+│       └── chat.service.js     # CRUD for conversations and messages
+├── index.html          # Base HTML
+├── package.json        # Dependencies and scripts
+├── vite.config.js      # Vite configuration
+├── eslint.config.js    # ESLint configuration
+├── README.md           # This file
+└── AUTHENTICATION.md   # Detailed authentication docs
+```
+---
+
+## 🏗️ Architecture & Components
+
+The Genesis UI is organized into modular components designed to maximize reusability and performance.
+
+```text
+App.jsx
+├── Login / Register
+└── Main Chat
+  ├── LeftSidebar: History
+  ├── Chat: Messages & Streaming
+  │   ├── ChatInput: Text & Images
+  │   └── ChatMessage: Markdown
+  └── CodeSidebar: Snippets
+```
+
+### Key Components
+
+- **Chat.jsx:** The heart of the application. Orchestrates global conversation state, message streaming, automatic title generation, and pre/post authentication sync.
+- **ChatMessage.jsx:** Rendering engine. Uses `react-markdown` and `react-syntax-highlighter` for formatting, dynamic themes (vscDarkPlus/vs), and embedded UML diagrams (PlantUML).
+- **ModelSelector.jsx:** Intelligent LLM selector. Communicates with the backend to list available models and includes an Auto Mode to delegate model choice based on context (text vs. vision).
+- **ImageUploader.jsx & ImageDropdown.jsx:** Attachment management with drag & drop, thumbnail preview, model compatibility validation for vision models, and full-size viewer.
+- **CodeSidebar.jsx:** Extractor panel that parses responses, isolates code blocks, generates semantic filenames (based on classes/functions), and allows single or bulk exports.
+
+## 🐛 Common Frontend Troubleshooting
+
+If you encounter UI-specific issues, check these common fixes:
+
+#### 🔴 "Cannot connect to backend"
+Verify your API Gateway (Node.js) is running and responding at `http://localhost:3000/api/health`.
+
+#### 🔴 CORS Errors
+Ensure the `ALLOWED_ORIGINS` variable in the backend includes `http://localhost:5173` (Vite default port).
+
+#### 🔴 Interface doesn't render code correctly
+Check that the models you are using emit standard code blocks in Markdown format (``` ```language ... ```).
+
+---
+
+<div align="center">
+  <img src="src/assets/Genesis_Horizontal_Violet.png" alt="Genesis Logo" width="400" />
+</div>
+
+# Genesis Frontend
+
 Una aplicación web moderna diseñada para la interacción fluida con modelos de lenguaje (LLM) y la generación de código híbrido. Construida sobre **React** y **Vite**, Genesis proporciona una experiencia de usuario rica, soporte multimodal, y herramientas avanzadas de gestión de código.
 
 > 🌐 **Descubre más:** Puedes visitar la [Landing Page de Genesis](https://fernandomartin.tech/genesis) para ver una presentación completa del proyecto.
@@ -40,84 +165,3 @@ Una aplicación web moderna diseñada para la interacción fluida con modelos de
 - **Diseño Responsivo:** Interfaz adaptada a dispositivos móviles, tablets y escritorio.
 - **Sidebar Colapsable:** Maximiza tu espacio de lectura y revisión de código ocultando el historial de chats cuando no lo necesites.
 - **Soporte Multilingüe:** Interfaz y aplicación disponibles en Español e Inglés, con cambio de idioma instantáneo.
-
----
-
-## 📂 Estructura del Proyecto
-
-```text
-frontend/
-├── public/              # Recursos estáticos
-├── src/
-│   ├── App.jsx         # Componente raíz con enrutamiento
-│   ├── main.jsx        # Punto de entrada de la aplicación
-│   ├── assets/         # Imágenes, iconos, logos
-│   ├── components/     # Componentes React
-│   │   ├── Chat.jsx                  # Vista principal del chat
-│   │   ├── ChatInput.jsx             # Input con selector de modelo e imágenes
-│   │   ├── ChatMessage.jsx           # Renderizado de mensajes con Markdown
-│   │   ├── ChatOptionsMenu.jsx       # Menú contextual de conversaciones
-│   │   ├── CodeModal.jsx             # Modal para ver código en pantalla completa
-│   │   ├── CodeSidebar.jsx           # Sidebar con snippets de código
-│   │   ├── ImageDropdown.jsx         # Dropdown para gestionar imágenes
-│   │   ├── ImageModal.jsx            # Modal para ver imágenes en grande
-│   │   ├── ImageUploader.jsx         # Subida y preview de imágenes
-│   │   ├── LeftSidebar.jsx           # Sidebar con lista de chats
-│   │   ├── LoadingDots.jsx           # Animación de carga
-│   │   ├── Login.jsx                 # Formulario de inicio de sesión
-│   │   ├── ModelSelector.jsx         # Selector de modelos LLM
-│   │   ├── Register.jsx              # Formulario de registro
-│   │   ├── ThemeToggle.jsx           # Toggle de tema claro/oscuro
-│   │   ├── UserProfile.jsx           # Perfil de usuario
-│   │   └── UserProfileModal.jsx      # Modal de configuración de perfil
-│   ├── css/            # Estilos CSS modulares (uno por componente)
-│   ├── i18n/           # Configuración de internacionalización y traducciones (ES/EN)
-│   └── services/       # Servicios y lógica de negocio
-│       ├── api.service.js      # Cliente HTTP con autenticación automática
-│       ├── auth.service.js     # Gestión de autenticación JWT
-│       └── chat.service.js     # CRUD de conversaciones y mensajes
-├── index.html          # HTML base
-├── package.json        # Dependencias y scripts
-├── vite.config.js      # Configuración de Vite
-├── eslint.config.js    # Configuración de ESLint
-├── README.md           # Este archivo
-└── AUTHENTICATION.md   # Documentación detallada de autenticación
-```
-
----
-
-## 🏗️ Arquitectura y Componentes
-
-La interfaz de Genesis se estructura en componentes modulares diseñados para maximizar la reusabilidad y el rendimiento.
-
-```text
-App.jsx
-├── Login / Register
-└── Chat principal
-    ├── LeftSidebar: Historial
-    ├── Chat: Mensajes y Streaming
-    │   ├── ChatInput: Texto e Imágenes
-    │   └── ChatMessage: Markdown
-    └── CodeSidebar: Snippets
-```
-
-### Componentes Clave
-
-- **`Chat.jsx`:** El corazón de la aplicación. Orquesta el estado global de la conversación, el streaming de mensajes, la generación de títulos automáticos y la sincronización pre/post autenticación.
-- **`ChatMessage.jsx`:** Motor de renderizado. Utiliza `react-markdown` y `react-syntax-highlighter` para dar formato, aplicar temas dinámicos (vscDarkPlus/vs) y soportar diagramas UML embebidos (PlantUML).
-- **`ModelSelector.jsx`:** Selector inteligente de LLMs. Se comunica con el backend para listar modelos disponibles y cuenta con un **Modo Auto** para delegar la selección al sistema según el contexto (texto vs. visión).
-- **`ImageUploader.jsx` & `ImageDropdown.jsx`:** Sistema de gestión de adjuntos con soporte *drag & drop*, previsualización en miniatura, validación de modelos compatibles con visión y visor de tamaño completo.
-- **`CodeSidebar.jsx`:** Panel extractor que analiza las respuestas, aísla bloques de código, genera nombres de archivo semánticos (basados en clases/funciones) y permite exportación individual o masiva.
-
-## 🐛 Resolución de Problemas Comunes (Frontend)
-
-Si encuentras dificultades específicas de la interfaz, revisa estas soluciones comunes:
-
-#### 🔴 "Cannot connect to backend"
-Verifica que tu API Gateway (Node.js) esté corriendo y responde en `http://localhost:3000/api/health`.
-
-#### 🔴 Errores CORS
-Asegúrate de que la variable `ALLOWED_ORIGINS` en el backend incluye `http://localhost:5173` (el puerto por defecto de Vite).
-
-#### 🔴 La interfaz no renderiza código correctamente
-Comprueba que los modelos que estás utilizando emiten bloques de código estándar en formato Markdown (```` ```lenguaje ... ``` ````).
